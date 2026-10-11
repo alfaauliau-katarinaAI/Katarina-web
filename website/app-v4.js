@@ -39,19 +39,24 @@ function showEvent(ev){
  addLink(b,"Jadwal resmi",ev.source);addLink(b,"Sumber konsensus",ev.forecastSource);
 }
 function showNews(item,index){
- const b=showDialog((item.source||"Berita ekonomi").toUpperCase()+" · "+presentDate(item.publishedAt),item.title);if(!b)return;
- if(item.relevanceNote)addBlock(b,"Kaitan terhadap "+selected,item.relevanceNote);
- if(item.essence)addBlock(b,"Konteks berita",item.essence);
- if(item.impact)addBlock(b,"Dampak makro potensial",item.impact);
- if(item.watch)addBlock(b,"Perlu dipantau",item.watch);
- if(item.market&&!item.essence)addBlock(b,"Kaitan ke "+selected,"Pernyataan ini berasal dari "+item.market+" dan terkait dengan salah satu faktor kebijakan instrumen. Detail dampak baru dapat disimpulkan setelah membaca berita sumber dan reaksi pasar.");
- addLink(b,"Buka sumber berita",item.url);
+ const b=showDialog((item.source||"Berita pasar")+" · "+presentDate(item.publishedAt),item.titleId||item.title);if(!b)return;
+ if(item.titleId&&item.titleId!==item.title)addBlock(b,"Judul asli penerbit",item.title);
+ if(item.relevanceNote)addBlock(b,"Mengapa berpengaruh ke "+selected,item.relevanceNote);
+ if(item.essence)addBlock(b,"Intinya",item.essence);
+ if(item.impact)addBlock(b,"Dampak yang mungkin terjadi",item.impact);
+ if(item.watch)addBlock(b,"Yang perlu diperhatikan",item.watch);
+ if(item.market&&!item.essence){
+  const cur=item.market,part=selected.startsWith(cur)?"mata uang dasar":selected.endsWith(cur)?"mata uang pembanding":"salah satu pemicu makro";
+  addBlock(b,"Pengaruh ke "+selected,"Kabar dari otoritas "+cur+" berkaitan dengan "+part+" dalam "+selected+". Jika kebijakan membuat "+cur+" menguat relatif terhadap pasangannya, "+selected+" bisa "+(selected.startsWith(cur)?"naik":selected.endsWith(cur)?"turun":"berubah arah")+". Arah akhirnya tetap harus dilihat dari isi keputusan dan reaksi harga.");
+ }
+ addLink(b,"Baca berita aslinya",item.url);
  const originalIdx=feed.findIndex(x=>x.url===item.url);
  if(item.url&&originalIdx>=0&&originalIdx<2&&!item.market){
- const note=e("p",null,"Memeriksa ringkasan artikel…");b.append(note);
- get("/api/ai-news?index="+originalIdx).then(a=>{if(!b.isConnected)return;if(a.status==="ai-full-article"&&a.url===item.url){
-  note.textContent="Ringkasan berdasarkan isi artikel dari penerbit";addBlock(b,"Inti fakta",a.summary);addBlock(b,"Penggerak",a.drivers);addBlock(b,"Analisis dampak",a.impact);addBlock(b,"Pantauan",a.watch);addBlock(b,"Batasan",a.uncertainty);
- }else note.textContent="Analisis mendalam belum tersedia untuk berita ini."}).catch(()=>{if(note.isConnected)note.textContent="Ringkasan mendalam belum tersedia."});
+  const note=e("p",null,"Memeriksa isi artikelnya…");b.append(note);
+  get("/api/ai-news?index="+originalIdx).then(a=>{if(!b.isConnected)return;if(a.status==="ai-full-article"&&a.url===item.url){
+   note.textContent="Ringkasan berdasarkan isi artikel penerbit";
+   addBlock(b,"Fakta utama",a.summary);addBlock(b,"Apa pemicunya?",a.drivers);addBlock(b,"Dampak untuk pasar",a.impact);addBlock(b,"Yang perlu dipantau",a.watch);addBlock(b,"Yang belum pasti",a.uncertainty);
+  }else note.textContent="Isi lengkap artikel belum berhasil dianalisis."}).catch(()=>{if(note.isConnected)note.textContent="Ringkasan lengkap belum tersedia."});
  }
 }
 function eventCard(ev){
@@ -62,9 +67,14 @@ function eventCard(ev){
 }
 function newsCard(item,index,officialItem=false){
  const btn=e("button",officialItem?"pair-news-card":"news-card");btn.type="button";
- const top=e("span",officialItem?"date":"news-top",item.source+" · "+presentDate(item.publishedAt));btn.append(top,e("strong",null,item.title));
- if(!officialItem&&item.essence)btn.append(e("p",null,item.essence));
- btn.append(e("span","read",officialItem?"Baca sumber & konteks →":"Baca analisa →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
+ btn.append(e("span",officialItem?"date":"news-top",(item.source||"Berita pasar")+" · "+presentDate(item.publishedAt)),
+ e("strong",null,item.titleId||item.title));
+ if(!officialItem&&item.essence&&page==="dashboard")btn.append(e("p",null,item.essence.replace(/^Pokok isu:\s*/i,"")));
+ if(page==="research"){
+  const blurb=officialItem?"Kebijakan "+item.market+" bisa mengubah kekuatan mata uang terhadap "+selected+". Periksa arah reaksinya.":item.relevanceNote||item.impact;
+  if(blurb)btn.append(e("small","impact-brief","Dampak: "+blurb.slice(0,235)));
+ }
+ btn.append(e("span","read","Baca dampaknya →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
 }
 function menu(){
  const panel=$("menu-sheet"),back=$("menu-backdrop"),open=$("menu-toggle");
@@ -151,9 +161,39 @@ function drawTV(symbol){
 }
 function renderCot(symbol){
  const box=$("cot-box");if(!box)return;box.replaceChildren();
- if(!cot||cot.symbol!==symbol||!cot.data?.length){box.append(e("p","empty-state","Posisi COT futures yang cocok belum tersedia untuk instrumen ini."));return}
- for(const x of cot.data){const row=e("div","cot-row"),left=e("div");left.append(e("b",null,x.currency+" · "+x.contract),e("small",null,"Per "+presentDate(x.asOf+"T12:00:00Z")+" · leveraged money"));row.append(left,e("strong",x.netContracts>=0?"positive":"negative",(x.netContracts>=0?"+":"")+Number(x.netContracts).toLocaleString("id-ID")));box.append(row)}
- const f=e("p","empty-state","Posisi bersih adalah long dikurangi short pada futures, bukan prediksi pair spot. Untuk "+symbol+", baca mata uang dasar berhadapan dengan mata uang kuotasi.");box.append(f);
+ if(!cot||cot.symbol!==symbol||!Array.isArray(cot.data)||!cot.data.length){
+  box.append(e("p","empty-state","Data posisi futures yang relevan untuk "+symbol+" belum tersedia. Tidak semua pair spot punya kontrak COT langsung."));
+  return;
+ }
+ const data=new Map(cot.data.map(x=>[x.currency,x]));
+ const cn=x=>Number(x).toLocaleString("id-ID",{maximumFractionDigits:1});
+ for(const x of cot.data){
+  const row=e("div","cot-row"),left=e("div");
+  left.append(e("b",null,x.currency+" · "+(x.netContracts>0?"Lebih banyak beli":"Lebih banyak jual")),
+   e("small",null,"Per "+presentDate(x.asOf+"T12:00:00Z")+" · "+(x.report?.includes("Managed")?"pelaku spekulatif logam":"pelaku leveraged money")));
+  const exposure=e("div","cot-values");
+  exposure.append(e("strong",x.netContracts>=0?"positive":"negative",(x.netContracts>=0?"+":"")+cn(x.netContracts)+" kontrak"),
+  e("small",null,(x.netPctOI>=0?"+":"")+cn(x.netPctOI)+"% dari open interest"));
+  row.append(left,exposure);box.append(row);
+ }
+ const base=symbol.slice(0,3),quote=symbol.slice(3),lhs=data.get(base),rhs=data.get(quote);
+ let title="Artinya untuk "+symbol+":",body="";
+ if(symbol==="XAUUSD"||symbol==="XAGUSD"){
+  const x=data.get(symbol==="XAUUSD"?"GOLD":"SILVER");
+  if(x)body=x.netContracts>0?"Pelaku spekulatif masih memegang posisi beli bersih di futures "+x.contract+". Ini menunjukkan kecenderungan posisi mendukung logam, tetapi kalau posisi sudah terlalu ramai, risiko koreksi juga meningkat. Bandingkan dengan yield riil dan arah dolar.":"Di futures "+x.contract+", posisi jual lebih dominan daripada beli. Ini dapat menunjukkan kehati-hatian terhadap logam; penguatan mendadak tetap bisa memicu penutupan posisi jual. Perhatikan yield AS dan dolar.";
+ }else if(lhs&&rhs){
+  const spread=lhs.netPctOI-rhs.netPctOI;
+  body="Untuk "+symbol+", kita bandingkan kontrak "+base+" dengan "+quote+", bukan menjumlahkan kontrak mentah. "+base+" tercatat "+cn(lhs.netPctOI)+"% open interest dan "+quote+" "+cn(rhs.netPctOI)+"%. "+
+  (spread>1?"Secara relatif, posisi spekulatif lebih mendukung "+base+"; ini bisa memberi tekanan naik pada "+symbol+".":spread< -1?"Secara relatif, posisi spekulatif lebih mendukung "+quote+"; ini bisa memberi tekanan turun pada "+symbol+".":"Kekuatan posisinya relatif berimbang; COT belum memberi keunggulan arah yang jelas.")+
+  " Konfirmasi tetap perlu lewat harga dan faktor makro.";
+ }else if(rhs){
+  body="Kita punya COT futures "+quote+", bukan kontrak spot "+symbol+". "+(rhs.netContracts<0?"Posisi jual bersih "+quote+" lebih besar. Kalau mata uang pembanding melemah, "+symbol+" punya peluang menguat.":"Posisi beli bersih "+quote+" lebih besar. Kalau mata uang pembanding menguat, "+symbol+" berpotensi tertekan.")+
+  " Ini hanya petunjuk positioning; arah dolar dan suku bunga juga menentukan.";
+ }else if(lhs){
+  body="Posisi futures "+base+" sedang "+(lhs.netContracts>=0?"lebih banyak beli":"lebih banyak jual")+". Jika "+base+" menguat relatif terhadap "+quote+", "+symbol+" berpotensi naik; kalau melemah bisa sebaliknya. Data "+quote+" belum tersedia sehingga pembandingnya belum lengkap.";
+ }else{body="Belum tersedia pasangan kontrak futures yang cukup untuk menilai "+symbol+" secara relatif."}
+ const info=e("div","cot-explanation");info.append(e("strong",null,title),e("p",null,body));box.append(info);
+ box.append(e("p","cot-meta-note","COT adalah snapshot mingguan posisi futures, bukan aliran order real-time. Nilai bersih = kontrak beli dikurangi jual. Positif bukan jaminan harga naik."));
 }
 function renderResearch(){
  const token=++liveReq,p=profileFor(selected),bars=priceSeries(p),s=signal(bars);
@@ -174,34 +214,17 @@ function renderResearch(){
  const sentiment=$("sentiment-map");if(sentiment){sentiment.replaceChildren();const metrics=[
   ["Struktur harga",s?(s.lead==="menguat"?"Cenderung naik":s.lead==="melemah"?"Cenderung turun":"Berimbang"):"Belum cukup",s?(s.lead==="menguat"?77:s.lead==="melemah"?23:50):50],
   ["Momentum 5 sesi",s?(s.week>=.25?"Positif":s.week<=-.25?"Negatif":"Netral"):"Belum cukup",s?Math.max(10,Math.min(90,50+s.week*6)):50],
-  ["Faktor moneter",(selected.length===6&&!commodities[selected]?selected.slice(0,3)+" vs "+selected.slice(3):"Makro global"),null],
-  ["COT (mingguan)","Menunggu CFTC",null]];
+  ["Faktor moneter",(selected.length===6&&!commodities[selected]?selected.slice(0,3)+" vs "+selected.slice(3):"Makro global"),null]];
   for(const [k,val,progress]of metrics){const row=e("div","sentiment-item"),bar=e("div","sentiment-bar"),line=e("i");line.style.width=(progress===null?0:progress)+"%";bar.append(line);row.append(e("span",null,k),bar,e("strong",null,val));sentiment.append(row)}
  }
  cot=null;renderCot(selected);
  const ev=$("pair-events");if(ev){ev.replaceChildren();const chosen=pairEvents(selected);for(const x of chosen)ev.append(eventCard(x));if(!chosen.length)ev.append(e("p","empty-state","Belum ada agenda terbaru yang spesifik terhadap "+selected+". Berita bank sentral tetap dipantau."))}
  const news=$("pair-news");if(news){news.replaceChildren(e("p","empty-state","Menelusuri sumber yang relevan untuk "+selected+"…"))}
- get("/api/cot?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;cot=v;renderCot(selected);renderSentimentCot()}).catch(()=>{if(token===liveReq)renderCot(selected)});
+ get("/api/cot?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;cot=v;renderCot(selected)}).catch(()=>{if(token===liveReq)renderCot(selected)});
  get("/api/pair-news?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;official=v?.items||[];renderPairNews()}).catch(()=>{if(token===liveReq){official=[];renderPairNews()}});
  window.dispatchEvent(new CustomEvent("katarina:pair-change",{detail:{symbol:selected}}));
 }
-function renderSentimentCot(){
- const div=$("sentiment-map");if(!div)return;const row=div.querySelectorAll(".sentiment-item")[3];if(!row)return;
- const b=row.querySelector("strong"),bar=row.querySelector(".sentiment-bar i");
- if(!cot?.data?.length){if(b)b.textContent="Belum tersedia";if(bar)bar.style.width="0%";return}
- const data=new Map(cot.data.map(x=>[x.currency,x]));
- let score=null,explain="";
- if(commodities[selected]){
-  const key=selected==="XAUUSD"?"GOLD":selected==="XAGUSD"?"SILVER":null,measure=data.get(key);
-  if(measure){score=Math.max(15,Math.min(85,50+measure.netPctOI));explain=key+": "+(measure.netContracts>=0?"bersih beli":"bersih jual")}
- }else{
-  const base=selected.slice(0,3),quote=selected.slice(3),lhs=data.get(base),rhs=data.get(quote);
-  if(lhs||rhs){const delta=(lhs?.netPctOI||0)-(rhs?.netPctOI||0);
-   score=Math.max(15,Math.min(85,50+delta));explain=(lhs?base+" "+(lhs.netContracts>=0?"net long":"net short"):"")+(lhs&&rhs?" · ":"")+(rhs?quote+" "+(rhs.netContracts>=0?"net long":"net short"):"")}
- }
- if(b)b.textContent=explain||"Belum tersedia";
- if(bar)bar.style.width=score===null?"0%":score+"%";
-}
+function renderSentimentCot(){ /* Penjelasan COT sekarang hanya ada di panel COT agar tidak berulang. */ }
 function renderPairNews(){
  const box=$("pair-news");if(!box)return;box.replaceChildren();
  let result=official;

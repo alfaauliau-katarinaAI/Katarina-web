@@ -6,7 +6,13 @@ const FEEDS = [
   ["CNBC Pasar","https://www.cnbc.com/id/10000664/device/rss/rss.html","www.cnbc.com"],
   ["CNBC Dunia","https://www.cnbc.com/id/100727362/device/rss/rss.html","www.cnbc.com"],
   ["CNBC Utama","https://www.cnbc.com/id/100003114/device/rss/rss.html","www.cnbc.com"],
-  ["Federal Reserve","https://www.federalreserve.gov/feeds/press_monetary.xml","www.federalreserve.gov"]
+  ["CNBC Ekonomi","https://www.cnbc.com/id/20910258/device/rss/rss.html","www.cnbc.com"],
+  ["CNBC Bisnis","https://www.cnbc.com/id/10001147/device/rss/rss.html","www.cnbc.com"],
+  ["CNBC Asia","https://www.cnbc.com/id/19832390/device/rss/rss.html","www.cnbc.com"],
+  ["CNBC Eropa","https://www.cnbc.com/id/19794221/device/rss/rss.html","www.cnbc.com"],
+  ["CNBC Politik","https://www.cnbc.com/id/10000113/device/rss/rss.html","www.cnbc.com"],
+  ["Federal Reserve","https://www.federalreserve.gov/feeds/press_monetary.xml","www.federalreserve.gov"],
+  ["Biro Statistik Tenaga Kerja AS","https://www.bls.gov/feed/bls_latest.rss","www.bls.gov"]
 ];
 const TOPICS = /\b(fed|federal reserve|fomc|rates?|bonds?|treasur(?:y|ies)|inflation|cpi|ppi|nfp|oil|crude|energy|gold|silver|dollar|forex|currenc(?:y|ies)|yen|euro|pound|markets?|wall street|stocks?|equities|nasdaq|dow jones|geopolitic\w*|iran|saudi|china|tariffs?|commodit\w*|payrolls?|employment|central bank|crypto\w*|bitcoin|debt|yields?|jpmorgan|banks?|econom\w*|recession|monetary|interest|imf|world bank)\b/i;
 const EXCLUDED = /\b(NBA|NFL|basketball|baseball|soccer|football|hockey|tennis|athlete|celebrity|movie|entertainment|music awards|actor|streaming series)\b/i;
@@ -81,13 +87,13 @@ async function source([name,feed,host],now){
   finally{clearTimeout(id)}
 }
 export async function onRequestGet({request}){
-  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v2",request.url).toString());
+  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v3",request.url).toString());
   try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
   const now=Date.now();
   const batches=await Promise.all(FEEDS.map(feed=>source(feed,now)));
   const uniq=new Map();
   for(const item of batches.flat()){if(!uniq.has(item.url))uniq.set(item.url,item)}
-  const items=[...uniq.values()].sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt)).slice(0,12);
+  const items=[...uniq.values()].sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt)).slice(0,30);
   const ok=items.length>0;
   const data={schema:1,kind:"attributed-headline-feed",updatedAt:new Date(now).toISOString(),status:ok?"source-headlines":"temporarily-unavailable",items};
   const response=new Response(JSON.stringify(data),{status:ok?200:503,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":ok?"public, max-age=0, s-maxage=900":"no-store","X-Content-Type-Options":"nosniff"}});

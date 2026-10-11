@@ -19,7 +19,11 @@ async function feed(def){
    const title=tag(item,"title"),raw=tag(item,"link"),pub=tag(item,"pubDate")||tag(item,"dc:date");
    if(title.length<15||title.length>220)continue;
    let u;try{u=new URL(raw)}catch{continue}
-   if(u.protocol!=="https:"||!u.hostname.endsWith(host.replace(/^www\./,""))||u.hostname.includes("evil"))continue;
+   // Some official BoJ feeds publish http links; upgrade the known institutional host.
+   if(u.protocol==="http:"&&u.hostname===host)u.protocol="https:";
+   if(u.protocol!=="https:"||!(u.hostname===host||u.hostname==="www."+host.replace(/^www\./,""))||u.hostname.includes("evil"))continue;
+   // Avoid banknote artwork, technology notices, and unrelated releases.
+   if(!/policy|monetary|econom|inflation|interest|rates?|yen|bank|bond|stability|outlook|meeting|minutes|survey|tankan|growth|forecast|trade|money|prices?|financial|statement|speech|consumer|inflation|funding|employment|wages?|credit|liquidity|financ/i.test(title)||/banknotes?|animal|cloud outage|website|recruitment|competition|anniversary|lecture|museum|internship/i.test(title))continue;
    const t=Date.parse(pub);if(!Number.isFinite(t)||Date.now()-t>10*86400000||t>Date.now()+1800000)continue;
    items.push({title,url:u.href,publishedAt:new Date(t).toISOString(),source:currency,market:currency});
   }return items;

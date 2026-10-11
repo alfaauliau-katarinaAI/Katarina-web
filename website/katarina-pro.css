@@ -41,3 +41,10 @@ header.shell .navlinks a.active{color:#fff!important;background:#0a314e!importan
 .kt-unified .kt-analysis-terminal{display:none!important}
 @media(max-width:850px){.kt-pro-tv-widget{height:590px}.kt-pro-chart-context{top:auto;bottom:14px;right:12px}}
 @media(max-width:590px){.kt-pro-workstation{padding:8px}.kt-pro-workstation-top{padding:11px 9px 15px}.kt-pro-tv-widget{height:525px;min-height:420px}.kt-pro-chart-context{bottom:9px;right:8px;width:min(292px,calc(100% - 16px))}.kt-pro-chart-context>button{padding:10px;font-size:9px}.kt-pro-chart-foot{padding:10px}.kt-home-v2 .kt-v2-hero-main{padding:24px 18px}}
+
+/* Multi-asset ticker tape, separate from historical KATARINA snapshots */
+.kt-pro-tape{display:grid;grid-template-columns:minmax(190px,250px) minmax(0,1fr);margin:0 0 16px;border:1px solid #244863;border-radius:11px;background:#061626;overflow:hidden;min-height:58px}
+.kt-pro-tape-label{display:flex;flex-direction:column;justify-content:center;padding:11px 15px;font-size:10px;font-weight:850;letter-spacing:.12em;color:#6bddf8;border-right:1px solid #1c3d58}
+.kt-pro-tape-label small{font-weight:450;letter-spacing:0;color:#83acc3;margin-top:4px;font-size:9px;line-height:1.5}
+.kt-pro-tape .tradingview-widget-container{width:100%;min-height:57px;overflow:hidden}
+@media(max-width:760px){.kt-pro-tape{grid-template-columns:1fr}.kt-pro-tape-label{border-right:0;border-bottom:1px solid #1c3d58;padding:9px 12px}.kt-pro-tape .tradingview-widget-container{min-height:55px}}

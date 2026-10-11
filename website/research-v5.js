@@ -65,7 +65,7 @@ function refreshAI(symbol){
 function render(symbol){
  if(!market?.series||!symbol)return;const ctx=context?.find(x=>x.id===symbol),rows=market.series[ctx?.chart||keys[symbol]||symbol.toLowerCase()]?.bars;
  const s=signal(rows),metrics=$("deep-metrics"),explainer=$("research-explainer"),path=$("scenario-path"),risk=$("risk-checklist");
- if(!metrics||!explainer||!path||!risk)return;
+ if(!metrics||!explainer||!risk)return;
  metrics.replaceChildren();explainer.replaceChildren();path.replaceChildren();risk.replaceChildren();
  if(!s){metrics.append(el("p","empty-state","Belum tersedia candle yang cukup untuk indikator dan proyeksi "+symbol+"."));$("forecast-direction").textContent="Data belum cukup";const aiHost=$("pair-ai-overview");if(aiHost)aiHost.textContent="Data belum cukup untuk analisa mendalam.";return}
  const last=new Date(s.last[0]*1000),d=date(last);
@@ -87,12 +87,10 @@ function render(symbol){
  const more=ctx?.drivers?.slice(0,2)||[];
  if(more.length)panel.append(el("p",null,"Pemicu yang perlu dibandingkan: "+more.join("; ")+"."));
  explainer.append(panel);
- path.append(line("Harga terakhir",fmt(s.close,symbol)+" · "+d),line("Skenario naik","Butuh penutupan kuat di atas "+fmt(s.up,symbol)+". Jika terkonfirmasi, amati ruang gerak sampai sekitar "+fmt(s.up+s.atr,symbol)+" (ekstensi 1 ATR, bukan target pasti)."),line("Skenario turun","Butuh penutupan di bawah "+fmt(s.down,symbol)+". Jika berlanjut, amati kisaran sekitar "+fmt(s.down-s.atr,symbol)+" (ekstensi 1 ATR, bukan target pasti)."),line("Titik batal skenario","Kembalinya harga dan bertahannya penutupan di dalam rentang "+fmt(s.down,symbol)+"–"+fmt(s.up,symbol)+" membuat dugaan breakout perlu dikaji ulang."));
  const events=(calendar?.events||[]).filter(x=>x?.dateWIB&&x?.source&&(x.instrumentImpact?.[symbol]>=3||symbol.includes("USD")&&x.region==="AS")).slice(0,3);
  if(events.length){for(const ev of events)risk.append(line(ev.title,"Rilis "+ev.dateWIB+" · aktual vs prediksi dapat mengubah volatilitas "+symbol+". Pantau respons setelah lonjakan awal."))}
  else risk.append(line("Perubahan ekspektasi suku bunga","Perhatikan rilis dan pernyataan bank sentral yang menggerakkan mata uang pembentuk "+symbol+"."));
  risk.append(line("Posisi pasar & korelasi","COT hanya mencatat futures mingguan. Bandingkan juga perubahan yield, dolar, dan selera risiko sebelum menyimpulkan arah."),line("Kesegaran data","Peta ini dihitung dari candle harian historis sampai "+d+". Grafik TradingView bisa bergerak lebih cepat; periksa harga terkini sebelum mengambil keputusan."));
- overlay(s,symbol);
  refreshAI(symbol);
 }
 const load=async()=>{

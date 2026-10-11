@@ -41,7 +41,11 @@ function showEvent(ev){
 function specificImpact(item,symbol){
  const title=String(item.title||"").toLowerCase(),pair=String(symbol||"XAUUSD");
  const base=pair.slice(0,3),quote=pair.slice(3),usd=pair.includes("USD"),jpy=pair.includes("JPY");
- if(/\b(fed|federal reserve|fomc|powell|lisa cook|judy shelton)\b/i.test(title))
+ if(/lisa cook/i.test(title))
+  return "Polemik Lisa Cook bisa memicu perdebatan soal independensi The Fed. Untuk "+pair+", pengaruhnya baru berarti kalau ekspektasi suku bunga dan yield AS ikut berubah.";
+ if(/judy shelton/i.test(title))
+  return "Masuknya penasihat ekonomi bukan otomatis perubahan kebijakan Fed. Pantau apakah pasar obligasi menilai ini sebagai sinyal baru untuk dolar dan "+pair+".";
+ if(/\b(fed|federal reserve|fomc|powell)\b/i.test(title))
   return "Isu The Fed bisa menggeser ekspektasi suku bunga dolar. Pantau yield Treasury: kalau USD menguat relatif mata uang lawan, "+pair+" berpotensi "+(base==="USD"?"naik":quote==="USD"?"turun":"ikut berubah")+".";
  if(/\b(treasury|bond|obligation|yield|bessent|obligasi|surat utang)\b/i.test(title))
   return "Perubahan imbal hasil obligasi memengaruhi daya tarik mata uang. Untuk "+pair+", bandingkan yield kedua negara agar arah pengaruhnya lebih jelas.";
@@ -298,7 +302,15 @@ function renderPairNews(){
   result=feed.filter(n=>pattern.test(n.title)).slice(0,6);
  }
  if(!result.length){box.append(e("p","empty-state","Belum ada pembaruan spesifik "+selected+" dari sumber yang terhubung."));return}
- for(const [i,x]of result.slice(0,16).entries())box.append(newsCard(x,i,Boolean(x.market)));
+ const seenTopics=new Set();let count=0;
+ for(const [i,x]of result.entries()){
+  if(count>=16)break;
+  const title=String(x.title||"").toLowerCase();
+  const key=/lisa cook/.test(title)?"fed-lisa-cook":/judy shelton/.test(title)?"fed-shelton":null;
+  if(key&&seenTopics.has(key))continue;
+  if(key)seenTopics.add(key);
+  box.append(newsCard(x,i,Boolean(x.market)));count++;
+ }
 }
 async function start(){
  menu();

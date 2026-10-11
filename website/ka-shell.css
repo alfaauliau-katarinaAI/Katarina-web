@@ -76,3 +76,23 @@ header.shell .lang{display:none!important}
 @media(max-width:800px){header.shell nav.nav{gap:7px}header.shell .wordmark small{display:none!important}.ka-primary a,.ka-navtrigger{padding:10px!important;font-size:11px}.kt-unified .kt-calendar-primary #economic-events{grid-template-columns:1fr!important}}
 @media(max-width:540px){header.shell nav.nav{flex-wrap:nowrap!important}header.shell .identity .mark{flex:0 0 34px!important;width:34px!important;height:34px!important}header.shell .identity .mark img{width:34px!important;height:34px!important}header.shell .wordmark b{font-size:14px!important}header.shell .navlinks.ka-nav-compact{gap:3px!important;flex:0 0 auto!important}.ka-primary{gap:3px!important}.ka-primary a,.ka-navtrigger{padding:9px 7px!important;min-height:36px!important;font-size:10px!important;white-space:nowrap}.ka-navtrigger:after{padding:2px;margin-left:6px}.ka-dialog-content{padding:16px 14px}.ka-dialog-bar{padding:12px}.ka-release{padding:14px}.kt-v2-hero-side{padding:19px!important}.kt-v2-hero h1{font-size:37px!important}.kt-v2-tickers{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ka-release-metrics b{font-size:11px}}
 @media(max-width:375px){header.shell .wordmark small{display:none!important}header.shell .identity .mark{display:none!important}header.shell .wordmark b{font-size:13px!important}.ka-primary a,.ka-navtrigger{font-size:9px!important;padding:9px 6px!important}}
+
+/* Compact news cards. Facts and context live in the modal. */
+.kt-hotnews-layout{display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr)!important;gap:11px!important}
+#kt-hotnews-featured,#kt-hotnews-list{min-width:0}
+#kt-hotnews-list{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+.ka-newscard{width:100%;height:100%;text-align:left;display:flex;flex-direction:column;align-items:stretch;gap:11px;border:1px solid #244253;border-radius:12px;background:#0a2132;color:#e9f5fc;padding:18px;cursor:pointer;min-width:0;min-height:0;transition:border-color .15s,background .15s}
+.ka-newscard:hover,.ka-newscard:focus-visible{border-color:#42abae;background:#103045;outline:none}
+.ka-news-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#77cbd6;font:750 10px system-ui}
+.ka-news-top time{color:#8daabb}
+.ka-news-title{font-weight:750;font-size:clamp(14px,1.55vw,18px);line-height:1.52;letter-spacing:-.015em;color:#f1f9ff}
+.ka-news-bottom{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.ka-news-bottom p{font-size:12px;line-height:1.7;margin:0;color:#afccda;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ka-news-bottom>span{font-size:11px;font-weight:800;color:#4ce5d8}
+#kt-hotnews-featured .ka-newscard{padding:21px;background:linear-gradient(140deg,#102d3f,#071b2d);border-color:#296279}
+#kt-hotnews-featured .ka-news-title{font-size:clamp(17px,2vw,24px)}
+#kt-hotnews-list .ka-newscard{padding:13px 15px;gap:7px}
+#kt-hotnews-list .ka-news-bottom p{display:none}
+#kt-hotnews-list .ka-news-title{font-size:13px;line-height:1.45}
+.ka-news-empty{padding:20px;font-size:13px;color:#a9cbdc}
+@media(max-width:780px){.kt-hotnews-layout{grid-template-columns:1fr!important}#kt-hotnews-list{grid-template-columns:1fr!important}}

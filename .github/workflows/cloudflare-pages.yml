@@ -44,6 +44,33 @@ jobs:
           command: pages deploy website --project-name=katarina-research --branch=main
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
+
+      - name: Disable legacy repository automatic Cloudflare deployments
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/katarina-research"
+          before="$(curl -fsSL -H "Authorization: Bearer ${CF_TOKEN}" "$api")"
+          echo "$before" | jq -e '.success == true' >/dev/null
+          original="$(echo "$before" | jq -r '.result.source.config.repo_name // ""')"
+          if [[ "$original" == "Katarina-AI" ]]; then
+            enabled="$(echo "$before" | jq -r '.result.source.config.production_deployments_enabled // true')"
+            preview="$(echo "$before" | jq -r '.result.source.config.preview_deployment_setting // "all"')"
+            if [[ "$enabled" != "false" || "$preview" != "none" ]]; then
+              echo "Disabling old Katarina-AI Git-triggered deployments; new Katarina-web Actions will deploy."
+              payload='{"source":{"type":"github","config":{"production_deployments_enabled":false,"preview_deployment_setting":"none","deployments_enabled":false}}}'
+              patched="$(curl -fsSL -X PATCH -H "Authorization: Bearer ${CF_TOKEN}" -H "Content-Type: application/json" --data "$payload" "$api")"
+              echo "$patched" | jq -e '.success == true' >/dev/null
+            fi
+            verify="$(curl -fsSL -H "Authorization: Bearer ${CF_TOKEN}" "$api")"
+            echo "$verify" | jq -e '.result.source.config.production_deployments_enabled == false and .result.source.config.preview_deployment_setting == "none"' >/dev/null
+            echo "Legacy auto-deploy disabled successfully."
+          else
+            echo "Cloudflare source is not old Katarina-AI (${original}); no source settings changed."
+          fi
+
       - name: Show production URLs
         run: |
           echo "Deployment requested from Katarina-web/main."

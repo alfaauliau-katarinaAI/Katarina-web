@@ -1,6 +1,6 @@
 name = "katarina-research"
 pages_build_output_dir = "./website"
-compatibility_date = "2026-10-12"
+compatibility_date = "2026-10-10"
 
 [ai]
 binding = "AI"

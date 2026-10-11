@@ -28,6 +28,31 @@ function topic(title){
   if(/\b(fed|fomc|inflation|cpi|ppi|rates?|treasury|bond|yield|monetary|payroll)\b/i.test(title))return "Suku Bunga / Inflasi";
   return "Pasar Global";
 }
+
+/* Rule-based Indonesian context. Headline/RSS description is not a verified full-article abstract.
+ * All impact statements are conditional scenarios, never claims of measured market moves.
+ */
+function context(title){
+ const t=title.toLowerCase();
+ if(/\b(houthi|iran|saudi|war|conflict|military|strike|missile|putin|kremlin|russia|diesel|oil|crude|opec)\b/.test(t))
+   return {essence:"Pokok isu: perkembangan geopolitik atau pasokan energi yang dapat mengubah premi risiko global.",impact:"Jika risiko gangguan pasokan meningkat, harga energi dan ekspektasi inflasi dapat tertekan naik; emas serta USD bisa diburu saat penghindaran risiko. Konfirmasi melalui minyak, imbal hasil AS dan XAUUSD.",watch:"Pantau minyak mentah, XAUUSD, DXY, imbal hasil obligasi dan kejelasan pernyataan resmi."};
+ if(/\b(fed|fomc|powell|central bank|interest rate|monetary|rate cut|rate hike)\b/.test(t))
+   return {essence:"Pokok isu: kebijakan atau kredibilitas bank sentral yang memengaruhi ekspektasi suku bunga.",impact:"Nada lebih ketat berpotensi mengangkat yield dan USD serta menekan aset berisiko atau emas; nada lebih longgar dapat memberi respons sebaliknya. Reaksi bergantung pada ekspektasi pasar sebelumnya.",watch:"Bandingkan pernyataan sumber resmi, futures suku bunga, yield Treasury, DXY dan emas."};
+ if(/\b(inflation|consumer price|producer price|cpi|ppi|price pressure)\b/.test(t))
+   return {essence:"Pokok isu: perubahan tekanan harga dan peluang revisi ekspektasi kebijakan moneter.",impact:"Inflasi di atas konsensus bisa mendorong yield/USD dan meningkatkan volatilitas emas, saham, serta forex; hasil di bawah konsensus belum tentu otomatis bullish bila pertumbuhan melemah.",watch:"Periksa data aktual versus konsensus, komponen inti, revisi dan reaksi yield dua tahun."};
+ if(/\b(payroll|jobs|employment|unemployment|wages|labor market)\b/.test(t))
+   return {essence:"Pokok isu: kondisi tenaga kerja, pertumbuhan dan kemampuan bank sentral menahan atau mengubah suku bunga.",impact:"Tenaga kerja di luar perkiraan dapat menggeser yield, USD, indeks dan emas. Arah tidak otomatis sama untuk tiap indikator; lihat upah, revisi dan tingkat pengangguran.",watch:"Periksa rilis resmi, revisi data, yield 2 tahun, DXY dan reaksi pasar berikutnya."};
+ if(/\b(bond|yield|deficit|debt|treasury|credit|fixed income|fiscal)\b/.test(t))
+   return {essence:"Pokok isu: obligasi, beban utang atau risiko fiskal yang memengaruhi biaya pendanaan.",impact:"Kenaikan premi risiko atau yield dapat membebani valuasi saham dan kurs tertentu; meningkatnya kekhawatiran kredit dapat mendorong permintaan aset defensif. Dampak bergantung negara serta tenor.",watch:"Pantau yield obligasi, spread kredit, indeks USD dan respons saham."};
+ if(/\b(tariff|trade|china|export|import|sanction|supply chain)\b/.test(t))
+   return {essence:"Pokok isu: kebijakan perdagangan, rantai pasokan atau hambatan lintas negara.",impact:"Tarif dan hambatan perdagangan dapat memengaruhi biaya impor, proyeksi inflasi, mata uang mitra dagang dan prospek pertumbuhan. Efek harga baru dapat dinilai setelah detail kebijakan jelas.",watch:"Verifikasi detail kebijakan, reaksi mata uang terkait, energi, yield dan komoditas."};
+ if(/\b(bitcoin|crypto|digital asset)\b/.test(t))
+   return {essence:"Pokok isu: perubahan kondisi pasar aset digital dan selera risiko.",impact:"Perubahan regulasi, likuiditas atau arus modal dapat memperbesar volatilitas kripto. Dampak ke USD, saham dan emas tidak selalu searah.",watch:"Pantau pengumuman resmi, likuiditas, BTCUSD dan sentimen saham teknologi."};
+ if(/\b(gold|silver|bullion|precious metal)\b/.test(t))
+   return {essence:"Pokok isu: harga logam mulia dan faktor permintaan aset pelindung nilai.",impact:"Yield riil, dolar AS, permintaan fisik serta risiko geopolitik dapat menggerakkan emas/perak dengan arah berbeda. Jangan simpulkan hanya dari satu judul.",watch:"Amati DXY, yield riil AS, harga emas/perak dan volatilitas setelah rilis."};
+ return {essence:"Pokok isu: perubahan sentimen pasar, laba, valuasi atau kondisi pembiayaan yang diberitakan penerbit.",impact:"Sentimen risiko dapat merambat ke indeks saham, kurs dan obligasi, tetapi arah dan besar dampaknya harus dikonfirmasi menggunakan data harga serta sumber lengkap.",watch:"Periksa konteks artikel, indeks saham utama, DXY dan imbal hasil obligasi."};
+}
+
 async function source([name,feed,host],now){
   const controller=new AbortController();
   const id=setTimeout(()=>controller.abort(),8000);
@@ -49,7 +74,7 @@ async function source([name,feed,host],now){
       const date=new Date(timestamp);
       if(host==="www.cnbc.com"&&!u.pathname.includes("/"+date.getUTCFullYear()+"/"+String(date.getUTCMonth()+1).padStart(2,"0")+"/"))continue;
       u.hash="";u.search="";
-      found.push({title,source:name,url:u.href,publishedAt:date.toISOString(),category:topic(title),language:"en"});
+      found.push({title,source:name,url:u.href,publishedAt:date.toISOString(),category:topic(title),language:"en",...context(title),contextBasis:"Penjelasan bersyarat berdasarkan topik judul; periksa artikel lengkap untuk rincian."});
     }
     return found;
   }catch{return []}

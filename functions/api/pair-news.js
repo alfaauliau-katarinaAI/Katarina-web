@@ -1,3 +1,4 @@
+import {onRequestGet as marketHeadlines} from "./hot-news.js";
 /* Official bank news by symbol, priority weights genuinely differ per selected currency. */
 const DEFS={
  USD:["Fed","https://www.federalreserve.gov/feeds/press_monetary.xml","www.federalreserve.gov"],
@@ -32,13 +33,51 @@ async function feed(def){
 export async function onRequestGet({request}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!VALID.test(symbol))return new Response(JSON.stringify({status:"invalid-symbol"}),{status:400,headers:{"Content-Type":"application/json"}});
- const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=policy-v3",u));
+ const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v4",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
  const currencies=symbol==="XAUUSD"||symbol==="XAGUSD"||symbol==="BTCUSD"||["US30","US500","NASDAQ"].includes(symbol)?["USD"]:symbol.length===6?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
  const selected=[...new Set(currencies.filter(x=>DEFS[x]))].map(x=>[x,...DEFS[x].slice(1)]);
- const all=(await Promise.all(selected.map(feed))).flat().sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
- const seen=new Set(),unique=all.filter(x=>{if(seen.has(x.url))return false;seen.add(x.url);return true}).slice(0,12);
- const res=new Response(JSON.stringify({schema:1,status:unique.length?"official-updates":"no-relevant-official-release",symbol,items:unique,sourcePolicy:"official-central-bank-headlines"}),{headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=0, s-maxage=900"}});
+ const bank=(await Promise.all(selected.map(feed))).flat();
+ // Headlines are references, not republished article content.
+ const words={
+ USD:/\b(fed|fomc|powell|dollar|treasury|u\.s\.|united states|us inflation|cpi|nfp|payroll|yields?|wall street|american economy)\b/i,
+ JPY:/\b(japan|japanese|yen|boj|tokyo|ueda|jgb|intervention)\b/i,
+ EUR:/\b(euro|europe|ecb|lagarde|eu zone|european|germany|france|eurozone)\b/i,
+ GBP:/\b(britain|british|uk|sterling|pound|boe|bank of england|gilt)\b/i,
+ CAD:/\b(canada|canadian|cad|oil|crude|boc|bank of canada)\b/i,
+ AUD:/\b(australia|australian|aussie|rba|china|iron ore)\b/i,
+ NZD:/\b(new zealand|kiwi|rbnz|dairy)\b/i,
+ CHF:/\b(swiss|switzerland|snb|franc)\b/i
+ };
+ const topics={
+ XAUUSD:/\b(gold|bullion|precious metal|real yield|treasury|fed|dollar|inflation|geopolitic|iran|russia)\b/i,
+ XAGUSD:/\b(silver|industrial metal|copper|gold|metals|treasury|fed|china)\b/i,
+ BTCUSD:/\b(bitcoin|crypto|digital assets?|etf|liquidity|fed)\b/i,
+ US30:/\b(dow|wall street|stocks?|equities|jpmorgan|banks?|fed|earnings|treasury)\b/i,
+ US500:/\b(s&p|stocks?|equities|wall street|inflation|earnings|treasury|fed)\b/i,
+ NASDAQ:/\b(nasdaq|tech|ai|chip|semiconductor|stocks?|earnings|treasury)\b/i
+ };
+ const paired=(symbol.length===6&&!topics[symbol])?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
+ const matched=[];
+ try{
+ const mr=await marketHeadlines({request:new Request(new URL("/api/hot-news",u).toString())});
+ if(mr.ok){const news=await mr.json();for(const article of news.items||[]){
+ const title=String(article.title||"");
+ let strength=0,match=[];
+ for(const cur of paired){if(words[cur]?.test(title)){strength+=3;match.push(cur)}}
+ if(topics[symbol]?.test(title))strength+=5;
+ if(/\b(fed|fomc|inflation|cpi|ppi|interest rates?|central banks?|nonfarm payrolls?|tariffs?)\b/i.test(title))strength+=1;
+ if(strength<3)continue;
+ const reason=match.length?"Penting untuk "+symbol+" karena berkaitan dengan "+match.join(" dan ")+".":"Berpotensi memengaruhi "+symbol+" melalui perubahan kebijakan, likuiditas atau selera risiko.";
+ matched.push({...article,market:null,relevance:strength,relevanceNote:reason+" Arah harga perlu dikonfirmasi dari reaksi pasar."});
+ }}
+ }catch{}
+ bank.sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
+ matched.sort((a,b)=>b.relevance-a.relevance||Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
+ const all=[...matched.slice(0,14),...bank.slice(0,10)];
+ const seen=new Set(),unique=all.filter(x=>{if(seen.has(x.url))return false;seen.add(x.url);return true}).slice(0,22);
+
+ const res=new Response(JSON.stringify({schema:1,status:unique.length?"official-updates":"no-relevant-official-release",symbol,items:unique,sourcePolicy:"sourced-market-headlines-and-official-central-bank-releases"}),{headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=0, s-maxage=900"}});
  try{await caches.default.put(cacheKey,res.clone())}catch{}
  return res;
 }

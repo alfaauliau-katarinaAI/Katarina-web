@@ -81,7 +81,7 @@ async function source([name,feed,host],now){
   finally{clearTimeout(id)}
 }
 export async function onRequestGet({request}){
-  const cacheKey=new Request(new URL("/api/hot-news",request.url).toString());
+  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v2",request.url).toString());
   try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
   const now=Date.now();
   const batches=await Promise.all(FEEDS.map(feed=>source(feed,now)));

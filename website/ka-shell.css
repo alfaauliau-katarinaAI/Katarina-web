@@ -96,3 +96,20 @@ header.shell .lang{display:none!important}
 #kt-hotnews-list .ka-news-title{font-size:13px;line-height:1.45}
 .ka-news-empty{padding:20px;font-size:13px;color:#a9cbdc}
 @media(max-width:780px){.kt-hotnews-layout{grid-template-columns:1fr!important}#kt-hotnews-list{grid-template-columns:1fr!important}}
+
+/* Final mobile spacing and compactness overrides. */
+header.shell .navlinks.ka-nav-compact .ka-primary a,
+header.shell .navlinks.ka-nav-compact .ka-navtrigger{width:auto!important;min-width:0!important;flex:0 0 auto!important;white-space:nowrap!important}
+header.shell nav.nav>label,.kt-unified .kt-hero-clarity,.publisher-footer>p:last-child{display:none!important}
+.ka-gold-divider{height:60px;width:100%;display:flex;align-items:flex-end;justify-content:space-between;gap:9px;margin:16px 0;background:linear-gradient(180deg,transparent,rgba(74,213,199,.05))}
+.ka-gold-divider span{height:20%;flex:1;border-top:2px solid #2ddac1;background:linear-gradient(180deg,#26c5b534,transparent);border-radius:3px 3px 0 0}
+.ka-gold-divider span:nth-child(2){height:49%}.ka-gold-divider span:nth-child(3){height:32%}.ka-gold-divider span:nth-child(4){height:75%}
+.kt-v2-hero-side .ka-gold-divider{max-height:55px;opacity:.85}
+.kt-unified .kt-week-panel .kt-week-disclaimer{font-size:12px;line-height:1.65!important}
+@media(max-width:590px){
+ header.shell nav.nav{min-height:64px!important}
+ header.shell .navlinks.ka-nav-compact{display:flex!important;grid-template-columns:none!important}
+ header.shell .navlinks.ka-nav-compact .ka-primary a{padding:9px 7px!important;width:auto!important}
+ header.shell .navlinks.ka-nav-compact .ka-navtrigger{padding:9px 7px!important;width:auto!important}
+ .kt-unified .kt-calendar-primary #economic-events{padding:0!important}
+}

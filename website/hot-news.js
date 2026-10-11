@@ -17,15 +17,15 @@ function summary(item){
 function card(item,lead){
  const wrap=el("article",lead?"kt-hotnews-lead":"kt-hotnews-item");
  const meta=el("div","kt-hotnews-meta");meta.append(el("span","kt-hotnews-tag",item.category||"Pasar Global"),el("span",null,item.source||"Sumber"),el("time",null,time(item.publishedAt)));
- const original=el(lead?"h3":"h4",null,item.title);original.lang="en";
+ const original=el("p","kt-hotnews-original","Judul sumber: "+item.title);original.lang="en";
  const [essence,impact,watch]=summary(item);
+ const heading=el(lead?"h3":"h4","kt-hotnews-main",essence);
  const intel=el("div","kt-hotnews-intel");
- const a=el("div","kt-hotnews-intel-block");a.append(el("b",null,"INTI BERITA"),el("p",null,essence));
  const b=el("div","kt-hotnews-intel-block");b.append(el("b",null,"DAMPAK MAKRO POTENSIAL"),el("p",null,impact));
- intel.append(a,b);
+ intel.append(b);
  if(lead){const c=el("div","kt-hotnews-intel-block");c.append(el("b",null,"PANTAU KONFIRMASI"),el("p",null,watch));intel.append(c)}
  const link=el("a","kt-hotnews-open","Baca berita dari sumber asli ↗");link.href=item.url;link.target="_blank";link.rel="noopener noreferrer";
- wrap.append(meta,original,intel,link);
+ wrap.append(meta,el("span","kt-hotnews-intro","INTI BERITA"),heading,original,intel,link);
  return wrap;
 }
 function render(items){

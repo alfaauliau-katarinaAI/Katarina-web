@@ -14,21 +14,21 @@ function draw(){
  const last=bars.at(-1),recent=bars.slice(-21,-1),sup=Math.min(...recent.map(x=>x[3])),res=Math.max(...recent.map(x=>x[2]));
  const atr=bars.slice(-14).reduce((s,x,i)=>{const prev=bars.at(-(15-i))?.[4]||x[1];return s+Math.max(x[2]-x[3],Math.abs(x[2]-prev),Math.abs(x[3]-prev))},0)/14;
  const low=Math.min(...bars.map(x=>x[3]),sup-2.2*atr),high=Math.max(...bars.map(x=>x[2]),res+2.2*atr);
- const W=1000,H=485,T=30,B=424,L=30,END=680,FUT=738,XMAX=925;
+ const small=window.innerWidth<=620,W=small?575:1000,H=small?430:485,T=30,B=small?374:424,L=small?17:30,END=small?350:680,FUT=small?390:738,XMAX=W-65;
  const y=z=>T+(high-z)/Math.max(high-low,1e-8)*(B-T),x=i=>L+i*(END-L)/(bars.length-1);
  const root=svg("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Candlestick "+symbol+" dengan support "+fmt(sup,symbol)+", resistensi "+fmt(res,symbol)+" dan skenario naik atau turun"});
  root.append(svg("rect",{x:0,y:0,width:W,height:H,fill:"#0b1b29"}));
  for(let i=0;i<=6;i++){
   const value=low+(high-low)*i/6,yy=y(value);
-  root.append(svg("line",{x1:L,x2:925,y1:yy,y2:yy,stroke:"#446475","stroke-opacity":".29","stroke-dasharray":"4 7"}));
-  root.append(svg("text",{x:935,y:yy+4,fill:"#a3bccc","font-size":11},fmt(value,symbol)));
+  root.append(svg("line",{x1:L,x2:XMAX,y1:yy,y2:yy,stroke:"#446475","stroke-opacity":".29","stroke-dasharray":"4 7"}));
+  root.append(svg("text",{x:XMAX+8,y:yy+4,fill:"#a3bccc","font-size":small?13:11},fmt(value,symbol)));
  }
  for(let i=0;i<=7;i++){const xx=L+i*(END-L)/7;root.append(svg("line",{x1:xx,x2:xx,y1:T,y2:B,stroke:"#385365","stroke-opacity":".25"}))}
  for(const [v,color,label]of [[sup,"#f5a4ae","SUPPORT"],[res,"#72e7cf","RESISTENSI"]]){
   const yy=y(v),th=Math.max(4,atr/(high-low)*45);
-  root.append(svg("rect",{x:L,y:yy-th/2,width:900,height:th,fill:color,"fill-opacity":".11",stroke:color,"stroke-opacity":".25"}));
-  root.append(svg("line",{x1:L,x2:926,y1:yy,y2:yy,stroke:color,"stroke-width":"1.5","stroke-dasharray":"7 6"}));
-  root.append(svg("text",{x:FUT,y:yy-7,fill:color,"font-size":12,"font-weight":700},label+" "+fmt(v,symbol)));
+  root.append(svg("rect",{x:L,y:yy-th/2,width:XMAX-L,height:th,fill:color,"fill-opacity":".11",stroke:color,"stroke-opacity":".25"}));
+  root.append(svg("line",{x1:L,x2:XMAX,y1:yy,y2:yy,stroke:color,"stroke-width":"1.5","stroke-dasharray":"7 6"}));
+  root.append(svg("text",{x:FUT,y:yy-7,fill:color,"font-size":small?13:12,"font-weight":700},(small?label==="SUPPORT"?"S ":"R ":label+" ")+fmt(v,symbol)));
  }
  const cw=Math.max(3,Math.min(9,(END-L)/bars.length*.65));
  bars.forEach((b,i)=>{const xx=x(i),color=b[4]>=b[1]?"#5cddc5":"#e68c9b";
@@ -36,17 +36,17 @@ function draw(){
   root.append(svg("rect",{x:xx-cw/2,y:Math.min(y(b[1]),y(b[4])),width:cw,height:Math.max(2,Math.abs(y(b[4])-y(b[1]))),fill:color,rx:".7"}));
  });
  root.append(svg("line",{x1:FUT-25,x2:FUT-25,y1:T,y2:B,stroke:"#99bbc5","stroke-dasharray":"4 7"}));
- root.append(svg("text",{x:FUT,y:T+15,fill:"#b5d8dc","font-size":13,"font-weight":700},"5 SESI KE DEPAN"));
+ root.append(svg("text",{x:FUT,y:T+15,fill:"#b5d8dc","font-size":small?12:13,"font-weight":700},small?"SKENARIO 5 SESI":"5 SESI KE DEPAN"));
  const up=Math.max(res+atr*.7,last[4]+atr*.6),down=Math.min(sup-atr*.7,last[4]-atr*.6);
- line(root,[[END,y(last[4])],[FUT+30,y(Math.min(res,last[4]+atr*.25))],[FUT+100,y(res+atr*.2)],[900,y(up)]],"#7aebcf");
- line(root,[[END,y(last[4])],[FUT+30,y(Math.max(sup,last[4]-atr*.25))],[FUT+100,y(sup-atr*.2)],[900,y(down)]],"#f7a0ac");
+ line(root,[[END,y(last[4])],[FUT+30,y(Math.min(res,last[4]+atr*.25))],[small?FUT+62:FUT+100,y(res+atr*.2)],[W-85,y(up)]],"#7aebcf");
+ line(root,[[END,y(last[4])],[FUT+30,y(Math.max(sup,last[4]-atr*.25))],[small?FUT+62:FUT+100,y(sup-atr*.2)],[W-85,y(down)]],"#f7a0ac");
  root.append(svg("circle",{cx:END,cy:y(last[4]),r:5,fill:"#f1fffd",stroke:"#0a2731","stroke-width":3}));
- root.append(svg("text",{x:906,y:y(up)-9,fill:"#7be7d0","font-size":14},"↗"));
- root.append(svg("text",{x:906,y:y(down)+9,fill:"#f9adb6","font-size":14},"↘"));
+ root.append(svg("text",{x:W-78,y:y(up)-9,fill:"#7be7d0","font-size":14},"↗"));
+ root.append(svg("text",{x:W-78,y:y(down)+9,fill:"#f9adb6","font-size":14},"↘"));
  const date=v=>new Date(v*1000).toLocaleDateString("id-ID",{day:"numeric",month:"short",timeZone:"Asia/Jakarta"});
- root.append(svg("text",{x:L,y:458,fill:"#89aab8","font-size":12},date(bars[0][0])));
- root.append(svg("text",{x:END-55,y:458,fill:"#89aab8","font-size":12},date(last[0])));
- root.append(svg("text",{x:FUT+25,y:458,fill:"#89aab8","font-size":12},"Dua kemungkinan"));
+ root.append(svg("text",{x:L,y:H-21,fill:"#89aab8","font-size":12},date(bars[0][0])));
+ root.append(svg("text",{x:END-55,y:H-21,fill:"#89aab8","font-size":12},date(last[0])));
+ root.append(svg("text",{x:FUT+13,y:H-21,fill:"#89aab8","font-size":12},"Dua kemungkinan"));
  const tooltip=txt("div","chart-tooltip","");tooltip.hidden=true;
  root.addEventListener("pointermove",event=>{
  const ctm=root.getScreenCTM();if(!ctm)return;const p=root.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const coord=p.matrixTransform(ctm.inverse());

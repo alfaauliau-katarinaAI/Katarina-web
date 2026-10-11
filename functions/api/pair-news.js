@@ -23,7 +23,7 @@ async function feed(def){
    if(u.protocol==="http:"&&u.hostname===host)u.protocol="https:";
    if(u.protocol!=="https:"||!(u.hostname===host||u.hostname==="www."+host.replace(/^www\./,""))||u.hostname.includes("evil"))continue;
    // Avoid banknote artwork, technology notices, and unrelated releases.
-   if(!/policy|monetary|econom|inflation|interest|rates?|yen|bank|bond|stability|outlook|meeting|minutes|survey|tankan|growth|forecast|trade|money|prices?|financial|statement|speech|consumer|inflation|funding|employment|wages?|credit|liquidity|financ/i.test(title)||/banknotes?|animal|cloud outage|website|recruitment|competition|anniversary|lecture|museum|internship/i.test(title))continue;
+   if(!/policy|monetary|econom|inflation|interest|rates?|yen|bond|stability|outlook|meeting|minutes|survey|tankan|growth|forecast|financial stability|statement|speech|consumer|employment|wages?|liquidity|regional economic report|financial markets|exchange rates?/i.test(title)||/banknotes?|animal|cloud outage|eligible collateral|amounts outstanding|bank of japan accounts|website|recruitment|competition|anniversary|lecture|museum|internship|system maintenance/i.test(title))continue;
    const t=Date.parse(pub);if(!Number.isFinite(t)||Date.now()-t>10*86400000||t>Date.now()+1800000)continue;
    items.push({title,url:u.href,publishedAt:new Date(t).toISOString(),source:currency,market:currency});
   }return items;
@@ -32,7 +32,7 @@ async function feed(def){
 export async function onRequestGet({request}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!VALID.test(symbol))return new Response(JSON.stringify({status:"invalid-symbol"}),{status:400,headers:{"Content-Type":"application/json"}});
- const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=policy-v2",u));
+ const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=policy-v3",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
  const currencies=symbol==="XAUUSD"||symbol==="XAGUSD"||symbol==="BTCUSD"||["US30","US500","NASDAQ"].includes(symbol)?["USD"]:symbol.length===6?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
  const selected=[...new Set(currencies.filter(x=>DEFS[x]))].map(x=>[x,...DEFS[x].slice(1)]);

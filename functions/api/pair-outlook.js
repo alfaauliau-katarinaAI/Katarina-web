@@ -13,6 +13,7 @@ const parse=v=>{const text=String(v?.response||"");const m=text.match(/\{[\s\S]*
 export async function onRequestGet({request,env}){
  const url=new URL(request.url),symbol=(url.searchParams.get("symbol")||"").toUpperCase();
  if(!SYMBOLS.test(symbol))return response({schema:1,status:"invalid-symbol"},400);
+ if(url.searchParams.get("health")==="1")return response({schema:1,status:"healthy",assets:typeof env?.ASSETS?.fetch==="function",ai:typeof env?.AI?.run==="function"});
  const key=new Request(new URL("/api/pair-outlook?symbol="+symbol+"&revision=v1",url).toString());
  try{const found=await caches.default.match(key);if(found)return found}catch{}
  if(!env?.AI?.run)return response({schema:1,status:"unavailable"},503);

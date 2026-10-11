@@ -1,72 +1,72 @@
-/* Historical, annotated KATARINA chart. TradingView stays a separate live-price tab. */
+/* KATARINA H4 price map: one plan at most, no fabricated inverse scenario. */
 (()=>{"use strict";
-const NS="http://www.w3.org/2000/svg",get=id=>document.getElementById(id),keys={XAUUSD:"xau",XAGUSD:"silver",BTCUSD:"bitcoin",US30:"us30",US500:"sp500",NASDAQ:"nasdaq"};
-const svg=(tag,attrs,text)=>{const x=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs||{}))x.setAttribute(k,String(v));if(text!==undefined)x.textContent=String(text);return x};
-const txt=(tag,cls,text)=>{const x=document.createElement(tag);x.className=cls;x.textContent=text;return x};
-const fmt=(x,id)=>Number(x).toLocaleString("id-ID",{maximumFractionDigits:id.endsWith("JPY")?3:/^(EUR|GBP|AUD|NZD|USD|CAD|CHF)[A-Z]{3}$/.test(id)?5:2});
-let market=null,profiles=[],symbol="XAUUSD";
-const line=(r,pts,color)=>r.append(svg("polyline",{points:pts.map(p=>p.join(",")).join(" "),stroke:color,fill:"none","stroke-width":3,"stroke-linecap":"round","stroke-dasharray":"9 7"}));
-function draw(){
- const host=get("katarina-chart");if(!host||!market?.series)return;host.replaceChildren();
- const p=profiles.find(x=>x.id===symbol),v=market.series[p?.chart||keys[symbol]||symbol.toLowerCase()]?.bars||[];
- const bars=v.filter(x=>Array.isArray(x)&&x.length===5&&x.slice(1).every(Number.isFinite)).slice(-54);
- if(bars.length<24){host.append(txt("p","empty-state","Riwayat candle "+symbol+" belum cukup untuk menggambar skenario."));return}
- const last=bars.at(-1),recent=bars.slice(-21,-1),sup=Math.min(...recent.map(x=>x[3])),res=Math.max(...recent.map(x=>x[2]));
- const atr=bars.slice(-14).reduce((s,x,i)=>{const prev=bars.at(-(15-i))?.[4]||x[1];return s+Math.max(x[2]-x[3],Math.abs(x[2]-prev),Math.abs(x[3]-prev))},0)/14;
- const low=Math.min(...bars.map(x=>x[3]),sup-2.2*atr),high=Math.max(...bars.map(x=>x[2]),res+2.2*atr);
- const small=window.innerWidth<=620,W=small?575:1000,H=small?430:485,T=30,B=small?374:424,L=small?17:30,END=small?350:680,FUT=small?390:738,XMAX=W-65;
- const y=z=>T+(high-z)/Math.max(high-low,1e-8)*(B-T),x=i=>L+i*(END-L)/(bars.length-1);
- const root=svg("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Candlestick "+symbol+" dengan support "+fmt(sup,symbol)+", resistensi "+fmt(res,symbol)+" dan skenario naik atau turun"});
+const NS="http://www.w3.org/2000/svg",get=id=>document.getElementById(id);
+const svg=(tag,attrs,text)=>{const node=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs||{}))node.setAttribute(k,String(v));if(text!==undefined)node.textContent=String(text);return node};
+const e=(tag,cls,t)=>{const node=document.createElement(tag);node.className=cls;if(t!==undefined)node.textContent=String(t);return node};
+const fmt=(v,id)=>Number(v).toLocaleString("id-ID",{maximumFractionDigits:id.endsWith("JPY")?3:/^(EUR|GBP|AUD|NZD|USD|CAD|CHF)[A-Z]{3}$/.test(id)?5:2});
+let selected=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD",bars=null,source=null,plan=null,fetchId=0;
+function render(){
+ const host=get("katarina-chart");if(!host)return;host.replaceChildren();
+ if(!bars||bars.length<30){host.append(e("p","empty-state","Grafik H4 menunggu data sumber tepercaya. Kamu masih bisa membuka grafik TradingView."));return}
+ const data=bars.slice(-62),v=data.at(-1),p=plan?.symbol===selected?plan:null,small=window.innerWidth<=620;
+ const W=small?580:1000,H=small?450:475,T=30,B=small?390:407,L=small?17:30,END=small?355:665,RIGHT=W-66,FUT=small?399:732;
+ const prices=[...data.flatMap(x=>[x[2],x[3]])],levels=p?[p.trigger,p.invalidation,p.objective]:[],lo=Math.min(...prices,...levels),hi=Math.max(...prices,...levels),pad=Math.max((hi-lo)*.10,1e-6);
+ const min=lo-pad,max=hi+pad,yy=x=>T+(max-x)/(max-min)*(B-T),xx=i=>L+i*(END-L)/(data.length-1);
+ const root=svg("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Grafik H4 "+selected+(p?" dengan proyeksi "+p.direction+" dan batas invalidasi":" tanpa rencana aktif")});
  root.append(svg("rect",{x:0,y:0,width:W,height:H,fill:"#0b1b29"}));
- for(let i=0;i<=6;i++){
-  const value=low+(high-low)*i/6,yy=y(value);
-  root.append(svg("line",{x1:L,x2:XMAX,y1:yy,y2:yy,stroke:"#446475","stroke-opacity":".29","stroke-dasharray":"4 7"}));
-  root.append(svg("text",{x:XMAX+8,y:yy+4,fill:"#a3bccc","font-size":small?13:11},fmt(value,symbol)));
+ for(let i=0;i<=6;i++){const value=min+(max-min)*i/6,y=yy(value);
+  root.append(svg("line",{x1:L,x2:RIGHT,y1:y,y2:y,stroke:"#5a7383","stroke-opacity":".25","stroke-dasharray":"4 7"}));
+  root.append(svg("text",{x:RIGHT+6,y:y+4,fill:"#a2c2cf","font-size":small?11:11},fmt(value,selected)));
  }
- for(let i=0;i<=7;i++){const xx=L+i*(END-L)/7;root.append(svg("line",{x1:xx,x2:xx,y1:T,y2:B,stroke:"#385365","stroke-opacity":".25"}))}
- for(const [v,color,label]of [[sup,"#f5a4ae","SUPPORT"],[res,"#72e7cf","RESISTENSI"]]){
-  const yy=y(v),th=Math.max(4,atr/(high-low)*45);
-  root.append(svg("rect",{x:L,y:yy-th/2,width:XMAX-L,height:th,fill:color,"fill-opacity":".11",stroke:color,"stroke-opacity":".25"}));
-  root.append(svg("line",{x1:L,x2:XMAX,y1:yy,y2:yy,stroke:color,"stroke-width":"1.5","stroke-dasharray":"7 6"}));
-  root.append(svg("text",{x:FUT,y:yy-7,fill:color,"font-size":small?13:12,"font-weight":700},(small?label==="SUPPORT"?"S ":"R ":label+" ")+fmt(v,symbol)));
- }
- const cw=Math.max(3,Math.min(9,(END-L)/bars.length*.65));
- bars.forEach((b,i)=>{const xx=x(i),color=b[4]>=b[1]?"#5cddc5":"#e68c9b";
-  root.append(svg("line",{x1:xx,x2:xx,y1:y(b[2]),y2:y(b[3]),stroke:color,"stroke-width":1.5}));
-  root.append(svg("rect",{x:xx-cw/2,y:Math.min(y(b[1]),y(b[4])),width:cw,height:Math.max(2,Math.abs(y(b[4])-y(b[1]))),fill:color,rx:".7"}));
+ for(let i=0;i<=6;i++){const x=L+(END-L)*i/6;root.append(svg("line",{x1:x,x2:x,y1:T,y2:B,stroke:"#44616e","stroke-opacity":".22"}))}
+ const width=Math.max(2.8,Math.min(7,(END-L)/data.length*.58));
+ data.forEach((b,i)=>{const x=xx(i),green=b[4]>=b[1],c=green?"#63ddbe":"#e990a2";
+  root.append(svg("line",{x1:x,x2:x,y1:yy(b[2]),y2:yy(b[3]),stroke:c,"stroke-width":"1.2"}));
+  root.append(svg("rect",{x:x-width/2,y:Math.min(yy(b[1]),yy(b[4])),width,height:Math.max(2,Math.abs(yy(b[1])-yy(b[4]))),fill:c}));
  });
- root.append(svg("line",{x1:FUT-25,x2:FUT-25,y1:T,y2:B,stroke:"#99bbc5","stroke-dasharray":"4 7"}));
- root.append(svg("text",{x:FUT,y:T+15,fill:"#b5d8dc","font-size":small?12:13,"font-weight":700},small?"SKENARIO 5 SESI":"5 SESI KE DEPAN"));
- const up=Math.max(res+atr*.7,last[4]+atr*.6),down=Math.min(sup-atr*.7,last[4]-atr*.6);
- line(root,[[END,y(last[4])],[FUT+30,y(Math.min(res,last[4]+atr*.25))],[small?FUT+62:FUT+100,y(res+atr*.2)],[W-85,y(up)]],"#7aebcf");
- line(root,[[END,y(last[4])],[FUT+30,y(Math.max(sup,last[4]-atr*.25))],[small?FUT+62:FUT+100,y(sup-atr*.2)],[W-85,y(down)]],"#f7a0ac");
- root.append(svg("circle",{cx:END,cy:y(last[4]),r:5,fill:"#f1fffd",stroke:"#0a2731","stroke-width":3}));
- root.append(svg("text",{x:W-78,y:y(up)-9,fill:"#7be7d0","font-size":14},"↗"));
- root.append(svg("text",{x:W-78,y:y(down)+9,fill:"#f9adb6","font-size":14},"↘"));
- const date=v=>new Date(v*1000).toLocaleDateString("id-ID",{day:"numeric",month:"short",timeZone:"Asia/Jakarta"});
- root.append(svg("text",{x:L,y:H-21,fill:"#89aab8","font-size":12},date(bars[0][0])));
- root.append(svg("text",{x:END-55,y:H-21,fill:"#89aab8","font-size":12},date(last[0])));
- root.append(svg("text",{x:FUT+13,y:H-21,fill:"#89aab8","font-size":12},"Dua kemungkinan"));
- const tooltip=txt("div","chart-tooltip","");tooltip.hidden=true;
- root.addEventListener("pointermove",event=>{
- const ctm=root.getScreenCTM();if(!ctm)return;const p=root.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const coord=p.matrixTransform(ctm.inverse());
- if(coord.x<L||coord.x>END+10){tooltip.hidden=true;return}
- const i=Math.max(0,Math.min(bars.length-1,Math.round((coord.x-L)*(bars.length-1)/(END-L)))),v=bars[i];
- tooltip.textContent=date(v[0])+" • O "+fmt(v[1],symbol)+" H "+fmt(v[2],symbol)+" L "+fmt(v[3],symbol)+" C "+fmt(v[4],symbol);tooltip.hidden=false;
- });root.addEventListener("pointerleave",()=>tooltip.hidden=true);
- const header=txt("div","analysis-chart-header","");header.append(txt("strong","",symbol+" · Candle harian"),txt("span","","Penutupan "+date(last[0])));
- const footer=txt("div","analysis-chart-footer","");const legend=txt("div","analysis-chart-legend","");
- ["Skenario atas","Skenario bawah","Zona historis"].forEach(z=>legend.append(txt("span","",z)));
- footer.append(legend,txt("span","","Proyeksi bersyarat, bukan target pasti · data historis"));
- host.append(header,root,tooltip,footer);
+ root.append(svg("line",{x1:FUT-18,x2:FUT-18,y1:T,y2:B,stroke:"#aac2c6","stroke-opacity":".7","stroke-dasharray":"5 7"}));
+ const label=svg("text",{x:FUT,y:T+15,fill:"#abcbd1","font-size":small?12:13,"font-weight":700},p?"RENCANA "+p.direction:"BELUM ADA PLAN");root.append(label);
+ const drawHorizontal=(price,color,name,style="6 5")=>{
+  const y=yy(price);root.append(svg("line",{x1:L,x2:RIGHT,y1:y,y2:y,stroke:color,"stroke-width":"1.7","stroke-dasharray":style}));
+  root.append(svg("text",{x:FUT,y:y-6,fill:color,"font-size":small?11:12,"font-weight":700},name+" "+fmt(price,selected)));
+ };
+ if(p){
+  drawHorizontal(p.trigger,"#80e6d5","AKTIF");
+  drawHorizontal(p.invalidation,"#f3a7b1","BATAL");
+  drawHorizontal(p.objective,"#8bb9f1","TUJUAN");
+  const color=p.direction==="BUY"?"#7ae6d0":"#f3a5b0",goalX=W-91,now=yy(v[4]),gate=yy(p.trigger),target=yy(p.objective);
+  const poly=svg("polyline",{points:[[END,now],[FUT+32,(now+gate)/2],[FUT+64,gate],[goalX,target]].map(x=>x.join(",")).join(" "),stroke:color,fill:"none","stroke-width":"3","stroke-dasharray":"8 7","stroke-linecap":"round"});
+  root.append(poly);root.append(svg("circle",{cx:END,cy:now,r:5,fill:"#f4fffc",stroke:"#0d2936","stroke-width":3}));
+  root.append(svg("text",{x:goalX+5,y:target-7,fill:color,"font-size":15},p.direction==="BUY"?"↗":"↘"));
+ }
+ const date=n=>new Date(n*1000).toLocaleDateString("id-ID",{day:"numeric",month:"short",timeZone:"Asia/Jakarta"});
+ root.append(svg("text",{x:L,y:H-24,fill:"#9eb5bf","font-size":11},date(data[0][0])));
+ root.append(svg("text",{x:END-42,y:H-24,fill:"#9eb5bf","font-size":11},date(v[0])));
+ root.append(svg("text",{x:FUT+12,y:H-24,fill:"#9eb5bf","font-size":11},p?"Skenario bersyarat":"Belum konfirmasi"));
+ const tooltip=e("div","chart-tooltip","");tooltip.hidden=true;
+ root.addEventListener("pointermove",evt=>{const mat=root.getScreenCTM();if(!mat)return;const point=root.createSVGPoint();point.x=evt.clientX;point.y=evt.clientY;
+  const pt=point.matrixTransform(mat.inverse());if(pt.x<L||pt.x>END+7){tooltip.hidden=true;return}
+  const i=Math.max(0,Math.min(data.length-1,Math.round((pt.x-L)*(data.length-1)/(END-L)))),b=data[i];tooltip.textContent=date(b[0])+" · Buka "+fmt(b[1],selected)+" · Tinggi "+fmt(b[2],selected)+" · Rendah "+fmt(b[3],selected)+" · Tutup "+fmt(b[4],selected);tooltip.hidden=false;
+ });root.addEventListener("pointerleave",()=>{tooltip.hidden=true});
+ const header=e("div","analysis-chart-header","");header.append(e("strong","",selected+" · 4 jam (H4)"),e("span","","Data terakhir "+date(v[0])));
+ const foot=e("div","analysis-chart-footer","");
+ foot.append(e("span","",source?.proxy?source.proxyNote:"Candlestick H4 dari harga referensi. Bukan feed harga broker."),e("span","",p?"Garis arah hanya untuk rencana "+p.direction+". Tutup H4 melewati batas BATAL berarti plan gagal.":"Tidak ada garis prediksi sebelum rencana terkonfirmasi."));
+ host.append(header,root,tooltip,foot);
+}
+async function load(symbol){
+ const version=++fetchId;selected=symbol;bars=null;plan=null;render();
+ try{const r=await fetch("/api/h4?symbol="+encodeURIComponent(symbol),{cache:"no-store"}),data=await r.json();
+ if(version!==fetchId)return;if(!r.ok||data.status!=="ready"){bars=null;return render()}
+ source=data;bars=data.bars;render();
+ }catch{if(version===fetchId){bars=null;render()}}
 }
 function tabs(){
- const a=get("chart-tab-analysis"),b=get("chart-tab-tradingview"),left=get("katarina-chart"),right=get("tv-host-v4");
- if(!a||!b||!left||!right)return;
- const set=mode=>{const own=mode==="analysis";left.classList.toggle("chart-hidden",!own);right.classList.toggle("chart-hidden",own);a.classList.toggle("selected",own);b.classList.toggle("selected",!own);a.setAttribute("aria-pressed",String(own));b.setAttribute("aria-pressed",String(!own));};
- a.addEventListener("click",()=>set("analysis"));b.addEventListener("click",()=>{set("tv");window.KatarinaRenderTV?.(symbol)});set("analysis");
+ const a=get("chart-tab-analysis"),b=get("chart-tab-tradingview"),left=get("katarina-chart"),right=get("tv-host-v4");if(!a||!b||!left||!right)return;
+ const set=which=>{const own=which==="analysis";left.classList.toggle("chart-hidden",!own);right.classList.toggle("chart-hidden",own);a.classList.toggle("selected",own);b.classList.toggle("selected",!own);a.setAttribute("aria-pressed",String(own));b.setAttribute("aria-pressed",String(!own));};
+ a.addEventListener("click",()=>set("analysis"));b.addEventListener("click",()=>{set("tv");window.KatarinaRenderTV?.(selected)});set("analysis");
 }
-async function init(){tabs();try{const [a,b]=await Promise.all(["/market-ohlc.json","/instrument-context.json"].map(url=>fetch(url).then(r=>r.ok?r.json():null)));market=a?.schema===1?a:null;profiles=b?.instruments||[];symbol=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";draw()}catch{}}
-window.addEventListener("katarina:pair-change",event=>{symbol=event.detail?.symbol||"XAUUSD";draw()});
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+window.addEventListener("katarina:pair-change",e=>{if(e.detail?.symbol)load(e.detail.symbol)});
+window.addEventListener("katarina:weekly-plan",e=>{const received=e.detail?.plan;if(received?.symbol===selected){plan=received;render()}else if(e.detail?.symbol===selected){plan=null;render()}});
+const start=()=>{tabs();load(selected)};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
 })();

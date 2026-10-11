@@ -49,12 +49,18 @@ function refreshAI(symbol){
    if(version!==aiRevision)return;
    const data=await result.json();if(!result.ok||data?.status!=="ready"||data.symbol!==symbol)throw Error("Unavailable");
    host.replaceChildren();
-   const intro=el("p","ai-overview-intro",data.summary);host.append(intro);
-   const grid=el("div","ai-overview-grid");
-   const fields=[["Penggerak utama",data.drivers],["Bila harga menguat",data.upside],["Bila harga melemah",data.downside],["Yang patut diamati",data.watch],["Catatan penting",data.uncertainty]];
-   for(const [title,body]of fields){if(!body)continue;const box=el("div","ai-overview-item");box.append(el("strong",null,title),el("p",null,body));grid.append(box)}
-   host.append(grid);
-   host.append(el("small","ai-source-note","Berdasarkan candle historis dan kalender yang tersedia. Penilaian makro bersifat bersyarat; bukan keputusan transaksi."));
+   const normalize=(value,limit)=>{
+    let a=String(value||"").replace(/["“”]/g,"").replace(/\b(Pantau)\s+\1\b/gi,"Pantau").replace(/\s+/g," ").trim();
+    if(a.length<=limit)return a;
+    const s=a.slice(0,limit);const period=s.lastIndexOf(".");return period>100?s.slice(0,period+1):s.slice(0,s.lastIndexOf(" "))+"…";
+   };
+   const summary=normalize(data.summary,365);
+   host.append(el("p","ai-overview-intro",summary));
+   const more=normalize(data.watch,210);
+   if(more&&!summary.toLowerCase().includes(more.slice(0,45).toLowerCase())){
+    const block=el("div","ai-overview-item");block.append(el("strong",null,"Yang perlu dipantau"),el("p",null,more));host.append(block);
+   }
+   host.append(el("small","ai-source-note","Rangkuman berdasarkan data historis dan kalender. Jalur harga dan titik invalidasinya bisa dilihat di grafik analisa di atas."));
   }catch{
    if(version!==aiRevision)return;
    host.replaceChildren(el("p","ai-wait","Pembacaan mendalam belum tersedia untuk "+symbol+". Analisa teknikal, faktor penggerak dan skenario mingguan di atas tetap bisa dibaca."));

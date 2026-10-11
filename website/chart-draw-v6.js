@@ -64,7 +64,7 @@ function tabs(){
  const a=get("chart-tab-analysis"),b=get("chart-tab-tradingview"),left=get("katarina-chart"),right=get("tv-host-v4");
  if(!a||!b||!left||!right)return;
  const set=mode=>{const own=mode==="analysis";left.classList.toggle("chart-hidden",!own);right.classList.toggle("chart-hidden",own);a.classList.toggle("selected",own);b.classList.toggle("selected",!own);a.setAttribute("aria-pressed",String(own));b.setAttribute("aria-pressed",String(!own));};
- a.addEventListener("click",()=>set("analysis"));b.addEventListener("click",()=>set("tv"));set("analysis");
+ a.addEventListener("click",()=>set("analysis"));b.addEventListener("click",()=>{set("tv");window.KatarinaRenderTV?.(symbol)});set("analysis");
 }
 async function init(){tabs();try{const [a,b]=await Promise.all(["/market-ohlc.json","/instrument-context.json"].map(url=>fetch(url).then(r=>r.ok?r.json():null)));market=a?.schema===1?a:null;profiles=b?.instruments||[];symbol=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";draw()}catch{}}
 window.addEventListener("katarina:pair-change",event=>{symbol=event.detail?.symbol||"XAUUSD";draw()});

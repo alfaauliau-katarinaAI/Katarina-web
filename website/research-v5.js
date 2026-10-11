@@ -64,9 +64,9 @@ function refreshAI(symbol){
 
 function render(symbol){
  if(!market?.series||!symbol)return;const ctx=context?.find(x=>x.id===symbol),rows=market.series[ctx?.chart||keys[symbol]||symbol.toLowerCase()]?.bars;
- const s=signal(rows),metrics=$("deep-metrics"),explainer=$("research-explainer"),path=$("scenario-path"),risk=$("risk-checklist");
+ const s=signal(rows),metrics=$("deep-metrics"),explainer=$("research-explainer"),risk=$("risk-checklist");
  if(!metrics||!explainer||!risk)return;
- metrics.replaceChildren();explainer.replaceChildren();path.replaceChildren();risk.replaceChildren();
+ metrics.replaceChildren();explainer.replaceChildren();risk.replaceChildren();
  if(!s){metrics.append(el("p","empty-state","Belum tersedia candle yang cukup untuk indikator dan proyeksi "+symbol+"."));$("forecast-direction").textContent="Data belum cukup";const aiHost=$("pair-ai-overview");if(aiHost)aiHost.textContent="Data belum cukup untuk analisa mendalam.";return}
  const last=new Date(s.last[0]*1000),d=date(last);
  const direction=s.state==="penguatan"?"Cenderung menguat ↗":s.state==="pelemahan"?"Cenderung melemah ↘":"Menunggu konfirmasi ↔";

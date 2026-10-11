@@ -218,6 +218,7 @@ function renderResearch(){
  const token=++liveReq,p=profileFor(selected),bars=priceSeries(p),s=signal(bars);
  if(profile!==selected){profile=selected;drawTV(selected)}
  text("pair-symbol",selected);text("pair-market",p.asset||p.label||selected);text("pair-heading",p.label||selected);text("pair-headline",p.headline||"Faktor pasar "+selected);
+ text("pair-week-change",s?pct(s.week):"—");
  text("pair-last",s?fmt(s.close,selected):"—");text("pair-move",s?pct(s.change):"—");$("pair-move")?.classList.toggle("negative",Boolean(s&&s.change<0));
  text("pair-asof",s?"Penutupan sumber "+presentDate(s.asOf)+(s.stale?" · perlu pembaruan":""):"Harga belum tersedia");
  text("technical-state",s?({menguat:"Penguatan",melemah:"Pelemahan",berkonsolidasi:"Konsolidasi"}[s.lead]):"Data kurang");

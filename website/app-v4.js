@@ -40,14 +40,16 @@ function showEvent(ev){
 }
 function showNews(item,index){
  const b=showDialog((item.source||"Berita ekonomi").toUpperCase()+" · "+presentDate(item.publishedAt),item.title);if(!b)return;
+ if(item.relevanceNote)addBlock(b,"Kaitan terhadap "+selected,item.relevanceNote);
  if(item.essence)addBlock(b,"Konteks berita",item.essence);
  if(item.impact)addBlock(b,"Dampak makro potensial",item.impact);
  if(item.watch)addBlock(b,"Perlu dipantau",item.watch);
  if(item.market&&!item.essence)addBlock(b,"Kaitan ke "+selected,"Pernyataan ini berasal dari "+item.market+" dan terkait dengan salah satu faktor kebijakan instrumen. Detail dampak baru dapat disimpulkan setelah membaca berita sumber dan reaksi pasar.");
  addLink(b,"Buka sumber berita",item.url);
- if(item.url&&index<2&&!item.market){
+ const originalIdx=feed.findIndex(x=>x.url===item.url);
+ if(item.url&&originalIdx>=0&&originalIdx<2&&!item.market){
  const note=e("p",null,"Memeriksa ringkasan artikel…");b.append(note);
- get("/api/ai-news?index="+index).then(a=>{if(!b.isConnected)return;if(a.status==="ai-full-article"&&a.url===item.url){
+ get("/api/ai-news?index="+originalIdx).then(a=>{if(!b.isConnected)return;if(a.status==="ai-full-article"&&a.url===item.url){
   note.textContent="Ringkasan berdasarkan isi artikel dari penerbit";addBlock(b,"Inti fakta",a.summary);addBlock(b,"Penggerak",a.drivers);addBlock(b,"Analisis dampak",a.impact);addBlock(b,"Pantauan",a.watch);addBlock(b,"Batasan",a.uncertainty);
  }else note.textContent="Analisis mendalam belum tersedia untuk berita ini."}).catch(()=>{if(note.isConnected)note.textContent="Ringkasan mendalam belum tersedia."});
  }
@@ -84,7 +86,7 @@ function pick(){
   box.replaceChildren();const q=(search.value||"").trim().toLowerCase();
   for(const p of items().filter(x=>!q||String(x.id+" "+x.label+" "+x.asset).toLowerCase().includes(q))){
    const b=e("button");b.type="button";b.append(e("b",null,p.id),e("small",null,String(p.label||"").replace(p.id,"").trim()));
-   b.addEventListener("click",()=>{selected=p.id;d.close();const url=new URL(location.href);url.searchParams.set("symbol",selected);history.replaceState(null,"",url);renderResearch()});box.append(b)}
+   b.addEventListener("click",()=>{selected=p.id;try{localStorage.setItem("katarina-selected-symbol",selected)}catch{}d.close();const url=new URL(location.href);url.searchParams.set("symbol",selected);history.replaceState(null,"",url);renderResearch()});box.append(b)}
   if(!box.children.length)box.append(e("div","empty-state","Instrumen tidak ditemukan"));
  };
  search.value="";draw();search.oninput=draw;d.showModal();setTimeout(()=>search.focus(),30);
@@ -129,12 +131,12 @@ function renderDashboard(){
   if(strip){const a=e("a");a.href="/research?symbol="+id;a.append(e("b",null,id),e("span",null,fmt(d.close,id)),e("em",d.change>=0?"positive":"negative",pct(d.change)));strip.append(a)}
   if(grid){const a=e("a","pick-card");a.href="/research?symbol="+id;a.append(e("small",null,p.label||id),e("strong",null,fmt(d.close,id)),e("em",d.change>=0?"positive":"negative",pct(d.change)));grid.append(a)}
  }
- const d=signal(priceSeries(profileFor("USDJPY"))),next=calendar.filter(x=>x.dateWIB>=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Jakarta"})).sort((a,b)=>a.dateWIB.localeCompare(b.dateWIB)).slice(0,2);
- text("focus-title",d?"USDJPY · "+(d.lead==="menguat"?"Yen dan selisih imbal hasil":d.lead==="melemah"?"Risiko koreksi dolar/yen":"Uji keseimbangan USD vs JPY"):"Perubahan arah yen dan dolar");
- text("focus-detail","Kondisi USDJPY mengikuti perkembangan kebijakan Fed–BoJ, posisi futures JPY dan respons yield AS. Buka terminal untuk skenario harga yang dapat diukur.");
+ const focusPair=(()=>{try{return localStorage.getItem("katarina-selected-symbol")||"USDJPY"}catch{return "USDJPY"}})();const d=signal(priceSeries(profileFor(focusPair))),next=calendar.filter(x=>x.dateWIB>=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Jakarta"})).sort((a,b)=>a.dateWIB.localeCompare(b.dateWIB)).slice(0,2);
+ text("focus-title",d?focusPair+" · "+(d.lead==="menguat"?"Yen dan selisih imbal hasil":d.lead==="melemah"?"Risiko koreksi dolar/yen":"Uji keseimbangan USD vs JPY"):"Perubahan arah yen dan dolar");
+ text("focus-detail","Perhatikan "+macro(profileFor(focusPair)).slice(0,2).join(". ")+". Periksa detail skenario dan COT di terminal.");
  text("focus-label",d?"Struktur: "+d.lead+" · "+presentDate(d.asOf):"Pantau pasar");
  const events=$("dash-events");if(events){events.replaceChildren();for(const x of next)events.append(eventCard(x));if(!next.length)events.append(e("p","empty-state","Belum ada rilis mendatang terverifikasi."))}
- const news=$("dashboard-news");if(news){news.replaceChildren();for(const [i,x]of feed.slice(0,6).entries())news.append(newsCard(x,i));if(!feed.length)news.append(e("p","empty-state","Belum ada berita baru dari sumber terverifikasi."))}
+ const news=$("dashboard-news");if(news){news.replaceChildren();for(const [i,x]of feed.slice(0,9).entries())news.append(newsCard(x,i));if(!feed.length)news.append(e("p","empty-state","Belum ada berita baru dari sumber terverifikasi."))}
 }
 function drawTV(symbol){
  const host=$("tv-host-v4");if(!host)return;
@@ -181,6 +183,7 @@ function renderResearch(){
  const news=$("pair-news");if(news){news.replaceChildren(e("p","empty-state","Menelusuri sumber yang relevan untuk "+selected+"…"))}
  get("/api/cot?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;cot=v;renderCot(selected);renderSentimentCot()}).catch(()=>{if(token===liveReq)renderCot(selected)});
  get("/api/pair-news?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;official=v?.items||[];renderPairNews()}).catch(()=>{if(token===liveReq){official=[];renderPairNews()}});
+ window.dispatchEvent(new CustomEvent("katarina:pair-change",{detail:{symbol:selected}}));
 }
 function renderSentimentCot(){
  const div=$("sentiment-map");if(!div)return;const row=div.querySelectorAll(".sentiment-item")[3];if(!row)return;
@@ -208,7 +211,7 @@ function renderPairNews(){
   result=feed.filter(n=>pattern.test(n.title)).slice(0,6);
  }
  if(!result.length){box.append(e("p","empty-state","Belum ada pembaruan spesifik "+selected+" dari sumber yang terhubung."));return}
- for(const [i,x]of result.slice(0,7).entries())box.append(newsCard(x,i,Boolean(x.market)));
+ for(const [i,x]of result.slice(0,16).entries())box.append(newsCard(x,i,Boolean(x.market)));
 }
 async function start(){
  menu();
@@ -221,7 +224,7 @@ async function start(){
  if(page==="dashboard"){renderDashboard();setInterval(async()=>{try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){feed=fresh.items;renderDashboard()}}catch{}},15*60000)}
  else{
  const param=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";
- selected=items().some(x=>x.id===param)?param:"XAUUSD";
+ selected=items().some(x=>x.id===param)?param:"XAUUSD";try{localStorage.setItem("katarina-selected-symbol",selected)}catch{}
  $("pair-choose")?.addEventListener("click",pick);
  renderResearch();
  setInterval(()=>{if(!document.hidden){get("/api/pair-news?symbol="+selected).then(x=>{official=x?.items||[];renderPairNews()}).catch(()=>{})}},15*60000)

@@ -1,7 +1,7 @@
 /* KATARINA UI: compact navigation and accessible insight dialogs. */
 (()=>{"use strict";
 const html=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e};
-const which=()=>location.pathname;
+const which=()=>location.pathname==="/"?"/":(location.pathname.endsWith(".html")?location.pathname:location.pathname.replace(/\/$/,"")+".html");
 const links=[["/","Dasbor"],["/research.html","Riset & Analisa"],["/journal.html","Jurnal"],["/insights.html","Artikel"],["/sponsors.html","Dukungan"]];
 function nav(){
  const nav=document.querySelector("header.shell nav.nav"),old=nav?.querySelector(".navlinks");if(!old)return;
@@ -68,7 +68,7 @@ function news(item,analysis){
 }
 function miniEvent(ev){
  const button=html("button","ka-release");button.type="button";button.setAttribute("aria-label","Buka analisa "+ev.title);
- const top=html("div","ka-release-top");top.append(html("span",null,ev.dateWIB+" · "+ev.timeWIB+" WIB"),html("span",null,ev.region||""));
+ const top=html("div","ka-release-top");const stamp=new Date(ev.dateWIB+"T12:00:00Z");const date=Number.isFinite(stamp.getTime())?stamp.toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}):ev.dateWIB;top.append(html("span",null,"Rilis "+date+" · "+ev.timeWIB+" WIB"),html("span",null,ev.region||""));
  button.append(top,html("strong","ka-release-title",ev.title));
  const m=html("div","ka-release-metrics");
  for(const [k,v] of [["Aktual",ev.actual===null||ev.actual===undefined?"Belum rilis":ev.actualSource?ev.actual:"—"],["Prediksi",ev.forecast&&ev.forecastSource?ev.forecast:"—"],["Sebelumnya",ev.previous&&ev.previousSource?ev.previous:"—"]]){const cell=html("div",null);cell.append(html("span",null,k),html("b",null,v));m.append(cell)}

@@ -19,7 +19,7 @@ function card(item,lead){
  const meta=el("div","kt-hotnews-meta");meta.append(el("span","kt-hotnews-tag",item.category||"Pasar Global"),el("span",null,item.source||"Sumber"),el("time",null,time(item.publishedAt)));
  const original=el("p","kt-hotnews-original","Judul sumber: "+item.title);original.lang="en";
  const ai=aiResults.get(item.url);const [essence,impact,watch]=ai?[ai.summary,ai.impact,ai.watch]:summary(item);
- const heading=el(lead?"h3":"h4","kt-hotnews-main",essence);const badge=el("span",ai?"kt-ai-label kt-ai-ready":"kt-ai-label",ai?"✦ DIRANGKUM AI DARI ISI ARTIKEL":"KONTEKS TOPIK · MENUNGGU ARTIKEL LENGKAP");
+ const heading=el(lead?"h3":"h4","kt-hotnews-main",essence);const badge=el("span",ai?"kt-ai-label kt-ai-ready":"kt-ai-label",ai?"✦ DIRANGKUM AI DARI ISI ARTIKEL":"ANALISIS UMUM TOPIK · BUKAN RANGKUMAN ARTIKEL");
  const intel=el("div","kt-hotnews-intel");
  const b=el("div","kt-hotnews-intel-block");b.append(el("b",null,"DAMPAK MAKRO POTENSIAL"),el("p",null,impact));
  intel.append(b);if(ai){const d=el("div","kt-hotnews-intel-block");d.append(el("b",null,"PENGGERAK MAKRO"),el("p",null,ai.drivers));intel.append(d)}

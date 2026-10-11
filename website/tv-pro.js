@@ -13,7 +13,7 @@ function load(){
  const inner=document.createElement("div");inner.className="tradingview-widget-container__widget";inner.style.cssText="width:100%;height:100%";outer.append(inner);
  root.replaceChildren(outer);
  const script=document.createElement("script");script.type="text/javascript";script.async=true;script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
- script.textContent=JSON.stringify({autosize:true,symbol:sym,interval:"D",timezone:"Asia/Jakarta",theme:"dark",style:"1",locale:"id",allow_symbol_change:false,hide_top_toolbar:false,hide_side_toolbar:false,withdateranges:true,save_image:true,backgroundColor:"#071426",gridColor:"rgba(77,137,180,0.12)",calendar:false,details:false,hotlist:false,hide_legend:false,hide_volume:true,watchlist:[],studies:[]});
+ script.textContent=JSON.stringify({autosize:true,symbol:sym,interval:"D",timezone:"Asia/Jakarta",theme:"dark",style:"1",locale:"id",allow_symbol_change:false,hide_top_toolbar:false,hide_side_toolbar:false,withdateranges:true,save_image:true,backgroundColor:"#071426",gridColor:"rgba(77,137,180,0.12)",calendar:false,details:false,hotlist:false,hide_legend:false,hide_volume:true,watchlist:[],studies:["MASimple@tv-basicstudies"]});
  script.onerror=()=>{if(token!==request)return;const warn=document.createElement("p");warn.className="kt-pro-tv-error";warn.textContent="TradingView tidak dapat dimuat oleh browser. Gunakan tombol untuk membuka grafik penuh.";root.append(warn)};
  outer.append(script);
  const mark=document.getElementById("kt-pro-symbol");if(mark)mark.textContent=pair;

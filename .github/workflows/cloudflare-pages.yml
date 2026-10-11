@@ -6,6 +6,7 @@ on:
     paths:
       - 'website/**'
       - 'functions/**'
+      - 'wrangler.toml'
       - '.github/workflows/cloudflare-pages.yml'
   workflow_dispatch:
 

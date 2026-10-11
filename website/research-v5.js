@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id),el=(tag,cls,t)=>{const n=document.create
 const keys={XAUUSD:"xau",XAGUSD:"silver",BTCUSD:"bitcoin",US30:"us30",US500:"sp500",NASDAQ:"nasdaq"};
 const fmt=(v,id)=>Number(v).toLocaleString("id-ID",{maximumFractionDigits:/JPY$/.test(id)?3:/^(EUR|GBP|AUD|NZD|USD|CAD|CHF)[A-Z]{3}$/.test(id)?5:2});
 const date=s=>{try{return new Date(s).toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Jakarta"})}catch{return "—"}};
-let market=null,context=null,calendar=null,current="",ready=false;
+let market=null,context=null,calendar=null,current="",ready=false,aiClock=null,aiRevision=0;
 function ema(xs,p){const k=2/(p+1);let result=xs.slice(0,p).reduce((sum,x)=>sum+x,0)/p;for(let i=p;i<xs.length;i++)result=xs[i]*k+result*(1-k);return result}
 function rsi(xs){let gain=0,loss=0;const d=xs.slice(-15);for(let i=1;i<d.length;i++){const v=d[i]-d[i-1];if(v>0)gain+=v;else loss-=v}if(loss===0)return gain===0?50:100;return 100-100/(1+gain/loss)}
 function signal(bars){
@@ -39,12 +39,35 @@ function overlay(s,id){
  a.addEventListener("click",()=>{sub.hidden=!sub.hidden;body.textContent=sub.hidden?"Tekan untuk lihat batas skenario":"Berdasarkan data historis";a.setAttribute("aria-expanded",String(!sub.hidden))});
  host.append(a);
 }
+function refreshAI(symbol){
+ const host=$("pair-ai-overview");if(!host)return;
+ const version=++aiRevision;clearTimeout(aiClock);
+ host.replaceChildren(el("p","ai-wait","Membaca data dan menyusun gambaran makro "+symbol+"…"));
+ aiClock=setTimeout(async()=>{
+  try{
+   const result=await fetch("/api/pair-outlook?symbol="+encodeURIComponent(symbol),{cache:"no-store"});
+   if(version!==aiRevision)return;
+   const data=await result.json();if(!result.ok||data?.status!=="ready"||data.symbol!==symbol)throw Error("Unavailable");
+   host.replaceChildren();
+   const intro=el("p","ai-overview-intro",data.summary);host.append(intro);
+   const grid=el("div","ai-overview-grid");
+   const fields=[["Penggerak utama",data.drivers],["Bila harga menguat",data.upside],["Bila harga melemah",data.downside],["Yang patut diamati",data.watch],["Catatan penting",data.uncertainty]];
+   for(const [title,body]of fields){if(!body)continue;const box=el("div","ai-overview-item");box.append(el("strong",null,title),el("p",null,body));grid.append(box)}
+   host.append(grid);
+   host.append(el("small","ai-source-note","Berdasarkan candle historis dan kalender yang tersedia. Penilaian makro bersifat bersyarat; bukan keputusan transaksi."));
+  }catch{
+   if(version!==aiRevision)return;
+   host.replaceChildren(el("p","ai-wait","Pembacaan mendalam belum tersedia untuk "+symbol+". Analisa teknikal, faktor penggerak dan skenario mingguan di atas tetap bisa dibaca."));
+  }
+ },650);
+}
+
 function render(symbol){
  if(!market?.series||!symbol)return;const ctx=context?.find(x=>x.id===symbol),rows=market.series[ctx?.chart||keys[symbol]||symbol.toLowerCase()]?.bars;
  const s=signal(rows),metrics=$("deep-metrics"),explainer=$("research-explainer"),path=$("scenario-path"),risk=$("risk-checklist");
  if(!metrics||!explainer||!path||!risk)return;
  metrics.replaceChildren();explainer.replaceChildren();path.replaceChildren();risk.replaceChildren();
- if(!s){metrics.append(el("p","empty-state","Belum tersedia candle yang cukup untuk indikator dan proyeksi "+symbol+"."));$("forecast-direction").textContent="Data belum cukup";return}
+ if(!s){metrics.append(el("p","empty-state","Belum tersedia candle yang cukup untuk indikator dan proyeksi "+symbol+"."));$("forecast-direction").textContent="Data belum cukup";const aiHost=$("pair-ai-overview");if(aiHost)aiHost.textContent="Data belum cukup untuk analisa mendalam.";return}
  const last=new Date(s.last[0]*1000),d=date(last);
  const direction=s.state==="penguatan"?"Cenderung menguat ↗":s.state==="pelemahan"?"Cenderung melemah ↘":"Menunggu konfirmasi ↔";
  $("forecast-direction").textContent=direction;$("forecast-direction").className=s.state==="penguatan"?"positive":s.state==="pelemahan"?"negative":"";
@@ -70,6 +93,7 @@ function render(symbol){
  else risk.append(line("Perubahan ekspektasi suku bunga","Perhatikan rilis dan pernyataan bank sentral yang menggerakkan mata uang pembentuk "+symbol+"."));
  risk.append(line("Posisi pasar & korelasi","COT hanya mencatat futures mingguan. Bandingkan juga perubahan yield, dolar, dan selera risiko sebelum menyimpulkan arah."),line("Kesegaran data","Peta ini dihitung dari candle harian historis sampai "+d+". Grafik TradingView bisa bergerak lebih cepat; periksa harga terkini sebelum mengambil keputusan."));
  overlay(s,symbol);
+ refreshAI(symbol);
 }
 const load=async()=>{
  try{const [m,c,k]=await Promise.all(["/market-ohlc.json","/instrument-context.json","/calendar-brief.json"].map(u=>fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():null)));

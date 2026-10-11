@@ -44,7 +44,7 @@ function color(g){ctx.fillStyle=ctx.strokeStyle=g?"#20dbc3":"#ff677e"}
 const last=list.at(-1),prev=list.at(-2),price=isLine?last[1]:last[4],prevPrice=isLine?prev[1]:prev[4],pct=(price/prevPrice-1)*100;
 ctx.textAlign="left";ctx.textBaseline="middle";ctx.font="700 14px system-ui,Arial";ctx.fillStyle="#daf4ff";ctx.fillText(names[key]||key,left,21);
 ctx.textAlign="right";ctx.fillStyle=pct>=0?"#38e9cc":"#ff8192";ctx.fillText(fmt(price,key)+"  "+(pct>=0?"+":"")+pct.toFixed(2)+"%",w-12,21);
-const rangeCaption=range+" candle / geser untuk histori";ctx.textAlign="left";ctx.fillStyle="#7fabc9";ctx.font="11px system-ui,Arial";ctx.fillText((isLine?"KURS REFERENSI · LINE":"OHLC · CANDLE") +"  •  1D  •  "+rangeCaption,left,42);
+const rangeCaption=range+" candle / geser untuk histori";ctx.textAlign="left";ctx.fillStyle="#7fabc9";ctx.font="11px system-ui,Arial";ctx.fillText((isLine?"KURS REFERENSI · GARIS":"OHLC · LILIN") +"  •  1D  •  "+rangeCaption,left,42);
 if(scenarioOn&&!isLine)paintSkenarioMingguan(list,{left,plotW,top,plotH,y,xx,w,right,key});
 if(hover>=0&&hover<list.length){const b=list[hover],x=xx(hover),p=isLine?b[1]:b[4],cy=y(p);if(detailBox){detailBox.textContent=new Date(b[0]*1000).toLocaleDateString('id-ID',{dateStyle:'medium',timeZone:'UTC'})+' · '+(isLine?'Tutup ':'Buka '+fmt(b[1],key)+' · Tinggi '+fmt(b[2],key)+' · Rendah '+fmt(b[3],key)+' · Tutup ')+fmt(p,key)}ctx.save();ctx.setLineDash([3,4]);ctx.strokeStyle="#8dcef8";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,top+plotH);ctx.moveTo(left,cy);ctx.lineTo(w-right,cy);ctx.stroke();ctx.restore();
  let text=isLine?"C "+fmt(p,key):"O "+fmt(b[1],key)+"   H "+fmt(b[2],key)+"   L "+fmt(b[3],key)+"   C "+fmt(b[4],key);
@@ -113,7 +113,7 @@ root.append(nav);
 update()}
 function update(){const key=mapping[symbol],item=data?.series?.[key];if(!item||!item.bars?.length){showError("Data grafik belum tersedia");return}
 const dt=new Date(item.asOf);const asOf=Number.isFinite(dt.getTime())?dt.toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Jakarta"})+" WIB":"waktu tidak tersedia";
-const days=Math.max(0,Math.floor((Date.now()-new Date(item.asOf).getTime())/86400000));stats.textContent="Sumber: "+(item.source||data.provider)+" • Terakhir: "+asOf+(days>3?" • DATA LAMA, bukan harga terkini":"")+" • "+(item.type==="close-only"?"kurs penutupan referensi":"candle historis")+(item.status==="stale"?" • DATA LAMA: sumber terbaru tidak lolos validasi":"")+(item.latestBarIsOpen?" • candle harian belum final":"")+" • Bukan sinyal KATARINA";
+const days=Math.max(0,Math.floor((Date.now()-new Date(item.asOf).getTime())/86400000));stats.textContent="Sumber: "+(item.source||data.provider)+" • Terakhir: "+asOf+(days>3?" • DATA LAMA, bukan harga terkini":"")+" • "+(item.type==="close-only"?"kurs penutupan referensi":"candlestick historis")+(item.status==="stale"?" • DATA LAMA: sumber terbaru tidak lolos validasi":"")+(item.latestBarIsOpen?" • candle harian belum final":"")+" • Bukan sinyal KATARINA";
 if(ctx)requestAnimationFrame(paint);}
 const mapToggle=document.getElementById("kt-week-map-toggle");
 if(mapToggle){mapToggle.addEventListener("click",()=>{scenarioOn=!scenarioOn;mapToggle.setAttribute("aria-pressed",String(scenarioOn));mapToggle.textContent=scenarioOn?"◇ Sembunyikan peta mingguan":"◇ Tampilkan peta mingguan";hover=-1;requestAnimationFrame(paint)})}

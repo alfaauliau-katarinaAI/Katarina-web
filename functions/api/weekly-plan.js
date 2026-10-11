@@ -40,7 +40,6 @@ export async function onRequestGet({request}){
   if(left&&right){const spread=left.netPctOI-right.netPctOI;cotBias=spread>1?"BUY":spread< -1?"SELL":null;cotNote="Posisi futures "+base+" relatif terhadap "+quote+" memiliki selisih "+Number(spread.toFixed(1))+" poin persentase open interest; "+(cotBias===null?"belum ada arah COT yang tegas.":cotBias==="BUY"?"cenderung mendukung mata uang depan.":"cenderung mendukung mata uang belakang.")}
   else if(left||right){const x=left||right;const relative=left?x.netContracts:-x.netContracts;cotBias=relative>0?"BUY":relative<0?"SELL":null;cotNote="Yang tersedia baru COT "+x.currency+", jadi gambaran pair belum lengkap. "+x.currency+" tercatat "+(x.netContracts>0?"beli bersih.":"jual bersih.")}
  }
- }
  const marketCondition={ema20:round(e20,symbol),ema50:round(e50,symbol),rsi14:Number(momentum.toFixed(1)),atr14:round(atr,symbol),h4Close:round(close,symbol),last6H4Change:round(last6,symbol)};
  if(!direction)return OUT({schema:1,status:"no-clear-direction",symbol,timeframe:"H4",source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,marketCondition,cotNote,news,message:"Sinyal H4 belum searah. KATARINA tidak memaksakan BUY atau SELL ketika kondisinya belum jelas."});
  const trigger=direction==="BUY"?upper:lower,invalid=direction==="BUY"?lower:upper,target=direction==="BUY"?trigger+atr*1.6:trigger-atr*1.6;

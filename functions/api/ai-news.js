@@ -27,8 +27,18 @@ async function readArticle(url){
   const html=(await res.text()).slice(0,800000);
   let body=candidateFromJsonLd(html);
   if(body.length<700){
-   const match=html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
-   if(match){const ps=[...match[1].matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map(x=>strip(x[1])).filter(s=>s.length>60);body=ps.join("\n").slice(0,15000)}
+   // CNBC and similar publishers render the full story in identifiable article-body containers
+   // rather than schema.org articleBody. Collect ONLY paragraphs within that container.
+   const pos=html.search(/class=["'][^"']*ArticleBody-articleBody[^"']*["']/i);
+   if(pos>=0){
+     const region=html.slice(pos,Math.min(html.length,pos+140000));
+     const ps=[...region.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map(x=>strip(x[1])).filter(s=>s.length>55&&s.length<2000&&!/subscribe|sign up for|privacy policy/i.test(s));
+     body=[...new Set(ps)].slice(0,30).join("\n").slice(0,15000);
+   }
+   if(body.length<700){
+     const match=html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
+     if(match){const ps=[...match[1].matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map(x=>strip(x[1])).filter(s=>s.length>60);body=ps.join("\n").slice(0,15000)}
+   }
   }
   // No inference on short excerpts or truncated publisher pages.
   return body.length>=850?body.slice(0,10500):null;

@@ -45,3 +45,5 @@
 .kt-hotnews-original{font-size:10px!important;line-height:1.65!important;color:#8baec7!important;margin:0!important;border-left:2px solid #20547a;padding-left:9px;overflow-wrap:anywhere}
 .kt-hotnews-main{font-size:clamp(15px,1.8vw,22px)!important;color:#e8faff!important;line-height:1.45!important;margin:0!important}
 .kt-hotnews-item .kt-hotnews-main{font-size:14px!important}
+
+.kt-ai-label{font-size:9px;font-weight:850;letter-spacing:.07em;color:#9cbcd0;background:#08263c;border:1px solid #24506a;padding:7px 9px;border-radius:7px;display:inline-block;align-self:flex-start}.kt-ai-label.kt-ai-ready{color:#61e9cb;background:#0a3439;border-color:#1d867f}.kt-ai-uncertain{border-color:#966d2c!important;background:#2f241446!important}

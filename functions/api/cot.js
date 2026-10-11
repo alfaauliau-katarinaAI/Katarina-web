@@ -23,15 +23,33 @@ async function query(ccy){
  return {currency:ccy,contract,asOf:date,netContracts:lng-sht,longContracts:lng,shortContracts:sht,openInterest:oi,netPctOI:Number(((lng-sht)/oi*100).toFixed(2)),meaning:(lng-sht)>0?"bersih beli":(lng-sht)<0?"bersih jual":"seimbang"};
  }catch{return null}finally{clearTimeout(timer)}
 }
+async function metal(symbol){
+ const contract=symbol==="XAUUSD"?"GOLD":symbol==="XAGUSD"?"SILVER":null;
+ if(!contract)return null;
+ const u=new URL("https://publicreporting.cftc.gov/resource/72hh-3qpy.json");
+ u.searchParams.set("$where","contract_market_name = '"+contract+"'");
+ u.searchParams.set("$order","report_date_as_yyyy_mm_dd DESC");
+ u.searchParams.set("$limit","3");
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),9000);
+ try{
+ const response=await fetch(u,{signal:ctrl.signal,cf:{cacheTtl:21600}});if(!response.ok)return null;
+ const data=await response.json();if(!Array.isArray(data))return null;
+ const row=data.find(x=>x.contract_market_name===contract&&/COMMODITY EXCHANGE/.test(x.market_and_exchange_names||""));if(!row)return null;
+ const date=String(row.report_date_as_yyyy_mm_dd||"").slice(0,10),lng=Number(row.m_money_positions_long_all),sht=Number(row.m_money_positions_short_all),oi=Number(row.open_interest_all);
+ if(!/^\d{4}-\d\d-\d\d$/.test(date)||![lng,sht,oi].every(Number.isFinite)||oi<=0||Date.now()-Date.parse(date+"T00:00:00Z")>28*86400000)return null;
+ return {currency:contract,contract,asOf:date,netContracts:lng-sht,longContracts:lng,shortContracts:sht,openInterest:oi,netPctOI:Number(((lng-sht)/oi*100).toFixed(2)),meaning:lng>sht?"bersih beli":lng<sht?"bersih jual":"seimbang",report:"Disaggregated · Managed Money"};
+ }catch{return null}finally{clearTimeout(timer)}
+}
+
 export async function onRequestGet({request}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!ID.test(symbol))return json({schema:1,status:"invalid-symbol"},400);
- const cached=new Request(new URL("/api/cot?symbol="+symbol,u).toString());
+ const cached=new Request(new URL("/api/cot?symbol="+symbol+"&revision=metals-v1",u).toString());
  try{const hit=await caches.default.match(cached);if(hit)return hit}catch{}
  const parts=symbol.length===6&&!["XAUUSD","XAGUSD","BTCUSD","NASDAQ"].includes(symbol)?[symbol.slice(0,3),symbol.slice(3)]:[];
  const curr=[...new Set(parts.filter(x=>KEYS[x]))];
- const values=(await Promise.all(curr.map(query))).filter(Boolean);
- const payload={schema:1,symbol,status:values.length?"official-futures":"unavailable",source:"CFTC · Traders in Financial Futures · Futures Only",sourceUrl:"https://publicreporting.cftc.gov/resource/gpe5-46if.json",data:values,note:"Data posisi leveraged money futures mingguan, bukan volume spot forex atau bukti prediksi arah. Untuk pasangan silang, baca mata uang dasar dan kuotasi secara relatif."};
+ const values=(await Promise.all([...curr.map(query),metal(symbol)])).filter(Boolean);
+ const payload={schema:1,symbol,status:values.length?"official-futures":"unavailable",source:"CFTC · TFF/Disaggregated · Futures Only",sourceUrl:"https://publicreporting.cftc.gov/",data:values,note:"Posisi futures mingguan: leveraged money untuk mata uang, managed money untuk logam. Bukan volume spot atau probabilitas arah harga."};
  const res=json(payload);try{await caches.default.put(cached,res.clone())}catch{}
  return res;
 }

@@ -212,6 +212,7 @@ function renderPairNews(){
 }
 async function start(){
  menu();
+ if(page!=="research"&&page!=="dashboard")return;
  const [marketResult,contextResult,calendarResult,newsResult]=await Promise.allSettled(["/market-ohlc.json","/instrument-context.json","/calendar-brief.json","/api/hot-news"].map(get));
  market=marketResult.status==="fulfilled"&&marketResult.value.schema===1?marketResult.value:null;
  context=contextResult.status==="fulfilled"&&Array.isArray(contextResult.value.instruments)?contextResult.value.instruments:[];

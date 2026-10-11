@@ -38,10 +38,35 @@ function showEvent(ev){
  addBlock(b,"Konfirmasi pasar",ev.detailedWatch||ev.whatToWatch);
  addLink(b,"Jadwal resmi",ev.source);addLink(b,"Sumber konsensus",ev.forecastSource);
 }
+function specificImpact(item,symbol){
+ const title=String(item.title||"").toLowerCase(),pair=String(symbol||"XAUUSD");
+ const base=pair.slice(0,3),quote=pair.slice(3),usd=pair.includes("USD"),jpy=pair.includes("JPY");
+ if(/\b(fed|federal reserve|fomc|powell|lisa cook|judy shelton)\b/i.test(title))
+  return "Isu The Fed bisa menggeser ekspektasi suku bunga dolar. Pantau yield Treasury: kalau USD menguat relatif mata uang lawan, "+pair+" berpotensi "+(base==="USD"?"naik":quote==="USD"?"turun":"ikut berubah")+".";
+ if(/\b(treasury|bond|obligation|yield|bessent|obligasi|surat utang)\b/i.test(title))
+  return "Perubahan imbal hasil obligasi memengaruhi daya tarik mata uang. Untuk "+pair+", bandingkan yield kedua negara agar arah pengaruhnya lebih jelas.";
+ if(/\b(boj|bank of japan|japan|japanese|yen|ueda|tankan)\b/i.test(title)||item.market==="JPY")
+  return "Perubahan sikap BoJ atau ekonomi Jepang bisa menggerakkan yen. "+(jpy?"Jika yen menguat relatif pasangannya, "+pair+" cenderung "+(quote==="JPY"?"turun.":"naik."):"Reaksinya perlu dibandingkan dengan suku bunga dan sentimen risiko.");
+ if(/\b(ecb|lagarde|eurozone|european central bank|euro)\b/i.test(title)||item.market==="EUR")
+  return "Pernyataan ECB dapat mengubah perkiraan suku bunga euro. "+(pair.includes("EUR")?"Jika euro menguat relatif lawan, "+pair+" berpotensi "+(base==="EUR"?"naik.":"turun."):"Perhatikan pasar obligasi Eropa dan valas.");
+ if(/\b(boe|bank of england|uk inflation|british|sterling|pound)\b/i.test(title)||item.market==="GBP")
+  return "Sentimen tentang BoE dan inflasi Inggris berdampak pada pound. Jika GBP menguat relatif terhadap pasangannya, arah "+pair+" bergantung pada apakah GBP berada di depan atau belakang pasangan.";
+ if(/\b(inflation|cpi|ppi|consumer price|harga konsumen|inflasi)\b/i.test(title))
+  return "Data inflasi yang berbeda dari ekspektasi bisa menggeser perkiraan suku bunga. "+pair+" biasanya bereaksi setelah yield dan mata uang pembentuknya bergerak.";
+ if(/\b(oil|crude|iran|houthi|war|conflict|geopolitic|saudi|russia|perang|minyak)\b/i.test(title))
+  return "Kabar geopolitik bisa memicu perpindahan dana ke aset aman dan menggerakkan minyak. "+(jpy?"Yen juga sensitif saat pasar menghindari risiko.":usd?"Pantau reaksi dolar, emas, dan yield AS.":"Dampaknya lewat selera risiko dan mata uang terkait.");
+ if(/\b(stock|stocks|wall street|equity|nasdaq|shares|market|saham|pasar modal)\b/i.test(title))
+  return "Perubahan minat risiko di saham dapat merambat ke mata uang. "+(jpy?"Yen sering dipantau ketika investor mengurangi risiko.":"Periksa apakah efeknya benar-benar muncul pada "+pair+".");
+ if(item.market){
+  const pos=item.market===base?"di depan":item.market===quote?"di belakang":"dalam penggerak makro";
+  return "Kebijakan "+item.market+" berada "+pos+" pasangan "+pair+". Jika mata uang ini menguat terhadap pasangannya, harga akan ikut bereaksi. Lihat keputusan resminya dulu.";
+ }
+ return item.impact?.slice(0,220)||"Kabar ini bisa mengubah ekspektasi pasar. Pastikan reaksinya terlihat pada yield, sentimen, dan harga "+pair+".";
+}
 function showNews(item,index){
  const b=showDialog((item.source||"Berita pasar")+" · "+presentDate(item.publishedAt),item.titleId||item.title);if(!b)return;
  if(item.titleId&&item.titleId!==item.title)addBlock(b,"Judul asli penerbit",item.title);
- if(item.relevanceNote)addBlock(b,"Mengapa berpengaruh ke "+selected,item.relevanceNote);
+ if(page==="research")addBlock(b,"Apa dampaknya ke "+selected+"?",specificImpact(item,selected));
  if(item.essence)addBlock(b,"Intinya",item.essence);
  if(item.impact)addBlock(b,"Dampak yang mungkin terjadi",item.impact);
  if(item.watch)addBlock(b,"Yang perlu diperhatikan",item.watch);
@@ -71,7 +96,7 @@ function newsCard(item,index,officialItem=false){
  e("strong",null,item.titleId||item.title));
  if(!officialItem&&item.essence&&page==="dashboard")btn.append(e("p",null,item.essence.replace(/^Pokok isu:\s*/i,"")));
  if(page==="research"){
-  const blurb=officialItem?"Kebijakan "+item.market+" bisa mengubah kekuatan mata uang terhadap "+selected+". Periksa arah reaksinya.":item.relevanceNote||item.impact;
+  const blurb=specificImpact(item,selected);
   if(blurb)btn.append(e("small","impact-brief","Dampak: "+blurb.slice(0,235)));
  }
  btn.append(e("span","read","Baca dampaknya →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
@@ -258,6 +283,7 @@ async function localizeHeadlines(scope){
   if(page==="dashboard")renderDashboard();
  }else if(selected===key&&page==="research"){
   for(const item of official)if(translated.has(item.url))item.titleId=translated.get(item.url);
+  if(translated.size>=8)official=official.filter(x=>Boolean(x.titleId));
   for(const item of feed)if(translated.has(item.url))item.titleId=translated.get(item.url);
   renderPairNews();
  }

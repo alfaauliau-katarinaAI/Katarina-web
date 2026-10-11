@@ -1,0 +1,28 @@
+/* Research mobile improvements and provider chart timeframes */
+.kt-unified .kt-tf-switch{margin:13px 0 12px;border:1px solid #245a7c;border-radius:12px;padding:13px 16px;background:linear-gradient(120deg,#0b2a43,#081b32);min-width:0}
+.kt-tf-switch>span{display:block;font-size:10px;font-weight:850;letter-spacing:.1em;color:#8acbe7;margin-bottom:11px}
+.kt-tf-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.kt-tf-buttons button{background:#071b31;border:1px solid #266185;border-radius:8px;padding:10px 13px;color:#bcd9eb;cursor:pointer;min-height:42px;font:750 12px 'DM Sans',system-ui;white-space:nowrap}
+.kt-tf-buttons button[aria-pressed=true]{background:#0c6796;color:white;border-color:#4dccff;box-shadow:0 0 15px #116cb04a}
+#kt-tf-caption{color:#98bbd2;font-size:11px;margin:10px 0 0;line-height:1.65}
+.kt-tf-provider{display:flex;flex-direction:column;gap:10px;background:#06162b;border:1px solid #236284;border-radius:10px;overflow:hidden;padding:10px;margin-bottom:13px}
+.kt-tf-provider[hidden],.kt-unified .chart-surface[hidden]{display:none!important}
+.kt-tf-iframe{width:100%;height:560px;border:0;border-radius:7px;background:#061526}
+.kt-tf-note{font-size:11px;color:#9ec0d0;margin:0 4px;line-height:1.7}
+.kt-tf-provider>a{font-size:12px;color:#7adaff;text-decoration:none;padding:2px 4px 9px;font-weight:750}
+.kt-week-deep{margin-top:23px;border-top:1px solid #25506f;padding-top:18px}
+.kt-deep-heading h3{font:780 clamp(18px,2vw,25px) 'Space Grotesk',system-ui;margin:4px 0 8px;color:#ebf8ff}
+.kt-deep-heading p{font-size:12px;line-height:1.8;color:#a4c6d7;margin:0 0 16px}
+.kt-deep-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.kt-deep-metric{padding:13px 11px;background:linear-gradient(145deg,#082844,#07182c);border:1px solid #245778;border-radius:9px;min-width:0}
+.kt-deep-metric small{display:block;font-size:10px;line-height:1.45;color:#88b8d5}
+.kt-deep-metric strong{display:block;font:760 clamp(14px,1.55vw,19px) 'Space Grotesk',system-ui;color:#d5f5ff;margin-top:8px;overflow-wrap:anywhere}
+.kt-deep-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:15px}
+.kt-deep-card{padding:19px;border:1px solid #225b80;border-radius:12px;background:#071d33;min-width:0}
+.kt-deep-kicker{font-size:10px;font-weight:850;letter-spacing:.1em;color:#69d2fa}
+.kt-deep-card h3{font-size:17px;margin:9px 0 14px;color:#eaf8ff}
+.kt-deep-card ol{margin:0;padding-left:19px;display:grid;gap:10px}
+.kt-deep-card li{font-size:12px;color:#b0cfdf;line-height:1.8;overflow-wrap:anywhere}
+.kt-deep-disclaimer,.kt-deep-empty{color:#92bcd4;border-left:3px solid #289bd7;padding:11px 14px;background:#072035;border-radius:5px;line-height:1.8;font-size:11px;margin-top:15px}
+@media(max-width:850px){.kt-deep-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.kt-deep-grid{grid-template-columns:1fr}.kt-tf-iframe{height:480px}}
+@media(max-width:620px){.kt-tf-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.kt-tf-buttons button{font-size:11px;padding:9px 5px;min-width:0;white-space:normal}.kt-tf-iframe{height:395px}.kt-unified #kt-analysis-terminal .kt-chart-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:7px}.kt-unified #kt-analysis-terminal .kt-chart-actions>*{display:flex;align-items:center;justify-content:center;white-space:normal;min-width:0;width:100%;font-size:10px;padding:9px 7px}.kt-unified #kt-week-map-toggle{grid-column:1/-1}.kt-unified .kt-week-cards{grid-template-columns:1fr}.kt-unified .kt-week-scenario{grid-template-columns:1fr}.kt-deep-metric{padding:12px 10px}.kt-deep-card{padding:16px}.kt-unified .instrument-toolbar{padding:12px!important}.kt-unified .instrument-toolbar label[for="research-instrument"]{flex-basis:100%}.kt-unified .instrument-lookup{flex-basis:100%!important;min-width:0}.kt-unified .econ-effect-row{display:block!important}.kt-unified .econ-effect-row>strong{display:block;width:auto;margin-bottom:6px}.kt-unified .kt-analysis-terminal .panel-head{align-items:start;flex-wrap:wrap}}

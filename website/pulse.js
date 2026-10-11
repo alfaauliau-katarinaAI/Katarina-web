@@ -19,51 +19,19 @@ function safeDate(x){return typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&
 function safeUrl(s){try{let u=new URL(s);return u.protocol==='https:'?u.href:null}catch(e){return null}}
 function dateLabel(x){try{return new Intl.DateTimeFormat(activeLang()==='id'?'id-ID':'en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(x+'T12:00:00Z'))}catch(e){return x}}
 function compactEvent(x){
-let card=element('article','econ-entry');
-const when=element('div','econ-when',dateLabel(x.dateWIB)+' • '+x.timeWIB+' WIB');card.append(when);
-const info=element('div');info.append(element('strong','',x.title));
-const metrics=element('div','econ-metrics');
-const translations={
- id:['Aktual','Prediksi','Sebelumnya','Belum rilis','Belum tersedia','Analisis singkat'],
- en:['Actual','Consensus','Previous','Not released','Unavailable','Quick analysis'],
- es:['Actual','Consenso','Anterior','Sin publicar','No disponible','Análisis breve'],
- fr:['Réel','Consensus','Précédent','Non publié','Indisponible','Analyse brève'],
- pt:['Real','Consenso','Anterior','Não publicado','Indisponível','Análise breve'],
- de:['Istwert','Konsens','Vorher','Noch offen','Nicht verfügbar','Kurzanalyse'],
- ar:['الفعلي','التوقع','السابق','لم يصدر','غير متاح','تحليل موجز'],
- hi:['वास्तविक','अनुमान','पिछला','जारी नहीं','उपलब्ध नहीं','संक्षिप्त विश्लेषण'],
- zh:['实际','预期','前值','尚未公布','暂无','简析'],
- ja:['実績','予想','前回','未発表','不明','簡易分析'],
- ko:['실제','예측','이전','미발표','없음','간단 분석'],
- ru:['Факт','Прогноз','Прошлое','Не вышел','Нет данных','Краткий анализ'],
- ms:['Sebenar','Ramalan','Terdahulu','Belum terbit','Tiada data','Analisis ringkas'],
- tr:['Gerçek','Beklenti','Önceki','Yayınlanmadı','Mevcut değil','Kısa analiz']
-};
-const words=translations[d.documentElement.lang]||translations.en;
-for(const [label,val,source,hasReleased] of [[words[0],x.actual,x.actualSource,false],[words[1],x.forecast,x.forecastSource,true],[words[2],x.previous,x.previousSource,true]]){
- const cell=element('div','econ-metric');cell.append(element('small','',label));const verified=val!==null&&val!==undefined&&String(val).length>0&&safeUrl(source);
- cell.append(element('b','',verified?String(val):(hasReleased?words[4]:words[3])));metrics.append(cell);
-}
-info.append(metrics);
-info.append(element('p','econ-comment',x.description));
-const analysis=element('p','econ-comment');analysis.append(element('span','econ-label',words[5]+': '));analysis.append(d.createTextNode(x.analysisShort||x.conditional||x.whatToWatch||''));info.append(analysis);
-const imp=window.katarinaInstrument?(x.instrumentImpact?.[window.katarinaInstrument]||0):0;const impTxt=imp>=4?'SANGAT TINGGI':imp===3?'TINGGI':imp===2?'SEDANG':x.impact;const attributions=element('div','econ-sources');const origin=element('a','econ-badge',impTxt+' · '+(x.region||'')+' ↗');origin.href=safeUrl(x.source)||sources.bls;origin.target='_blank';origin.rel='noopener noreferrer';attributions.append(origin);
-if(safeUrl(x.forecastSource)){const market=element('a','econ-badge',d.documentElement.lang==='id'?'Sumber konsensus ↗':'Consensus source ↗');market.href=x.forecastSource;market.target='_blank';market.rel='noopener noreferrer';attributions.append(market)}
-info.append(attributions);
-const details=element('div','econ-effects');
-details.append(element('h4','econ-effects-title',d.documentElement.lang==='id'?'Penjelasan dampak & skenario ekonomi':'Economic impact and scenarios'));
-const add=(label,content)=>{if(!content)return;const row=element('div','econ-effect-row');row.append(element('strong','',label));row.append(element('p','',content));details.append(row)};
-add(d.documentElement.lang==='id'?'Mengapa rilis ini penting':'Why this matters',x.transmission||x.description);
-add(d.documentElement.lang==='id'?'Jika aktual di atas prediksi':'If actual exceeds consensus',x.ifAbove);
-add(d.documentElement.lang==='id'?'Jika aktual di bawah prediksi':'If actual misses consensus',x.ifBelow);
-add(d.documentElement.lang==='id'?'Apa yang wajib dipantau':'What to monitor',x.detailedWatch||x.whatToWatch);
-if(document.querySelector('.kt-unified')){
- const disclosure=element('details','kt-calendar-details');
- const heading=element('summary','kt-calendar-summary','Lihat penjelasan dan skenario dampak');
- disclosure.append(heading,details);
- info.append(disclosure);
-}else info.append(details);
-card.append(info);return card;
+ const card=element("article","econ-entry");
+ // Show only source-backed values. Clicking the card opens the comprehensive impact explanation.
+ if(window.KatarinaUI?.releaseButton){card.append(window.KatarinaUI.releaseButton(x));return card}
+ // Accessible fallback without the enhanced component.
+ const button=element("button","ka-release");button.type="button";
+ button.append(element("span","econ-when",dateLabel(x.dateWIB)+" · "+x.timeWIB+" WIB"),element("strong","",x.title));
+ const metrics=element("div","ka-release-metrics");
+ for(const [key,val] of [["Aktual",x.actual===null||x.actual===undefined?"Belum rilis":x.actualSource?x.actual:"—"],["Prediksi",x.forecast&&x.forecastSource?x.forecast:"—"],["Sebelumnya",x.previous&&x.previousSource?x.previous:"—"]]){
+  const cell=element("div");cell.append(element("span","",key),element("b","",String(val)));metrics.append(cell)
+ }
+ button.append(metrics,element("span","ka-release-bottom","Buka analisa →"));
+ button.addEventListener("click",()=>window.KatarinaUI?.openEvent(x));
+ card.append(button);return card;
 }
 function renderCalendar(){const root=qs('#economic-events');if(root){root.replaceChildren();
 if(!state.cal?.events?.length){root.append(element('p','placeholder',lex('Kalender resmi belum dimuat.','Official schedule not available.')))}

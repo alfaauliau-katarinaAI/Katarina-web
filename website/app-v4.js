@@ -130,23 +130,41 @@ function eventRelevant(ev,symbol){
 function pairEvents(symbol){
  return calendar.filter(x=>eventRelevant(x,symbol)).sort((a,b)=>String(a.dateWIB+a.timeWIB).localeCompare(String(b.dateWIB+b.timeWIB))).slice(0,5);
 }
+const svgns="http://www.w3.org/2000/svg";
+function makeSpark(bars,id,large=false){
+ const last=(bars||[]).filter(x=>Array.isArray(x)&&Number.isFinite(x[4])).slice(large?-42:-32);
+ if(last.length<8)return null;
+ const w=large?430:180,h=large?105:53,v=last.map(x=>x[4]),hi=Math.max(...v),lo=Math.min(...v),span=Math.max(1e-8,hi-lo);
+ const svg=document.createElementNS(svgns,"svg");svg.setAttribute("viewBox","0 0 "+w+" "+h);svg.setAttribute("role","img");svg.setAttribute("aria-label","Riwayat penutupan historis "+id);
+ const pts=v.map((x,i)=>(6+i*(w-12)/(v.length-1))+","+(6+(hi-x)/span*(h-12))).join(" ");
+ const grid=document.createElementNS(svgns,"line");grid.setAttribute("x1","0");grid.setAttribute("x2",String(w));grid.setAttribute("y1",String(h/2));grid.setAttribute("y2",String(h/2));grid.setAttribute("stroke","#547889");grid.setAttribute("stroke-opacity",".22");svg.append(grid);
+ const poly=document.createElementNS(svgns,"polyline");poly.setAttribute("points",pts);poly.setAttribute("fill","none");poly.setAttribute("stroke",v.at(-1)>=v[0]?"#65decf":"#ef99a7");poly.setAttribute("stroke-width",large?"3.5":"2.5");poly.setAttribute("stroke-linejoin","round");poly.setAttribute("stroke-linecap","round");svg.append(poly);
+ return svg;
+}
 function renderDashboard(){
- const p=profileFor("XAUUSD"),s=signal(priceSeries(p));
+ const gold=profileFor("XAUUSD"),goldBars=priceSeries(gold),s=signal(goldBars);
  text("hero-gold",s?fmt(s.close,"XAUUSD"):"—");text("hero-gold-change",s?pct(s.change):"—");$("hero-gold-change")?.classList.toggle("negative",Boolean(s&&s.change<0));
  text("hero-gold-time",s?"Penutupan "+presentDate(s.asOf):"Harga historis belum tersedia");
- const strip=$("ticker-preview"),grid=$("dashboard-pairs");
- for(const box of [strip,grid])if(box)box.replaceChildren();
- for(const id of ["XAUUSD","EURUSD","USDJPY","GBPUSD","BTCUSD","XAGUSD"]){
-  const p=profileFor(id),d=signal(priceSeries(p));if(!d)continue;
-  if(strip){const a=e("a");a.href="/research?symbol="+id;a.append(e("b",null,id),e("span",null,fmt(d.close,id)),e("em",d.change>=0?"positive":"negative",pct(d.change)));strip.append(a)}
-  if(grid){const a=e("a","pick-card");a.href="/research?symbol="+id;a.append(e("small",null,p.label||id),e("strong",null,fmt(d.close,id)),e("em",d.change>=0?"positive":"negative",pct(d.change)));grid.append(a)}
+ const goldMini=$("hero-mini-chart");if(goldMini){goldMini.replaceChildren();const art=makeSpark(goldBars,"XAUUSD",true);if(art)goldMini.append(art)}
+ const grid=$("dashboard-pairs");if(grid)grid.replaceChildren();
+ const focusPair=(()=>{try{return localStorage.getItem("katarina-selected-symbol")||"USDJPY"}catch{return "USDJPY"}})();
+ const focusProfile=profileFor(focusPair),d=signal(priceSeries(focusProfile));
+ const group=["EURUSD","USDJPY","GBPUSD","USDCAD","AUDUSD","XAGUSD","BTCUSD","EURGBP"].filter(id=>id!==focusPair&&id!=="XAUUSD").slice(0,6);
+ for(const id of group){
+  const p=profileFor(id),bars=priceSeries(p),a=signal(bars);if(!a||!grid)continue;
+  const link=e("a","pick-card");link.href="/research?symbol="+id;
+  const brief=a.lead==="menguat"?"Harga sedang menguat":a.lead==="melemah"?"Harga sedang melemah":"Harga masih berkonsolidasi";
+  link.append(e("small",null,p.label||id),e("strong",null,fmt(a.close,id)),e("em",a.change>=0?"positive":"negative",pct(a.change)));
+  const spark=makeSpark(bars,id);if(spark){spark.classList.add("pick-spark");if(a.change<0)spark.classList.add("negative");link.append(spark)}
+  link.append(e("small",null,brief+" · "+presentDate(a.asOf)));grid.append(link);
  }
- const focusPair=(()=>{try{return localStorage.getItem("katarina-selected-symbol")||"USDJPY"}catch{return "USDJPY"}})();const d=signal(priceSeries(profileFor(focusPair))),next=calendar.filter(x=>x.dateWIB>=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Jakarta"})).sort((a,b)=>a.dateWIB.localeCompare(b.dateWIB)).slice(0,2);
- text("focus-title",d?focusPair+" · "+(d.lead==="menguat"?"Yen dan selisih imbal hasil":d.lead==="melemah"?"Risiko koreksi dolar/yen":"Uji keseimbangan USD vs JPY"):"Perubahan arah yen dan dolar");
- text("focus-detail","Perhatikan "+macro(profileFor(focusPair)).slice(0,2).join(". ")+". Periksa detail skenario dan COT di terminal.");
- text("focus-label",d?"Struktur: "+d.lead+" · "+presentDate(d.asOf):"Pantau pasar");
- const events=$("dash-events");if(events){events.replaceChildren();for(const x of next)events.append(eventCard(x));if(!next.length)events.append(e("p","empty-state","Belum ada rilis mendatang terverifikasi."))}
- const news=$("dashboard-news");if(news){news.replaceChildren();for(const [i,x]of feed.slice(0,9).entries())news.append(newsCard(x,i));if(!feed.length)news.append(e("p","empty-state","Belum ada berita baru dari sumber terverifikasi."))}
+ const next=calendar.filter(x=>x.dateWIB>=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Jakarta"})).sort((a,b)=>a.dateWIB.localeCompare(b.dateWIB)).slice(0,2);
+ text("focus-title",d?focusPair+" · "+(d.lead==="menguat"?"Menguat, pantau kelanjutannya":d.lead==="melemah"?"Melemah, perhatikan pemulihannya":"Masih mencari arah"):focusPair+" · Menunggu data");
+ text("focus-detail",macro(focusProfile).slice(0,2).join(". ")+". Baca skenario lengkap untuk melihat area penting dan pemicu risikonya.");
+ text("focus-label",d?"Kondisi harga · "+presentDate(d.asOf):"Harga belum tersedia");
+ const focusLink=document.querySelector(".lead-card .focus-foot a");if(focusLink)focusLink.href="/research?symbol="+encodeURIComponent(focusPair);
+ const events=$("dash-events");if(events){events.replaceChildren();for(const x of next)events.append(eventCard(x));if(!next.length)events.append(e("p","empty-state","Belum ada agenda ekonomi terverifikasi."))}
+ const news=$("dashboard-news");if(news){news.replaceChildren();for(const [idx,item]of feed.slice(0,9).entries())news.append(newsCard(item,idx));if(!feed.length)news.append(e("p","empty-state","Belum ada berita terbaru yang bisa diverifikasi."))}
 }
 function drawTV(symbol){
  const host=$("tv-host-v4");if(!host)return;
@@ -159,6 +177,7 @@ function drawTV(symbol){
  script.onerror=()=>{host.append(e("div","empty-state","Grafik penyedia tidak dapat dimuat. Gunakan Buka layar penuh."))};
  wrapper.append(script);
 }
+window.KatarinaRenderTV=drawTV;
 function renderCot(symbol){
  const box=$("cot-box");if(!box)return;box.replaceChildren();
  if(!cot||cot.symbol!==symbol||!Array.isArray(cot.data)||!cot.data.length){
@@ -221,10 +240,28 @@ function renderResearch(){
  const ev=$("pair-events");if(ev){ev.replaceChildren();const chosen=pairEvents(selected);for(const x of chosen)ev.append(eventCard(x));if(!chosen.length)ev.append(e("p","empty-state","Belum ada agenda terbaru yang spesifik terhadap "+selected+". Berita bank sentral tetap dipantau."))}
  const news=$("pair-news");if(news){news.replaceChildren(e("p","empty-state","Menelusuri sumber yang relevan untuk "+selected+"…"))}
  get("/api/cot?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;cot=v;renderCot(selected)}).catch(()=>{if(token===liveReq)renderCot(selected)});
- get("/api/pair-news?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;official=v?.items||[];renderPairNews()}).catch(()=>{if(token===liveReq){official=[];renderPairNews()}});
+ get("/api/pair-news?symbol="+encodeURIComponent(selected)).then(v=>{if(token!==liveReq)return;official=v?.items||[];renderPairNews();void localizeHeadlines(selected)}).catch(()=>{if(token===liveReq){official=[];renderPairNews()}});
  window.dispatchEvent(new CustomEvent("katarina:pair-change",{detail:{symbol:selected}}));
 }
 function renderSentimentCot(){ /* Penjelasan COT sekarang hanya ada di panel COT agar tidak berulang. */ }
+const translatedScopes=new Map();
+async function localizeHeadlines(scope){
+ const key=scope.toUpperCase(),when=translatedScopes.get(key)||0;if(Date.now()-when<5*60000)return;
+ translatedScopes.set(key,Date.now());
+ try{
+ const result=await get("/api/berita-id?symbol="+encodeURIComponent(key));
+ if(!Array.isArray(result.items)||!result.items.length)return;
+ const translated=new Map(result.items.filter(x=>x.titleId&&x.url).map(x=>[x.url,x.titleId]));
+ if(key==="DASHBOARD"){
+  for(const item of feed)if(translated.has(item.url))item.titleId=translated.get(item.url);
+  if(page==="dashboard")renderDashboard();
+ }else if(selected===key&&page==="research"){
+  for(const item of official)if(translated.has(item.url))item.titleId=translated.get(item.url);
+  for(const item of feed)if(translated.has(item.url))item.titleId=translated.get(item.url);
+  renderPairNews();
+ }
+ }catch{}
+}
 function renderPairNews(){
  const box=$("pair-news");if(!box)return;box.replaceChildren();
  let result=official;
@@ -244,13 +281,13 @@ async function start(){
  context=contextResult.status==="fulfilled"&&Array.isArray(contextResult.value.instruments)?contextResult.value.instruments:[];
  calendar=calendarResult.status==="fulfilled"&&Array.isArray(calendarResult.value.events)?calendarResult.value.events:[];
  feed=newsResult.status==="fulfilled"&&Array.isArray(newsResult.value.items)?newsResult.value.items:[];
- if(page==="dashboard"){renderDashboard();setInterval(async()=>{try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){feed=fresh.items;renderDashboard()}}catch{}},15*60000)}
+ if(page==="dashboard"){renderDashboard();void localizeHeadlines("DASHBOARD");setInterval(async()=>{try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){feed=fresh.items;renderDashboard();void localizeHeadlines("DASHBOARD")}}catch{}},15*60000)}
  else{
  const param=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";
  selected=items().some(x=>x.id===param)?param:"XAUUSD";try{localStorage.setItem("katarina-selected-symbol",selected)}catch{}
  $("pair-choose")?.addEventListener("click",pick);
  renderResearch();
- setInterval(()=>{if(!document.hidden){get("/api/pair-news?symbol="+selected).then(x=>{official=x?.items||[];renderPairNews()}).catch(()=>{})}},15*60000)
+ setInterval(()=>{if(!document.hidden){get("/api/pair-news?symbol="+selected).then(x=>{official=x?.items||[];renderPairNews();void localizeHeadlines(selected)}).catch(()=>{})}},15*60000)
  }
 }
 document.addEventListener("DOMContentLoaded",()=>{start().catch(()=>{menu();text("pair-headline","Data sementara belum tersedia. Coba muat ulang halaman.")})});

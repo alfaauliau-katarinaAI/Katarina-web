@@ -1,0 +1,50 @@
+name: Deploy KATARINA Web to Cloudflare Pages (free)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'functions/**'
+      - '.github/workflows/cloudflare-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: katarina-web-cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Cloudflare Pages production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout public website source
+        uses: actions/checkout@v4
+
+      - name: Verify existing Cloudflare credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to Katarina-web > Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Deploy existing katarina-research project (no new paid services)
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy website --project-name=katarina-research --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show production URLs
+        run: |
+          echo "Deployment requested from Katarina-web/main."
+          echo "Production URL: https://katarina-research.pages.dev/"

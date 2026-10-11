@@ -1,0 +1,43 @@
+/* KATARINA Pro design system: premium editorial finance + professional TradingView workspace */
+:root{--ktp-surface:#07182b;--ktp-edge:#1a3854;--ktp-text:#e9f6ff;--ktp-cyan:#5edbff;--ktp-green:#26dbb6}
+body{background:radial-gradient(ellipse 55% 38% at 10% -10%,#0c335157,transparent 78%),radial-gradient(ellipse 35% 30% at 100% 23%,#0829437a,transparent),#040b16}
+header.shell{background:#050f1ce8!important;backdrop-filter:blur(16px);border-bottom-color:#1a3b54!important}
+header.shell .identity .mark{display:flex!important;align-items:center;justify-content:center;overflow:hidden!important;border-radius:12px!important;transform:none!important;background:linear-gradient(140deg,#02162d,#0a365a)!important;border:1px solid #227daf!important;padding:0!important;flex:0 0 46px!important;box-shadow:0 0 16px #006cbb41!important}
+header.shell .identity .mark img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 3px #39baff)}
+header.shell .wordmark b{letter-spacing:.015em!important;font-size:21px!important}header.shell .wordmark small{letter-spacing:.08em!important}
+header.shell .navlinks a{border-radius:7px!important;font-size:12px!important;transition:background .2s,border-color .2s;color:#b4d0e1!important}
+header.shell .navlinks a.active{color:#fff!important;background:#0a314e!important;box-shadow:none!important;border:1px solid #3a85ad!important}
+.kt-pro-hero-brand{height:145px;display:grid;place-items:center;margin:10px 0;background:radial-gradient(ellipse,#156fa055,transparent 65%);position:relative;isolation:isolate}
+.kt-pro-hero-brand img{height:100%;width:100%;object-fit:contain;filter:drop-shadow(0 0 20px #078bd38c)}
+.kt-home-v2 .kt-v2-hero{background:linear-gradient(125deg,#102c45,#061424 80%);border-color:#214865;box-shadow:0 14px 40px #0006}
+.kt-home-v2 .kt-v2-card,.kt-home-v2 .kt-v2-ticker{background:linear-gradient(140deg,#081d31,#061423);border-color:#1d3f59}
+.kt-home-v2 .kt-v2-card:hover,.kt-home-v2 .kt-v2-ticker:hover{border-color:#3c93b7}
+.kt-home-v2 .kt-v2-hero-side{background:linear-gradient(160deg,#0c2943,#071726)}
+.kt-home-v2 .kt-v2-price{color:#64e4e0!important;font-variant-numeric:tabular-nums}
+.kt-unified .kt-unified-hero{background:radial-gradient(ellipse at 85% 20%,#0b7cab22,transparent 50%),linear-gradient(125deg,#0c2a44,#071424);border-color:#245472;box-shadow:none}
+.kt-pro-workstation{border:1px solid #295a78;border-radius:16px;padding:12px;background:#051424;box-shadow:0 18px 50px #0008;margin-bottom:23px;min-width:0}
+.kt-pro-workstation-top{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:10px 11px 16px}
+.kt-pro-kicker{font-weight:850;font-size:10px;letter-spacing:.14em;color:#66d6f5}
+.kt-pro-workstation-top h2{font:770 clamp(20px,2.2vw,31px)/1.2 'Space Grotesk',system-ui;color:#f4faff;margin:7px 0}
+.kt-pro-workstation-top h2 em{font-style:normal;color:#71d8f9}
+.kt-pro-workstation-top p{margin:0;color:#90b8cf;font-size:12px;line-height:1.65}
+.kt-pro-workstation-links a{display:inline-flex;align-items:center;justify-content:center;color:#e1f9ff;font-size:12px;font-weight:800;text-decoration:none;padding:11px 15px;border:1px solid #317eac;border-radius:8px;background:#0b3557}
+.kt-pro-tv-stage{position:relative;width:100%;min-width:0;background:#061528;border:1px solid #163f5f;border-radius:10px;overflow:hidden}
+.kt-pro-tv-widget{width:100%;height:690px;min-height:500px;position:relative}
+.kt-pro-tv-widget .tradingview-widget-container{height:100%!important}
+.kt-pro-tv-loading,.kt-pro-tv-error{padding:20px;color:#9ad8f0;font-size:13px}
+.kt-pro-chart-context{position:absolute;top:58px;right:18px;width:min(350px,calc(100% - 36px));z-index:4;border:1px solid #207294;background:#051628e9;border-radius:10px;box-shadow:0 10px 34px #0009;overflow:hidden;backdrop-filter:blur(10px)}
+.kt-pro-chart-context>button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;border:0;background:#0b2d48;color:#effbff;font:800 10px 'DM Sans',sans-serif;padding:12px 14px;cursor:pointer;letter-spacing:.07em;text-align:left}
+.kt-pro-chart-context>button span:last-child{font-weight:600;font-size:10px;color:#81cee7}
+#kt-pro-context-content{padding:12px 14px;max-height:300px;overflow-y:auto}
+#kt-pro-context-content[hidden]{display:none}
+.kt-pro-chart-symbol{color:#78dcf8;font:800 14px 'Space Grotesk',sans-serif}
+#kt-pro-context-content p{font-size:11px;line-height:1.7;color:#d1e8f4;margin:8px 0;overflow-wrap:break-word}
+#kt-pro-context-content a{display:inline-block;font-weight:800;font-size:11px;color:#6bd7fb;text-decoration:none;margin:5px 0}
+#kt-pro-context-content small{display:block;font-size:9px;color:#81a7bd;line-height:1.6;margin-top:10px}
+.kt-pro-chart-foot{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;padding:12px 6px 3px;color:#95b7ca;font-size:10px;line-height:1.6}
+.kt-pro-chart-foot i{width:7px;height:7px;display:inline-block;border-radius:50%;background:#24d5af;vertical-align:middle;margin-right:5px}
+.kt-unified .kt-week-panel{background:linear-gradient(135deg,#082038,#061528)!important;border-color:#245571!important}
+.kt-unified .kt-analysis-terminal{display:none!important}
+@media(max-width:850px){.kt-pro-tv-widget{height:590px}.kt-pro-chart-context{top:auto;bottom:14px;right:12px}}
+@media(max-width:590px){.kt-pro-workstation{padding:8px}.kt-pro-workstation-top{padding:11px 9px 15px}.kt-pro-tv-widget{height:525px;min-height:420px}.kt-pro-chart-context{bottom:9px;right:8px;width:min(292px,calc(100% - 16px))}.kt-pro-chart-context>button{padding:10px;font-size:9px}.kt-pro-chart-foot{padding:10px}.kt-home-v2 .kt-v2-hero-main{padding:24px 18px}}

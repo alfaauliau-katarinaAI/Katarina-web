@@ -22,6 +22,21 @@ const commodities={XAUUSD:["Yield riil dan indeks dolar AS","Kebijakan Fed serta
 const safeUrl=u=>{try{const v=new URL(u);return v.protocol==="https:"?v.href:null}catch{return null}};
 const get=async url=>{const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);return r.json()};
 const page=document.body.dataset.page||"dashboard";
+let newsLanguage=(()=>{try{return localStorage.getItem("katarina-news-language")==="en"?"en":"id"}catch{return "id"}})();
+function pickNewsTitle(item){return newsLanguage==="en"?item.title:(item.titleId||"")}
+function initLanguage(){
+ const chooser=$("site-language");if(!chooser)return;
+ chooser.value=newsLanguage;document.documentElement.lang=newsLanguage;
+ chooser.addEventListener("change",value=>{
+  newsLanguage=value.target.value==="en"?"en":"id";
+  try{localStorage.setItem("katarina-news-language",newsLanguage)}catch{}
+  document.documentElement.lang=newsLanguage;
+  if(page==="dashboard"){renderDashboard();if(newsLanguage==="id")void localizeHeadlines("DASHBOARD")}
+  else if(page==="research"){renderPairNews();if(newsLanguage==="id")void localizeHeadlines(selected);
+   if(!$("tv-host-v4")?.classList.contains("chart-hidden"))drawTV(selected)}
+ });
+}
+
 let market=null,context=[],calendar=[],selected="XAUUSD",liveReq=0,feed=[],cot=null,official=[],candle=null,profile=null,latest=null;
 function showDialog(kicker,title){const d=$("detail-dialog"),b=$("dialog-content");if(!d||!b)return null;text("dialog-label",kicker);b.replaceChildren(e("h2",null,title));try{d.showModal()}catch{d.setAttribute("open","")};return b}
 function addBlock(root,title,value){if(!root||!value)return;const box=e("section","block");box.append(e("h3",null,title),e("p",null,value));root.append(box)}
@@ -68,8 +83,8 @@ function specificImpact(item,symbol){
  return item.impact?.slice(0,220)||"Kabar ini bisa mengubah ekspektasi pasar. Pastikan reaksinya terlihat pada yield, sentimen, dan harga "+pair+".";
 }
 function showNews(item,index){
- const b=showDialog((item.source||"Berita pasar")+" · "+presentDate(item.publishedAt),item.titleId||item.title);if(!b)return;
- if(item.titleId&&item.titleId!==item.title)addBlock(b,"Judul asli penerbit",item.title);
+ const b=showDialog((item.source||"Berita pasar")+" · "+presentDate(item.publishedAt),pickNewsTitle(item)||item.title);if(!b)return;
+ if(newsLanguage==="id"&&item.titleId&&item.titleId!==item.title)addBlock(b,"Judul asli penerbit",item.title);
  if(page==="research")addBlock(b,"Apa dampaknya ke "+selected+"?",specificImpact(item,selected));
  if(item.essence)addBlock(b,"Intinya",item.essence);
  if(item.impact)addBlock(b,"Dampak yang mungkin terjadi",item.impact);
@@ -97,13 +112,13 @@ function eventCard(ev){
 function newsCard(item,index,officialItem=false){
  const btn=e("button",officialItem?"pair-news-card":"news-card");btn.type="button";
  btn.append(e("span",officialItem?"date":"news-top",(item.source||"Berita pasar")+" · "+presentDate(item.publishedAt)),
- e("strong",null,item.titleId||item.title));
+ e("strong",null,pickNewsTitle(item)||item.title));
  if(!officialItem&&item.essence&&page==="dashboard")btn.append(e("p",null,item.essence.replace(/^Pokok isu:\s*/i,"")));
  if(page==="research"){
   const blurb=specificImpact(item,selected);
   if(blurb)btn.append(e("small","impact-brief","Dampak: "+blurb.slice(0,235)));
  }
- btn.append(e("span","read","Baca dampaknya →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
+ btn.append(e("span","read",newsLanguage==="id"?"Baca dampaknya →":"Read market impact →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
 }
 function menu(){
  const panel=$("menu-sheet"),back=$("menu-backdrop"),open=$("menu-toggle");
@@ -193,7 +208,12 @@ function renderDashboard(){
  text("focus-label",d?"Kondisi harga · "+presentDate(d.asOf):"Harga belum tersedia");
  const focusLink=document.querySelector(".lead-card .focus-foot a");if(focusLink)focusLink.href="/research?symbol="+encodeURIComponent(focusPair);
  const events=$("dash-events");if(events){events.replaceChildren();for(const x of next)events.append(eventCard(x));if(!next.length)events.append(e("p","empty-state","Belum ada agenda ekonomi terverifikasi."))}
- const news=$("dashboard-news");if(news){news.replaceChildren();for(const [idx,item]of feed.slice(0,9).entries())news.append(newsCard(item,idx));if(!feed.length)news.append(e("p","empty-state","Belum ada berita terbaru yang bisa diverifikasi."))}
+ const news=$("dashboard-news");if(news){news.replaceChildren();for(const [idx,item]of feed.entries()){
+  if(news.children.length>=9)break;
+  if(newsLanguage==="id"&&!item.titleId)continue;
+  news.append(newsCard(item,idx));
+ }
+ if(!news.children.length)news.append(e("p","empty-state",newsLanguage==="id"?"Sedang menyiapkan berita dalam Bahasa Indonesia…":"No recent verified headlines yet."))}
 }
 function drawTV(symbol){
  const host=$("tv-host-v4");if(!host)return;
@@ -202,7 +222,7 @@ function drawTV(symbol){
  host.replaceChildren();
  const wrapper=e("div","tradingview-widget-container"),inside=e("div","tradingview-widget-container__widget");inside.style.cssText="width:100%;height:100%";wrapper.append(inside);wrapper.style.cssText="width:100%;height:100%";host.append(wrapper);
  const script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";script.async=true;
- script.textContent=JSON.stringify({autosize:true,symbol:chart,interval:"60",timezone:"Asia/Jakarta",theme:"dark",style:"1",locale:"id",hide_top_toolbar:false,hide_side_toolbar:false,allow_symbol_change:false,withdateranges:true,save_image:true,backgroundColor:"#0c1824",gridColor:"rgba(90,126,148,0.13)",hide_volume:true,details:false,calendar:false,watchlist:[],studies:[]});
+ script.textContent=JSON.stringify({autosize:true,symbol:chart,interval:"240",timezone:"Asia/Jakarta",theme:"dark",style:"1",locale:newsLanguage,hide_top_toolbar:false,hide_side_toolbar:false,allow_symbol_change:false,withdateranges:true,save_image:true,backgroundColor:"#0c1824",gridColor:"rgba(90,126,148,0.13)",hide_volume:true,details:false,calendar:false,watchlist:[],studies:[]});
  script.onerror=()=>{host.append(e("div","empty-state","Grafik penyedia tidak dapat dimuat. Gunakan Buka layar penuh."))};
  wrapper.append(script);
 }
@@ -276,6 +296,7 @@ function renderResearch(){
 function renderSentimentCot(){ /* Penjelasan COT sekarang hanya ada di panel COT agar tidak berulang. */ }
 const translatedScopes=new Map();
 async function localizeHeadlines(scope){
+ if(newsLanguage!=="id")return;
  const key=scope.toUpperCase(),when=translatedScopes.get(key)||0;if(Date.now()-when<5*60000)return;
  translatedScopes.set(key,Date.now());
  try{
@@ -301,7 +322,7 @@ function renderPairNews(){
   const pattern=new RegExp(cc.map(v=>({USD:"fed|dollar|treasury|inflation|cpi|us economy",JPY:"japan|yen|boj",EUR:"euro|ecb",GBP:"britain|pound|boe",AUD:"australia|rba|china",CAD:"canada|oil|boc",NZD:"zealand|rbnz|dairy",CHF:"swiss|snb"}[v]||v)).join("|"),"i");
   result=feed.filter(n=>pattern.test(n.title)).slice(0,6);
  }
- if(!result.length){box.append(e("p","empty-state","Belum ada pembaruan spesifik "+selected+" dari sumber yang terhubung."));return}
+ if(!result.length){box.append(e("p","empty-state","Belum ada berita terbaru yang relevan untuk "+selected+"."));return}
  const seenTopics=new Set();let count=0;
  for(const [i,x]of result.entries()){
   if(count>=16)break;
@@ -309,11 +330,13 @@ function renderPairNews(){
   const key=/lisa cook/.test(title)?"fed-lisa-cook":/judy shelton/.test(title)?"fed-shelton":null;
   if(key&&seenTopics.has(key))continue;
   if(key)seenTopics.add(key);
+  if(newsLanguage==="id"&&!x.titleId)continue;
   box.append(newsCard(x,i,Boolean(x.market)));count++;
  }
+ if(!count)box.append(e("p","empty-state",newsLanguage==="id"?"Sedang menyiapkan judul berita Bahasa Indonesia…":"No fresh related headlines."));
 }
 async function start(){
- menu();
+ menu();initLanguage();
  if(page!=="research"&&page!=="dashboard")return;
  const [marketResult,contextResult,calendarResult,newsResult]=await Promise.allSettled(["/market-ohlc.json","/instrument-context.json","/calendar-brief.json","/api/hot-news"].map(get));
  market=marketResult.status==="fulfilled"&&marketResult.value.schema===1?marketResult.value:null;

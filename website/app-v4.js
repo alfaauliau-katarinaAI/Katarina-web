@@ -172,9 +172,9 @@ function renderResearch(){
  const sentiment=$("sentiment-map");if(sentiment){sentiment.replaceChildren();const metrics=[
   ["Struktur harga",s?(s.lead==="menguat"?"Cenderung naik":s.lead==="melemah"?"Cenderung turun":"Berimbang"):"Belum cukup",s?(s.lead==="menguat"?77:s.lead==="melemah"?23:50):50],
   ["Momentum 5 sesi",s?(s.week>=.25?"Positif":s.week<=-.25?"Negatif":"Netral"):"Belum cukup",s?Math.max(10,Math.min(90,50+s.week*6)):50],
-  ["Faktor moneter",(selected.length===6&&!commodities[selected]?selected.slice(0,3)+" vs "+selected.slice(3):"Makro global"),55],
-  ["COT (mingguan)",cot?.data?.length?"Sumber CFTC":"Belum tersedia",cot?.data?.length?60:50]];
-  for(const [k,val,progress]of metrics){const row=e("div","sentiment-item"),bar=e("div","sentiment-bar"),line=e("i");line.style.width=progress+"%";bar.append(line);row.append(e("span",null,k),bar,e("strong",null,val));sentiment.append(row)}
+  ["Faktor moneter",(selected.length===6&&!commodities[selected]?selected.slice(0,3)+" vs "+selected.slice(3):"Makro global"),null],
+  ["COT (mingguan)","Menunggu CFTC",null]];
+  for(const [k,val,progress]of metrics){const row=e("div","sentiment-item"),bar=e("div","sentiment-bar"),line=e("i");line.style.width=(progress===null?0:progress)+"%";bar.append(line);row.append(e("span",null,k),bar,e("strong",null,val));sentiment.append(row)}
  }
  cot=null;renderCot(selected);
  const ev=$("pair-events");if(ev){ev.replaceChildren();const chosen=pairEvents(selected);for(const x of chosen)ev.append(eventCard(x));if(!chosen.length)ev.append(e("p","empty-state","Belum ada agenda terbaru yang spesifik terhadap "+selected+". Berita bank sentral tetap dipantau."))}
@@ -184,7 +184,20 @@ function renderResearch(){
 }
 function renderSentimentCot(){
  const div=$("sentiment-map");if(!div)return;const row=div.querySelectorAll(".sentiment-item")[3];if(!row)return;
- const b=row.querySelector("strong");if(b)b.textContent=cot?.data?.length?cot.data.map(x=>x.currency+": "+(x.netContracts>=0?"net long":"net short")).join(" | "):"Belum tersedia";
+ const b=row.querySelector("strong"),bar=row.querySelector(".sentiment-bar i");
+ if(!cot?.data?.length){if(b)b.textContent="Belum tersedia";if(bar)bar.style.width="0%";return}
+ const data=new Map(cot.data.map(x=>[x.currency,x]));
+ let score=null,explain="";
+ if(commodities[selected]){
+  const key=selected==="XAUUSD"?"GOLD":selected==="XAGUSD"?"SILVER":null,measure=data.get(key);
+  if(measure){score=Math.max(15,Math.min(85,50+measure.netPctOI));explain=key+": "+(measure.netContracts>=0?"bersih beli":"bersih jual")}
+ }else{
+  const base=selected.slice(0,3),quote=selected.slice(3),lhs=data.get(base),rhs=data.get(quote);
+  if(lhs||rhs){const delta=(lhs?.netPctOI||0)-(rhs?.netPctOI||0);
+   score=Math.max(15,Math.min(85,50+delta));explain=(lhs?base+" "+(lhs.netContracts>=0?"net long":"net short"):"")+(lhs&&rhs?" · ":"")+(rhs?quote+" "+(rhs.netContracts>=0?"net long":"net short"):"")}
+ }
+ if(b)b.textContent=explain||"Belum tersedia";
+ if(bar)bar.style.width=score===null?"0%":score+"%";
 }
 function renderPairNews(){
  const box=$("pair-news");if(!box)return;box.replaceChildren();

@@ -3,7 +3,7 @@
 ## Yang benar-benar berjalan
 
 - Cloudflare Pages `katarina-research`: website, news API dan rencana mingguan H4.
-- Worker `katarina-free-ingest`: Cron setiap **1 menit**; dua feed RSS per menit, tiap sumber kira-kira **5 menit sekali**, tanpa pengunjung website. Simpan URL, judul, penerbit, dan tanggal terverifikasi ke D1.
+- Dua Worker ringan `katarina-free-ingest` (shard 0) dan `katarina-free-ingest-b` (shard 1): masing-masing Cron setiap **1 menit**, total empat feed RSS per menit; tiap sumber diperiksa kira-kira **2–3 menit sekali** tanpa pengunjung. Worker shard 0 saja yang menyusun histori H4. Simpan URL, judul, penerbit, dan tanggal terverifikasi ke D1.
 - Cloudflare D1 `katarina-research-data`: berita, terjemahan bahasa Indonesia, serta struktur tabel riwayat analisa H4.
 - Histori H4: 34 instrumen, dua pemeriksaan terdistribusi pada **8–19 menit** dan **38–49 menit** setelah penutupan masing-masing candle H4. Simpan hanya `(symbol,last_closed_at)` baru.
 - Front-end saat terlihat: cek berita **3 menit**, tidak render ulang bila daftar sama; harga H4 refresh mengikuti interval 3 menit. Saat tab tak terlihat, polling berita berhenti.
@@ -25,9 +25,9 @@
 
 ## Estimasi kasar beban per hari
 
-- 1 Cron per menit = **1.440 invokasi/hari**.
-- 2 feed per menit = **2.880 HTTP pemeriksaan RSS/hari** total, sekitar **288 per sumber per hari**; tergantung peraturan dan ketersediaan feed penerbit.
-- 34 instrumen × 6 candle H4 sehari × 2 pass = maksimal **408 pemeriksaan analisa/hari**. Baris histori *baru* sekitar **204/hari**, jika seluruh instrumen dan data tersedia.
+- 2 Cron per menit = **2.880 invokasi/hari** (2 dari maksimal 5 Cron Triggers gratis).
+- 4 feed per menit = **5.760 HTTP pemeriksaan RSS/hari** total, sekitar **576 per sumber per hari**; tergantung peraturan dan ketersediaan feed penerbit.
+- 34 instrumen × 6 candle H4 sehari × 2 pass = maksimal **408 pemeriksaan analisa/hari**, hanya melalui Worker pertama. Baris histori *baru* sekitar **204/hari**, jika seluruh instrumen dan data tersedia.
 - Misal 50–300 berita baru + 50–300 terjemahan valid/hari, total perkiraan **304–804 penulisan D1/hari** termasuk 204 histori. Ini skenario, bukan pemakaian akun yang sudah terukur.
 - Jika 100 pengunjung **terus membuka** dashboard selama 24 jam, polling sekali per 3 menit menghasilkan **48.000 pemanggilan API/hari** sebelum optimasi cache; tambah halaman, pair, dan cron. Cap 100.000/hari tetap berlaku di seluruh akun. Pengunjung biasa umumnya tidak membuka sepanjang hari.
 - Misal API berita membaca 30 baris D1 per polling, pada contoh ekstrem 100 sesi selalu terbuka: paling banyak **1,44 juta baris dibaca/hari** dari endpoint berita, belum termasuk panggilan API lain. Caching Cloudflare mengurangi permintaan riil, tetapi jangan berasumsi semuanya di-cache.

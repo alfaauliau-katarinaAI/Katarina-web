@@ -88,50 +88,48 @@ function showEvent(ev){
 }
 // Never substitute repeated macro assumptions for a source-grounded conclusion.
 function headlinePrompt(item){
- const p=item.policyHeadline;
- if(p?.eventType==="STATISTICS")return "Ini laporan statistik, bukan keputusan suku bunga. Dampak arah belum bisa disimpulkan dari judul.";
- if(p?.eventType==="DECISION")return "Judul mengindikasikan "+p.policyDirection+". Baca rilis lengkap untuk memeriksa keputusan, ekspektasi dan dampaknya.";
- return "Buka isi berita untuk melihat kesimpulan berbasis fakta, perubahan kebijakan dan aset yang diuntungkan.";
+ return item.policyHeadline?.eventType==="STATISTICS"?
+  "Rilis statistik; kesimpulan dampak menunggu pemeriksaan isi publikasi.":
+  "Buka analisis isi sumber: peristiwa, perubahan kebijakan, aset yang diuntungkan/dirugikan, serta dampak per instrumen.";
 }
 function showNews(item,index){
- const symbol=selected;
+ const symbol=selected,originalIdx=official.findIndex(x=>x.url===item.url),feedIdx=feed.findIndex(x=>x.url===item.url);
+ const scope=page==="research"&&originalIdx>=0?"pair":"dashboard";
+ const chosenIndex=scope==="pair"?originalIdx:feedIdx;
  const b=showDialog((item.source||"Berita pasar")+" · "+presentDate(item.publishedAt),pickNewsTitle(item)||item.title);if(!b)return;
  if(newsLanguage==="id"&&item.titleId&&item.titleId!==item.title)addBlock(b,"Judul asli penerbit",item.title);
- addBlock(b,"Status awal",headlinePrompt(item));
- const info=e("div","source-analysis"),state=e("p","policy-loading","Membaca isi rilis dan memeriksa apakah ada perubahan kebijakan…");
- info.append(state);b.append(info);addLink(b,"Baca rilis asli",item.url);
- const originalIdx=official.findIndex(x=>x.url===item.url);
+ const info=e("div","source-analysis"),state=e("p","policy-loading","Menganalisis isi berita, perubahan kebijakan, dan dampak terhadap aset yang relevan…");
+ info.append(state);b.append(info);addLink(b,"Baca berita asli",item.url);
  const active=()=>b.isConnected&&$("detail-dialog")?.open&&selected===symbol;
- if(page==="research"&&originalIdx>=0){
-  fetch("/api/policy-brief?symbol="+encodeURIComponent(symbol)+"&index="+originalIdx,{cache:"no-store"})
-   .then(async r=>{const v=await r.json();if(!active())return;
-    info.replaceChildren();
-    if(r.ok&&v.status==="ai-full-article"&&v.url===item.url){
-     addBlock(info,"Inti berita",v.summary);
-     addBlock(info,"Arah kebijakan",({TIGHTENING:"Pengetatan",EASING:"Pelonggaran",HOLD:"Dipertahankan",NO_DECISION:"Tidak ada keputusan baru",UNCLEAR:"Belum jelas"}[v.policyDirection]||"Belum jelas")+" — "+v.policyEvidence);
-     addBlock(info,"Yang berpotensi diuntungkan",v.benefits);
-     addBlock(info,"Yang berpotensi dirugikan",v.harms);
-     addBlock(info,"Implikasi ke "+symbol,v.pairMessage);
-     addBlock(info,"Bukti dari isi rilis",v.sourceQuote);
-     addBlock(info,"Yang perlu dikonfirmasi",v.watch);
-     addBlock(info,"Yang belum pasti",v.uncertainty);
-     window.dispatchEvent(new CustomEvent("katarina:policy-brief-updated",{detail:{symbol,url:item.url}}));
-    }else addBlock(info,"Belum dapat disimpulkan",v.reason||"Isi rilis belum dapat dianalisis secara terverifikasi. Tidak ada arah trading yang diasumsikan.");
-   }).catch(()=>{if(active())state.textContent="Isi rilis belum tersedia untuk dianalisis. Tidak ada kesimpulan arah yang dipaksakan."});
-  return;
- }
- const original=feed.findIndex(x=>x.url===item.url);
- if(original>=0&&original<3){
-  fetch("/api/ai-news?index="+original,{cache:"no-store"}).then(async r=>{
-   const v=await r.json();if(!active())return;info.replaceChildren();
-   if(r.ok&&v.status==="ai-full-article"&&v.url===item.url){
-    addBlock(info,"Inti berita",v.summary);addBlock(info,"Fakta penting",v.drivers);
-    addBlock(info,"Dampak makro yang didukung isi artikel",v.impact);
-    addBlock(info,"Yang perlu dikonfirmasi",v.watch);
-    addBlock(info,"Ketidakpastian",v.uncertainty);
-   }else addBlock(info,"Belum dapat disimpulkan",v.reason||"Teks artikel belum tersedia. Arah tidak dapat ditetapkan dari judul.");
-  }).catch(()=>{if(active())state.textContent="Sumber artikel belum dapat diakses."});
- }else state.textContent="Rilis belum didukung analisis isi lengkap. Judul saja tidak cukup untuk mengambil posisi.";
+ if(chosenIndex<0){state.textContent="Artikel sudah berganti dalam daftar. Muat ulang berita untuk analisis terbaru.";return}
+ const args=new URLSearchParams({scope,symbol,index:String(chosenIndex),expected:item.url});
+ fetch("/api/news-intelligence?"+args.toString(),{cache:"no-store"})
+ .then(async response=>{
+  const v=await response.json();if(!active())return;info.replaceChildren();
+  if(response.ok&&v.status==="ai-full-article"&&v.url===item.url){
+   addBlock(info,"Inti berita",v.summary);
+   if(v.keyFacts?.length)addBlock(info,"Fakta penting dari sumber",v.keyFacts.map((x,i)=>(i+1)+". "+x).join("\n"));
+   addBlock(info,"Keputusan dan arah kebijakan",
+    ({TIGHTENING:"Pengetatan",EASING:"Pelonggaran",HOLD:"Tidak berubah",NO_DECISION:"Tidak ada keputusan kebijakan baru",UNCLEAR:"Belum dapat ditentukan"}[v.policyDirection]||"Belum jelas")+". "+v.policyEvidence);
+   addBlock(info,"Perbandingan dengan ekspektasi",v.expectationComparison);
+   addBlock(info,"Mengapa bisa menggerakkan pasar?",v.macroMechanism);
+   addBlock(info,"Pihak/aset yang berpotensi diuntungkan",v.benefits);
+   addBlock(info,"Pihak/aset yang berpotensi dirugikan",v.harms);
+   for(const impact of (v.marketEffects||[]).slice(0,6)){
+    addBlock(info,"Dampak "+impact.symbol+" · "+({UP:"cenderung menguat",DOWN:"cenderung melemah",MIXED:"dua arah",UNKNOWN:"belum cukup bukti"}[impact.direction]||"belum terverifikasi"),impact.reason);
+   }
+   if(scope==="pair")addBlock(info,"Implikasi khusus "+symbol,v.pairMessage);
+   if(v.shortTerm)addBlock(info,"Skenario jangka pendek",v.shortTerm);
+   if(v.mediumTerm)addBlock(info,"Skenario jangka menengah",v.mediumTerm);
+   addBlock(info,"Bukti kutipan sumber",v.sourceQuote);
+   addBlock(info,"Apa yang harus dikonfirmasi?",v.watch);
+   addBlock(info,"Ketidakpastian / pembatal kesimpulan",v.uncertainty);
+   window.dispatchEvent(new CustomEvent("katarina:policy-brief-updated",{detail:{symbol,url:item.url}}));
+  }else{
+   addBlock(info,"Status analisis",v.reason||"Isi sumber tidak cukup untuk menyimpulkan dampak spesifik. Tidak dibuat prediksi dari judul saja.");
+   addBlock(info,"Informasi awal",headlinePrompt(item));
+  }
+ }).catch(()=>{if(active())state.textContent="Gagal membaca artikel; kesimpulan arah belum tersedia. Silakan buka berita aslinya."});
 }
 function eventCard(ev){
  const btn=e("button","event-card");btn.type="button";btn.append(e("span","date",presentDate(ev.dateWIB+"T12:00:00+07:00")+" · "+ev.timeWIB+" WIB"),e("strong",null,ev.title));
@@ -143,7 +141,7 @@ function newsCard(item,index,officialItem=false){
  const btn=e("button",officialItem?"pair-news-card":"news-card");btn.type="button";
  btn.append(e("span",officialItem?"date":"news-top",(item.source||"Berita pasar")+" · "+presentDate(item.publishedAt)),
  e("strong",null,pickNewsTitle(item)||item.title));
- if(page==="research")btn.append(e("small","impact-brief",headlinePrompt(item)));
+ if(page==="research")btn.append(e("small","impact-brief","Analisis fakta, kebijakan dan dampak lintas aset →"));
  btn.append(e("span","read",newsLanguage==="id"?"Baca dampaknya →":"Read market impact →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
 }
 function menu(){

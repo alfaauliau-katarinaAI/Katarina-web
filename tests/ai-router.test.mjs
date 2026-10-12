@@ -80,3 +80,19 @@ test("active Cloudflare fast model receives JSON schema only when supported",asy
  assert.equal(value.model,"@cf/meta/llama-3.1-8b-instruct-fast");
  assert.deepEqual(list[0].payload.response_format,format);
 });
+
+test("complex article falls back to JSON-capable active 70B Fast instead of slow non-schema models",async()=>{
+ let n=0;const args=[];
+ const format={type:"json_schema",json_schema:{type:"object",properties:{summary:{type:"string"}},required:["summary"]}};
+ const result=await runTaskAI({env:{AI:{run:async(model,payload)=>{
+  args.push([model,payload]);
+  if(++n===1)return {response:"invalid"};
+  return {response:{summary:"Article-grounded interpretation"}};
+ }}},task:"intelligence",messages:[{role:"user",content:"source"}],response_format:format,
+  validate:v=>v?.response&&typeof v.response==="object"?v.response.summary:null});
+ assert.equal(result.status,"ready");
+ assert.equal(result.fallbackUsed,true);
+ assert.equal(args.length,2);
+ assert.equal(args[1][0],"@cf/meta/llama-3.3-70b-instruct-fp8-fast");
+ assert.deepEqual(args[1][1].response_format,format);
+});

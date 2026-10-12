@@ -4,6 +4,8 @@
 import {onRequestGet as getH4} from "./h4.js";
 import {onRequestGet as getCOT} from "./cot.js";
 import {onRequestGet as getNews} from "./pair-news.js";
+import {summarizeMacro} from "../../lib/macro-policy.js";
+import {readPublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
 const OUT=(obj,status=200)=>new Response(JSON.stringify(obj),{status,headers:{"Content-Type":"application/json;charset=UTF-8","Cache-Control":"public,max-age=0,s-maxage=900"}});
 const ALLOWED=/^(?:XAUUSD|XAGUSD|BTCUSD|US30|US500|NASDAQ|(?:EUR|GBP|USD|AUD|NZD|CAD|CHF)(?:EUR|GBP|USD|JPY|CHF|CAD|AUD|NZD))$/;
 function ema(xs,n){let a=xs.slice(0,n).reduce((s,x)=>s+x,0)/n,k=2/(n+1);for(let i=n;i<xs.length;i++)a=xs[i]*k+a*(1-k);return a}
@@ -13,8 +15,8 @@ const round=(x,s)=>Number(x.toFixed(s.endsWith("JPY")?3:/^(EUR|GBP|USD|AUD|NZD|C
 export async function onRequestGet({request,env}){
  const url=new URL(request.url),symbol=String(url.searchParams.get("symbol")||"").toUpperCase();
  if(!ALLOWED.test(symbol))return OUT({schema:1,status:"invalid-symbol"},400);
- const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=5",url));
- try{const saved=await caches.default.match(key);if(saved)return saved}catch{}
+ const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=6",url));
+ if(url.searchParams.get("fresh")!=="1")try{const saved=await caches.default.match(key);if(saved)return saved}catch{}
  const req=path=>new Request(new URL(path,url).toString());
  const h4=await getJSON(await getH4({request:req("/api/h4?symbol="+symbol)}));
  if(!h4||h4.status!=="ready")return OUT({schema:1,status:"h4-unavailable",symbol,timeframe:"H4",message:"Belum ada candle H4 tepercaya untuk menyusun satu arah analisa. Grafik pasar tetap bisa dibuka."},503);
@@ -30,7 +32,17 @@ export async function onRequestGet({request,env}){
  const [cotResponse,newsResponse]=await Promise.allSettled([getCOT({request:req("/api/cot?symbol="+symbol)}),getNews({request:req("/api/pair-news?symbol="+symbol),env})]);
  const cotData=cotResponse.status==="fulfilled"?await getJSON(cotResponse.value):null;
  const newsData=newsResponse.status==="fulfilled"?await getJSON(newsResponse.value):null;
- const news=(newsData?.items||[]).filter(x=>x.url&&x.title).slice(0,4).map(x=>({title:x.title,url:x.url,source:x.source,publishedAt:x.publishedAt,relevanceNote:x.relevanceNote||null}));
+ const allNews=(newsData?.items||[]).filter(x=>x.url&&x.title);
+ const news=allNews.slice(0,4).map(x=>({title:x.title,url:x.url,source:x.source,publishedAt:x.publishedAt,relevanceNote:x.relevanceNote||null}));
+ // Read only previously VERIFIED full-source briefs; never launch a batch of LLMs on a page request.
+ const candidates=allNews.filter(x=>Date.now()-Date.parse(x.publishedAt)<=72*3600000).slice(0,6);
+ const verified=await Promise.all(candidates.map(async x=>{
+  try{
+   const key=await publicAIKey("policy:v1",x.url);
+   return await readPublicAI(env,key,21600000,v=>v.url===x.url&&v.basis==="Isi artikel publik dari penerbit");
+  }catch{return null}
+ }));
+ const macroReview=summarizeMacro(symbol,verified.filter(Boolean));
  const contracts=cotData?.data||[],contractMap=new Map(contracts.map(x=>[x.currency,x])),base=symbol.slice(0,3),quote=symbol.slice(3);
  let cotNote="Belum ada COT yang cukup untuk mengonfirmasi posisi spekulatif pasangan ini.",cotBias=null;
  const metal=contractMap.get(symbol==="XAUUSD"?"GOLD":symbol==="XAGUSD"?"SILVER":"");
@@ -41,7 +53,13 @@ export async function onRequestGet({request,env}){
   else if(left||right){const x=left||right;const relative=left?x.netContracts:-x.netContracts;cotBias=relative>0?"BUY":relative<0?"SELL":null;cotNote="Yang tersedia baru COT "+x.currency+", jadi gambaran pair belum lengkap. "+x.currency+" tercatat "+(x.netContracts>0?"beli bersih.":"jual bersih.")}
  }
  const marketCondition={ema20:round(e20,symbol),ema50:round(e50,symbol),rsi14:Number(momentum.toFixed(1)),atr14:round(atr,symbol),h4Close:round(close,symbol),lastH4ChangePct:Number(((close/prices.at(-2)-1)*100).toFixed(2)),last6H4Change:round(last6,symbol)};
- if(!direction)return OUT({schema:1,status:"no-clear-direction",symbol,timeframe:"H4",source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,marketCondition,cotNote,news,message:"Sinyal H4 belum searah. KATARINA tidak memaksakan BUY atau SELL ketika kondisinya belum jelas."});
+ if(!direction)return OUT({schema:1,status:"no-clear-direction",symbol,timeframe:"H4",source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,marketCondition,cotNote,news,macroReview,message:"Sinyal H4 belum searah. KATARINA tidak memaksakan BUY atau SELL ketika kondisinya belum jelas."});
+ // A verified, recent, conflicting policy signal blocks the H4-only plan.
+ if(macroReview.bias==="CONFLICT"||macroReview.bias!=="UNKNOWN"&&macroReview.bias!==direction){
+  return OUT({schema:1,status:"macro-conflict",symbol,timeframe:"H4",technicalDirection:direction,
+   source:h4.source,lastClosedAt:h4.lastClosedAt,marketCondition,cotNote,news,macroReview,
+   message:"Rencana "+direction+" ditunda. "+macroReview.message+" Tidak ada entry sampai fundamental dan harga kembali selaras."});
+ }
  const trigger=direction==="BUY"?upper:lower,invalid=direction==="BUY"?lower:upper,target=direction==="BUY"?trigger+atr*1.6:trigger-atr*1.6;
  const trend=direction==="BUY"?"Fokus cari penguatan":"Fokus cari pelemahan",biasStrength=Math.abs(score)>=3?"cukup sejalan":"masih perlu konfirmasi";
  const signalCondition=direction==="BUY"?"H4 tutup di atas "+round(upper,symbol)+" lalu bertahan saat pengujian ulang.":"H4 tutup di bawah "+round(lower,symbol)+" lalu gagal kembali ke atasnya.";
@@ -51,10 +69,11 @@ export async function onRequestGet({request,env}){
   "Harga terakhir "+(close>=e20?"di atas":"di bawah")+" EMA 20.",
   "RSI H4 "+momentum.toFixed(1)+" dan perubahan enam candle "+(last6>=0?"positif":"negatif")+"."
  ];
- const plan={schema:1,status:"ready",symbol,timeframe:"H4",direction,trend,biasStrength,score,source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,ageHours:h4.ageHours,marketCondition,
+ if(macroReview.bias===direction)reasons.push("Bukti rilis terbaru: "+macroReview.message);
+ const plan={schema:1,status:"ready",symbol,timeframe:"H4",direction,trend,biasStrength:macroReview.bias===direction?"H4 dan kebijakan searah":"H4 bersyarat; fundamental belum terkonfirmasi",score,macroReview,source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,ageHours:h4.ageHours,marketCondition,
   trigger:round(trigger,symbol),invalidation:round(invalid,symbol),objective:round(target,symbol),atr:round(atr,symbol),
   condition:signalCondition,invalidText:invalidation,reasons,cotBias,cotNote,cotAlignment:cotBias===null?"belum terkonfirmasi":cotBias===direction?"searah":"berbeda dari arah utama",
-  news,newsInterpretation:"Berita menjadi konteks, bukan bukti langsung arah harga. Periksa rilis dan reaksi yield serta pasangan mata uang setelah pengumuman.",disclaimer:"Ini rencana bersyarat berbasis candle H4 dan data publik, bukan sinyal eksekusi atau jaminan hasil. Jika level pembatalan ditembus dengan penutupan H4, rencana dinyatakan gagal; jangan memaksakan arah lama."};
+  news,newsInterpretation:macroReview.message,disclaimer:"Ini rencana bersyarat berbasis candle H4 dan data publik, bukan sinyal eksekusi atau jaminan hasil. Jika level pembatalan ditembus dengan penutupan H4, rencana dinyatakan gagal; jangan memaksakan arah lama."};
  const response=OUT(plan);
  try{await caches.default.put(key,response.clone())}catch{}
  return response;

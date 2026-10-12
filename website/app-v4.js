@@ -86,55 +86,52 @@ function showEvent(ev){
  addBlock(b,"Konfirmasi pasar",ev.detailedWatch||ev.whatToWatch);
  addLink(b,"Jadwal resmi",ev.source);addLink(b,"Sumber konsensus",ev.forecastSource);
 }
-function specificImpact(item,symbol){
- const title=String(item.title||"").toLowerCase(),pair=String(symbol||"XAUUSD");
- const base=pair.slice(0,3),quote=pair.slice(3),usd=pair.includes("USD"),jpy=pair.includes("JPY");
- if(/lisa cook/i.test(title))
-  return "Polemik Lisa Cook bisa memicu perdebatan soal independensi The Fed. Untuk "+pair+", pengaruhnya baru berarti kalau ekspektasi suku bunga dan yield AS ikut berubah.";
- if(/judy shelton/i.test(title))
-  return "Masuknya penasihat ekonomi bukan otomatis perubahan kebijakan Fed. Pantau apakah pasar obligasi menilai ini sebagai sinyal baru untuk dolar dan "+pair+".";
- if(/\b(fed|federal reserve|fomc|powell)\b/i.test(title))
-  return "Isu The Fed bisa menggeser ekspektasi suku bunga dolar. Pantau yield Treasury: kalau USD menguat relatif mata uang lawan, "+pair+" berpotensi "+(base==="USD"?"naik":quote==="USD"?"turun":"ikut berubah")+".";
- if(/\b(treasury|bond|obligation|yield|bessent|obligasi|surat utang)\b/i.test(title))
-  return "Perubahan imbal hasil obligasi memengaruhi daya tarik mata uang. Untuk "+pair+", bandingkan yield kedua negara agar arah pengaruhnya lebih jelas.";
- if(/\b(boj|bank of japan|japan|japanese|yen|ueda|tankan)\b/i.test(title)||item.market==="JPY")
-  return "Perubahan sikap BoJ atau ekonomi Jepang bisa menggerakkan yen. "+(jpy?"Jika yen menguat relatif pasangannya, "+pair+" cenderung "+(quote==="JPY"?"turun.":"naik."):"Reaksinya perlu dibandingkan dengan suku bunga dan sentimen risiko.");
- if(/\b(ecb|lagarde|eurozone|european central bank|euro)\b/i.test(title)||item.market==="EUR")
-  return "Pernyataan ECB dapat mengubah perkiraan suku bunga euro. "+(pair.includes("EUR")?"Jika euro menguat relatif lawan, "+pair+" berpotensi "+(base==="EUR"?"naik.":"turun."):"Perhatikan pasar obligasi Eropa dan valas.");
- if(/\b(boe|bank of england|uk inflation|british|sterling|pound)\b/i.test(title)||item.market==="GBP")
-  return "Sentimen tentang BoE dan inflasi Inggris berdampak pada pound. Jika GBP menguat relatif terhadap pasangannya, arah "+pair+" bergantung pada apakah GBP berada di depan atau belakang pasangan.";
- if(/\b(inflation|cpi|ppi|consumer price|harga konsumen|inflasi)\b/i.test(title))
-  return "Data inflasi yang berbeda dari ekspektasi bisa menggeser perkiraan suku bunga. "+pair+" biasanya bereaksi setelah yield dan mata uang pembentuknya bergerak.";
- if(/\b(oil|crude|iran|houthi|war|conflict|geopolitic|saudi|russia|perang|minyak)\b/i.test(title))
-  return "Kabar geopolitik bisa memicu perpindahan dana ke aset aman dan menggerakkan minyak. "+(jpy?"Yen juga sensitif saat pasar menghindari risiko.":usd?"Pantau reaksi dolar, emas, dan yield AS.":"Dampaknya lewat selera risiko dan mata uang terkait.");
- if(/\b(stock|stocks|wall street|equity|nasdaq|shares|market|saham|pasar modal)\b/i.test(title))
-  return "Perubahan minat risiko di saham dapat merambat ke mata uang. "+(jpy?"Yen sering dipantau ketika investor mengurangi risiko.":"Periksa apakah efeknya benar-benar muncul pada "+pair+".");
- if(item.market){
-  const pos=item.market===base?"di depan":item.market===quote?"di belakang":"dalam penggerak makro";
-  return "Kebijakan "+item.market+" berada "+pos+" pasangan "+pair+". Jika mata uang ini menguat terhadap pasangannya, harga akan ikut bereaksi. Lihat keputusan resminya dulu.";
- }
- return item.impact?.slice(0,220)||"Kabar ini bisa mengubah ekspektasi pasar. Pastikan reaksinya terlihat pada yield, sentimen, dan harga "+pair+".";
+// Never substitute repeated macro assumptions for a source-grounded conclusion.
+function headlinePrompt(item){
+ const p=item.policyHeadline;
+ if(p?.eventType==="STATISTICS")return "Ini laporan statistik, bukan keputusan suku bunga. Dampak arah belum bisa disimpulkan dari judul.";
+ if(p?.eventType==="DECISION")return "Judul mengindikasikan "+p.policyDirection+". Baca rilis lengkap untuk memeriksa keputusan, ekspektasi dan dampaknya.";
+ return "Buka isi berita untuk melihat kesimpulan berbasis fakta, perubahan kebijakan dan aset yang diuntungkan.";
 }
 function showNews(item,index){
+ const symbol=selected;
  const b=showDialog((item.source||"Berita pasar")+" · "+presentDate(item.publishedAt),pickNewsTitle(item)||item.title);if(!b)return;
  if(newsLanguage==="id"&&item.titleId&&item.titleId!==item.title)addBlock(b,"Judul asli penerbit",item.title);
- if(page==="research")addBlock(b,"Apa dampaknya ke "+selected+"?",specificImpact(item,selected));
- if(item.essence)addBlock(b,"Intinya",item.essence);
- if(item.impact)addBlock(b,"Dampak yang mungkin terjadi",item.impact);
- if(item.watch)addBlock(b,"Yang perlu diperhatikan",item.watch);
- if(item.market&&!item.essence){
-  const cur=item.market,part=selected.startsWith(cur)?"mata uang dasar":selected.endsWith(cur)?"mata uang pembanding":"salah satu pemicu makro";
-  addBlock(b,"Pengaruh ke "+selected,"Kabar dari otoritas "+cur+" berkaitan dengan "+part+" dalam "+selected+". Jika kebijakan membuat "+cur+" menguat relatif terhadap pasangannya, "+selected+" bisa "+(selected.startsWith(cur)?"naik":selected.endsWith(cur)?"turun":"berubah arah")+". Arah akhirnya tetap harus dilihat dari isi keputusan dan reaksi harga.");
+ addBlock(b,"Status awal",headlinePrompt(item));
+ const info=e("div","source-analysis"),state=e("p","policy-loading","Membaca isi rilis dan memeriksa apakah ada perubahan kebijakan…");
+ info.append(state);b.append(info);addLink(b,"Baca rilis asli",item.url);
+ const originalIdx=official.findIndex(x=>x.url===item.url);
+ const active=()=>b.isConnected&&$("detail-dialog")?.open&&selected===symbol;
+ if(page==="research"&&originalIdx>=0){
+  fetch("/api/policy-brief?symbol="+encodeURIComponent(symbol)+"&index="+originalIdx,{cache:"no-store"})
+   .then(async r=>{const v=await r.json();if(!active())return;
+    info.replaceChildren();
+    if(r.ok&&v.status==="ai-full-article"&&v.url===item.url){
+     addBlock(info,"Inti berita",v.summary);
+     addBlock(info,"Arah kebijakan",({TIGHTENING:"Pengetatan",EASING:"Pelonggaran",HOLD:"Dipertahankan",NO_DECISION:"Tidak ada keputusan baru",UNCLEAR:"Belum jelas"}[v.policyDirection]||"Belum jelas")+" — "+v.policyEvidence);
+     addBlock(info,"Yang berpotensi diuntungkan",v.benefits);
+     addBlock(info,"Yang berpotensi dirugikan",v.harms);
+     addBlock(info,"Implikasi ke "+symbol,v.pairMessage);
+     addBlock(info,"Bukti dari isi rilis",v.sourceQuote);
+     addBlock(info,"Yang perlu dikonfirmasi",v.watch);
+     addBlock(info,"Yang belum pasti",v.uncertainty);
+     window.dispatchEvent(new CustomEvent("katarina:policy-brief-updated",{detail:{symbol,url:item.url}}));
+    }else addBlock(info,"Belum dapat disimpulkan",v.reason||"Isi rilis belum dapat dianalisis secara terverifikasi. Tidak ada arah trading yang diasumsikan.");
+   }).catch(()=>{if(active())state.textContent="Isi rilis belum tersedia untuk dianalisis. Tidak ada kesimpulan arah yang dipaksakan."});
+  return;
  }
- addLink(b,"Baca berita aslinya",item.url);
- const originalIdx=feed.findIndex(x=>x.url===item.url);
- if(item.url&&originalIdx>=0&&originalIdx<2&&!item.market){
-  const note=e("p",null,"Memeriksa isi artikelnya…");b.append(note);
-  get("/api/ai-news?index="+originalIdx).then(a=>{if(!b.isConnected)return;if(a.status==="ai-full-article"&&a.url===item.url){
-   note.textContent="Ringkasan berdasarkan isi artikel penerbit";
-   addBlock(b,"Fakta utama",a.summary);addBlock(b,"Apa pemicunya?",a.drivers);addBlock(b,"Dampak untuk pasar",a.impact);addBlock(b,"Yang perlu dipantau",a.watch);addBlock(b,"Yang belum pasti",a.uncertainty);
-  }else note.textContent="Isi lengkap artikel belum berhasil dianalisis."}).catch(()=>{if(note.isConnected)note.textContent="Ringkasan lengkap belum tersedia."});
- }
+ const original=feed.findIndex(x=>x.url===item.url);
+ if(original>=0&&original<3){
+  fetch("/api/ai-news?index="+original,{cache:"no-store"}).then(async r=>{
+   const v=await r.json();if(!active())return;info.replaceChildren();
+   if(r.ok&&v.status==="ai-full-article"&&v.url===item.url){
+    addBlock(info,"Inti berita",v.summary);addBlock(info,"Fakta penting",v.drivers);
+    addBlock(info,"Dampak makro yang didukung isi artikel",v.impact);
+    addBlock(info,"Yang perlu dikonfirmasi",v.watch);
+    addBlock(info,"Ketidakpastian",v.uncertainty);
+   }else addBlock(info,"Belum dapat disimpulkan",v.reason||"Teks artikel belum tersedia. Arah tidak dapat ditetapkan dari judul.");
+  }).catch(()=>{if(active())state.textContent="Sumber artikel belum dapat diakses."});
+ }else state.textContent="Rilis belum didukung analisis isi lengkap. Judul saja tidak cukup untuk mengambil posisi.";
 }
 function eventCard(ev){
  const btn=e("button","event-card");btn.type="button";btn.append(e("span","date",presentDate(ev.dateWIB+"T12:00:00+07:00")+" · "+ev.timeWIB+" WIB"),e("strong",null,ev.title));
@@ -146,11 +143,7 @@ function newsCard(item,index,officialItem=false){
  const btn=e("button",officialItem?"pair-news-card":"news-card");btn.type="button";
  btn.append(e("span",officialItem?"date":"news-top",(item.source||"Berita pasar")+" · "+presentDate(item.publishedAt)),
  e("strong",null,pickNewsTitle(item)||item.title));
- if(!officialItem&&item.essence&&page==="dashboard")btn.append(e("p",null,item.essence.replace(/^Pokok isu:\s*/i,"")));
- if(page==="research"){
-  const blurb=specificImpact(item,selected);
-  if(blurb)btn.append(e("small","impact-brief","Dampak: "+blurb.slice(0,235)));
- }
+ if(page==="research")btn.append(e("small","impact-brief",headlinePrompt(item)));
  btn.append(e("span","read",newsLanguage==="id"?"Baca dampaknya →":"Read market impact →"));btn.addEventListener("click",()=>showNews(item,index));return btn;
 }
 function menu(){

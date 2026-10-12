@@ -17,7 +17,7 @@ function showMissing(message){
  const plan=$("single-plan");if(plan)plan.replaceChildren(el("p","empty-state",headline));
  const metrics=$("deep-metrics");if(metrics)metrics.replaceChildren(el("p","empty-state","Data H4 yang cukup belum tersedia."));
  const context=$("research-explainer");if(context)context.replaceChildren();
- const ai=$("pair-ai-overview");if(ai)ai.replaceChildren(el("p","ai-wait","KATARINA tidak menetapkan arah tanpa data H4 yang dapat diperiksa."));
+ const ai=$("pair-ai-overview");if(ai)ai.replaceChildren(el("p","ai-wait","Arah belum layak ditetapkan; cek bukti rilis dan data H4."));
  const risks=$("risk-checklist");if(risks)risks.replaceChildren(row("Standar pembatalan","Jika syarat konfirmasi tidak terpenuhi, rencana tidak aktif."));
 }
 function present(p){
@@ -61,8 +61,13 @@ function present(p){
  const ai=$("pair-ai-overview");if(ai){
   const top=el("p","ai-overview-intro",p.trend+". "+p.reasons.join(" "));
   const cot=el("div","ai-overview-item");cot.append(el("strong",null,"Bagaimana posisi COT?"),el("p",null,p.cotNote+" COT "+p.cotAlignment+" dengan "+dir+"."));
-  const news=el("div","ai-overview-item");const cnt=p.news?.length||0;
-  news.append(el("strong",null,"Berita pendukung"),el("p",null,cnt?"Ada "+cnt+" kabar terkait "+id+" dari sumber pasar/bank sentral. Berita bisa mengubah ekspektasi pasar, tetapi belum tentu sejalan dengan tren H4. Baca berita terkait di bagian bawah untuk melihat dampaknya.":"Belum ada berita terbaru yang relevan. Arah saat ini hanya berdasarkan struktur H4 dan COT."));
+  const news=el("div","ai-overview-item"),macro=p.macroReview;
+  news.append(el("strong",null,"Kesimpulan fundamental dari rilis terverifikasi"),el("p",null,macro?.message||"Belum ada rilis yang cukup untuk menyimpulkan arah kebijakan."));
+  for(const fact of (macro?.stories||[]).slice(0,3)){
+   const line=el("p",null,fact.currency+" · "+fact.policyDirection+" · "+fact.summary+" → "+fact.pairDirection);
+   news.append(line);
+   if(/^https:\/\//.test(fact.url)){const a=el("a",null,"Sumber resmi ↗");a.href=fact.url;a.target="_blank";a.rel="noopener noreferrer";news.append(a)}
+  }
   ai.replaceChildren(top,cot,news);
   ai.append(el("small","ai-source-note",p.proxy?p.proxyNote:"Data H4 dari harga referensi, bukan quote broker. Keputusan mengikuti syarat harga, bukan judul berita saja."));
  }
@@ -70,17 +75,22 @@ function present(p){
   risks.replaceChildren(row("Kapan analisa dianggap gagal?",p.invalidText),row("Kapan belum boleh dianggap aktif?","Sebelum ada penutupan H4 yang memenuhi syarat "+fmt(p.trigger,id)+" beserta konfirmasi lanjutan, arah ini masih sebatas skenario."),row("Risiko berita","Rilis ekonomi, bank sentral, atau perubahan sentimen dapat membalikkan harga dalam hitungan jam. "+p.newsInterpretation));
  }
 }
-async function refresh(symbol){
- const token=++version;current=symbol;showMissing("Mengecek arah mingguan dari candle H4…");
+async function refresh(symbol,fresh=false){
+ const token=++version;current=symbol;showMissing("Mengecek struktur H4, COT dan kesimpulan rilis kebijakan…");
  try{
-  const r=await fetch("/api/weekly-plan?symbol="+encodeURIComponent(symbol),{cache:"no-store"}),j=await r.json();
+  const r=await fetch("/api/weekly-plan?symbol="+encodeURIComponent(symbol)+(fresh?"&fresh=1":""),{cache:"no-store"}),j=await r.json();
   if(token!==version)return;
   if(r.ok&&j.status==="ready"&&j.direction){lastPlan=j;present(j);window.dispatchEvent(new CustomEvent("katarina:weekly-plan",{detail:{plan:j}}));return}
   lastPlan=null;showMissing(j.message||"Tidak ada arah H4 yang cukup jelas untuk "+symbol+".");
+  if(j.macroReview){const box=$("pair-ai-overview");if(box)box.replaceChildren(
+    el("strong",null,"Evaluasi fundamental"),el("p",null,j.macroReview.message),
+    ...(j.macroReview.stories||[]).slice(0,3).map(x=>el("p",null,x.title+" · "+x.currency+" → "+x.pairDirection))
+  )}
   window.dispatchEvent(new CustomEvent("katarina:weekly-plan",{detail:{plan:null,symbol}}));
  }catch{if(token===version){lastPlan=null;showMissing("Layanan H4 sedang tidak tersedia. Coba beberapa saat lagi.");window.dispatchEvent(new CustomEvent("katarina:weekly-plan",{detail:{plan:null,symbol}}));}}
 }
 window.addEventListener("katarina:pair-change",e=>{const symbol=e.detail?.symbol;if(symbol)refresh(symbol)});
+window.addEventListener("katarina:policy-brief-updated",e=>{if(e.detail?.symbol===current)refresh(current,true)});
 const start=()=>{const symbol=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";refresh(symbol);setInterval(()=>{if(!document.hidden&&current)refresh(current)},60*60*1000)};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
 })();

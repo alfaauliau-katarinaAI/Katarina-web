@@ -71,5 +71,13 @@ jobs:
           sed -e 's/name = "katarina-free-ingest"/name = "katarina-free-ingest-b"/' \
               -e 's/FEED_SHARD = "0"/FEED_SHARD = "1"/' \
               workers/wrangler.generated.toml > workers/wrangler.second.toml
-          npx --yes wrangler@4 deploy --config workers/wrangler.second.toml
-          echo "Both free-tier feed collectors deployed and share one D1 database. IDs not logged."
+          for attempt in 1 2 3; do
+            if npx --yes wrangler@4 deploy --config workers/wrangler.second.toml; then
+              echo "Second feed collector deployed and shares the free D1 database."
+              exit 0
+            fi
+            echo "::warning::Second worker deployment needs propagation; waiting before retry $attempt."
+            sleep 20
+          done
+          echo "::error::Second worker deployment unavailable. First worker remains active in free mode."
+          exit 1

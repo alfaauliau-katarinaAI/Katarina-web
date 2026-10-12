@@ -1,9 +1,7 @@
 name: Diagnose public news source accessibility
+# Diagnostic utility: run only when explicitly requested.
 on:
-  push:
-    paths:
-      - 'scripts/article-source-diagnostic.mjs'
-      - '.github/workflows/article-source-diagnostic.yml'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

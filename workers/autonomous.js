@@ -77,6 +77,50 @@ async function snapshotOne(symbol,env,now){
  * + KV only; no new cron, no paid services. At most 8 model-bearing
  * attempts/day account-wide; no inference on repeated content.
  */
+/* Work through ALL public headlines over time, not only the first two articles
+ * or a particular currency pair. One inference per 15-min cycle max.
+ * Account-wide AI free quota is shared; no paid fallback / GPU.
+ */
+export async function prewarmPublicNews(env,now,fetcher=fetch){
+ if(!env?.CACHE?.get||!env?.CACHE?.put)return "no-kv";
+ const day=new Date(now).toISOString().slice(0,10),counter="intel:daily:"+day,limit=48;
+ try{
+  const used=Number(await env.CACHE.get(counter)||0);
+  if(used>=limit)return "daily-cap";
+  const r=await fetcher("https://katarina-research.pages.dev/api/hot-news",
+   {signal:AbortSignal.timeout(9000)});
+  if(!r.ok)return "source-down";
+  const feed=await r.json(),items=(feed.items||[]).slice(0,30);
+  for(let index=0;index<items.length;index++){
+   const item=items[index],age=now-Date.parse(item?.publishedAt||"");
+   if(!item?.url||!item.title||!Number.isFinite(age)||age<-1800000||age>72*3600000)continue;
+   const url=new URL(item.url);
+   if(url.protocol!=="https:")continue;
+   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(item.url));
+   const hex=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+   const marker="intel:seen:"+hex;
+   if(await env.CACHE.get(marker)||await env.CACHE.get("policy:v1:"+hex))continue;
+   // Reserve one per URL and daily inference BEFORE calling the server endpoint.
+   await env.CACHE.put(marker,String(now),{expirationTtl:259200});
+   await env.CACHE.put(counter,String(used+1),{expirationTtl:90000});
+   const query=new URL("https://katarina-research.pages.dev/api/news-intelligence");
+   for(const [k,v]of Object.entries({scope:"dashboard",index:String(index),expected:item.url}))query.searchParams.set(k,v);
+   try{
+    const answer=await fetcher(query.toString(),{signal:AbortSignal.timeout(28000)});
+    if(answer.status===503){
+     const body=await answer.json().catch(()=>null);
+     if(body?.status==="quota-exhausted"){
+      await env.CACHE.put(counter,String(limit),{expirationTtl:90000});
+      return "free-neuron-limit";
+     }
+    }
+    return answer.ok?"attempted":"source-pending";
+   }catch{return "attempt-failed"}
+  }
+  return "no-new-headlines";
+ }catch{return "prewarm-unavailable"}
+}
+
 const POLICY_PAIR_ROTATION=["AUDJPY","USDJPY","EURUSD","GBPUSD","XAUUSD","USDCHF"];
 export async function prewarmPolicy(env,now,fetcher=fetch){
  if(!env?.CACHE?.get||!env?.CACHE?.put)return "no-kv";
@@ -129,6 +173,7 @@ export default {
    // Policy intelligence: only one verified-source prewarm every 15 minutes,
    // with a hard shared daily budget of 8 and a KV dedupe record.
    if(shard===0&&minute%15===8)try{await prewarmPolicy(env,now)}catch{}
+   if(shard===0&&minute%15===11)try{await prewarmPublicNews(env,now)}catch{}
    // KV serves as regional-disaster fallback, not a per-visitor read path.
    // Shard 0 writes one compact, public-only snapshot every five minutes:
    // at most 288 KV writes/day, safely below the 1,000/day Free allowance.

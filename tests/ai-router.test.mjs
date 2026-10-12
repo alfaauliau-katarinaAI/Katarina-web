@@ -56,3 +56,12 @@ test("deprecated Cloudflare model is not used and chat-completion variants parse
  assert.equal(modelText({choices:[{message:{content:"new"}}]}),"new");
  assert.equal(modelText({result:{choices:[{message:{content:"nested"}}]}}),"nested");
 });
+
+test("busy-queue rejection option is passed to Cloudflare binding",async()=>{
+ const args=[];
+ const result=await runTaskAI({env:{AI:{run:async(...items)=>{args.push(items);return {response:"ok"}}}},task:"outlook",messages:[{role:"user",content:"test"}]});
+ assert.equal(result.status,"ready");
+ assert.equal(args.length,1);
+ assert.equal(args[0][0],TASK_MODELS.outlook[0]);
+ assert.deepEqual(args[0][2],{rejectIfBusy:true});
+});

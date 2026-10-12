@@ -54,7 +54,7 @@ export async function onRequestGet({request,env}){
  const routed=await runTaskAI({
   env,task:"outlook",
   messages:[{role:"system",content:"Buat sintesis ekonomi bertanggung jawab hanya dengan data yang diberikan; keluaran JSON yang valid."},{role:"user",content:prompt}],
-  temperature:.1,max_tokens:1100,validate:parse
+  temperature:.1,max_tokens:600,validate:parse
  });
  if(routed.status!=="ready")return response({schema:1,status:routed.status,
   reason:routed.status==="quota-exhausted"?"Kuota harian Workers AI bersama habis; analisa baru ditunda.":"Model AI tidak tersedia atau jawaban tidak lolos validasi."},503);

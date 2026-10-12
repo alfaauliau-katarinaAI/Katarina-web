@@ -15,3 +15,7 @@ Caching remains in place: market outlook 6 hours per symbol, news analysis 3 hou
 Automated tests: npm test, with tests/ai-router.test.mjs verifying primary selection, fallback, structured response validation, and shared quota exhaustion.
 
 Cloudflare references: https://developers.cloudflare.com/workers-ai/models/ and https://developers.cloudflare.com/workers-ai/platform/errors/
+
+## Production latency hardening — 12 Oct 2026
+
+Initial production API probes for market outlook timed out at 9 seconds and again at 30 seconds while the other 72 bounded requests all returned HTTP 200. Prioritize the proven low-latency Llama 8B model for structured outlook, cap its generated output at 600 tokens, and use `rejectIfBusy: true` as the Cloudflare binding's third argument. Busy queues yield code 3040 and can trigger a backup without accumulating queue wait. No additional paid models.

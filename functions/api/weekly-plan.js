@@ -35,7 +35,7 @@ export async function onRequestGet({request,env}){
  const allNews=(newsData?.items||[]).filter(x=>x.url&&x.title);
  const news=allNews.slice(0,4).map(x=>({title:x.title,url:x.url,source:x.source,publishedAt:x.publishedAt,relevanceNote:x.relevanceNote||null}));
  // Read only previously VERIFIED full-source briefs; never launch a batch of LLMs on a page request.
- const candidates=allNews.filter(x=>Date.now()-Date.parse(x.publishedAt)<=72*3600000).slice(0,6);
+ const candidates=allNews.filter(x=>Date.now()-Date.parse(x.publishedAt)<=72*3600000).slice(0,12);
  const verified=await Promise.all(candidates.map(async x=>{
   try{
    const key=await publicAIKey("policy:v1",x.url);
@@ -55,7 +55,9 @@ export async function onRequestGet({request,env}){
  const marketCondition={ema20:round(e20,symbol),ema50:round(e50,symbol),rsi14:Number(momentum.toFixed(1)),atr14:round(atr,symbol),h4Close:round(close,symbol),lastH4ChangePct:Number(((close/prices.at(-2)-1)*100).toFixed(2)),last6H4Change:round(last6,symbol)};
  if(!direction)return OUT({schema:1,status:"no-clear-direction",symbol,timeframe:"H4",source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,marketCondition,cotNote,news,macroReview,message:"Sinyal H4 belum searah. KATARINA tidak memaksakan BUY atau SELL ketika kondisinya belum jelas."});
  // A verified, recent, conflicting policy signal blocks the H4-only plan.
- if(macroReview.bias==="CONFLICT"||macroReview.bias!=="UNKNOWN"&&macroReview.bias!==direction){
+ if(macroReview.bias==="CONFLICT"||macroReview.bias!=="UNKNOWN"&&macroReview.bias!==direction||
+  macroReview.crossAssetBias==="CONFLICT"||
+  macroReview.crossAssetBias!=="UNKNOWN"&&macroReview.crossAssetBias!==direction){
   return OUT({schema:1,status:"macro-conflict",symbol,timeframe:"H4",technicalDirection:direction,
    source:h4.source,lastClosedAt:h4.lastClosedAt,marketCondition,cotNote,news,macroReview,
    message:"Rencana "+direction+" ditunda. "+macroReview.message+" Tidak ada entry sampai fundamental dan harga kembali selaras."});
@@ -70,6 +72,7 @@ export async function onRequestGet({request,env}){
   "RSI H4 "+momentum.toFixed(1)+" dan perubahan enam candle "+(last6>=0?"positif":"negatif")+"."
  ];
  if(macroReview.bias===direction)reasons.push("Bukti rilis terbaru: "+macroReview.message);
+ if(macroReview.crossAsset.length)reasons.push("Dampak lintas aset dari berita terbaca: "+macroReview.crossAsset.slice(0,2).map(x=>x.title+" ("+x.direction+")").join("; ")+". Skenario bersyarat, bukan arah harga yang telah terjadi.");
  const plan={schema:1,status:"ready",symbol,timeframe:"H4",direction,trend,biasStrength:macroReview.bias===direction?"H4 dan kebijakan searah":"H4 bersyarat; fundamental belum terkonfirmasi",score,macroReview,source:h4.source,ticker:h4.ticker,proxy:h4.proxy,proxyNote:h4.proxyNote,lastClosedAt:h4.lastClosedAt,ageHours:h4.ageHours,marketCondition,
   trigger:round(trigger,symbol),invalidation:round(invalid,symbol),objective:round(target,symbol),atr:round(atr,symbol),
   condition:signalCondition,invalidText:invalidation,reasons,cotBias,cotNote,cotAlignment:cotBias===null?"belum terkonfirmasi":cotBias===direction?"searah":"berbeda dari arah utama",

@@ -63,6 +63,10 @@ function present(p){
   const cot=el("div","ai-overview-item");cot.append(el("strong",null,"Bagaimana posisi COT?"),el("p",null,p.cotNote+" COT "+p.cotAlignment+" dengan "+dir+"."));
   const news=el("div","ai-overview-item"),macro=p.macroReview;
   news.append(el("strong",null,"Kesimpulan fundamental dari rilis terverifikasi"),el("p",null,macro?.message||"Belum ada rilis yang cukup untuk menyimpulkan arah kebijakan."));
+  for(const effect of (macro?.crossAsset||[]).slice(0,3)){
+   const div=el("p",null,"Dampak yang diperkirakan: "+effect.direction+" · "+effect.reason+" (berdasarkan "+effect.title+")");
+   news.append(div);
+  }
   for(const fact of (macro?.stories||[]).slice(0,3)){
    const line=el("p",null,fact.currency+" · "+fact.policyDirection+" · "+fact.summary+" → "+fact.pairDirection);
    news.append(line);

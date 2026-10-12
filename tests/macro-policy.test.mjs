@@ -61,3 +61,18 @@ test("missing model sourceQuote is replaced ONLY by a real publisher excerpt",()
  assert.equal(r.sourceQuote,body.slice(0,150));
  assert.ok(body.includes(r.sourceQuote));
 });
+
+test("non-FX macro implications are shown but only independent reports can veto a plan",()=>{
+ const now=Date.parse("2026-10-12T04:00:00.000Z");
+ const x={status:"ai-full-article",basis:"Isi artikel publik dari penerbit",publishedAt:new Date(now-3600000).toISOString(),
+  eventType:"MARKET",source:"Official article",title:"Supply disruption pressures crude",url:"https://www.cnbc.com/one",
+  marketEffects:[{symbol:"XAUUSD",direction:"UP",reason:"Premi risiko global meningkat dalam skenario laporan."}]};
+ const one=summarizeMacro("XAUUSD",[x],now);
+ assert.equal(one.crossAssetBias,"UNKNOWN");
+ assert.equal(one.crossAsset.length,1);
+ const two=summarizeMacro("XAUUSD",[x,{...x,url:"https://www.federalreserve.gov/two",title:"Monetary context confirms risk"}],now);
+ assert.equal(two.crossAssetBias,"BUY");
+ assert.equal(two.crossAsset.length,2);
+ const conflicting=summarizeMacro("XAUUSD",[x,{...x,url:"https://www.federalreserve.gov/two",marketEffects:[{symbol:"XAUUSD",direction:"DOWN",reason:"Yield riil meningkat dan menekan logam tanpa kupon."}]}],now);
+ assert.equal(conflicting.crossAssetBias,"CONFLICT");
+});

@@ -44,9 +44,9 @@ export function parseBrief(output,body){
  return Object.fromEntries(["eventType","policyDirection","currencyBias",...required].map(k=>[k,typeof a[k]==="string"?a[k].trim().slice(0,k==="sourceQuote"?160:440):a[k]]));
 }
 function pairView(data,symbol){
- const side=pairDirection(symbol,data.currency,data.currencyBias);
+ const side=recent(data.publishedAt,72)?pairDirection(symbol,data.currency,data.currencyBias):"UNKNOWN";
  return {...data,symbol,pairDirection:side,pairMessage:side==="UNKNOWN"?
- "Belum ada bukti memadai untuk menentukan BUY/SELL "+symbol+" dari rilis ini.":
+ recent(data.publishedAt,72)?"Belum ada bukti memadai untuk menentukan BUY/SELL "+symbol+" dari rilis ini.":"Rilis historis: berguna untuk memahami kebijakan, tetapi terlalu lama untuk menentukan arah trading saat ini.":
  "Bias kebijakan relatif "+symbol+": "+side+" (bersyarat, bukan sinyal entry)."};
 }
 export async function onRequestGet({request,env}){
@@ -57,7 +57,7 @@ export async function onRequestGet({request,env}){
  let url;try{url=new URL(item.url)}catch{return out({status:"untrusted-url"},400)}
  if(url.protocol!=="https:"||!HOSTS.has(url.hostname))return out({status:"unsupported-source",reason:"Penerbit belum didukung."},200);
  const preliminary=headlinePolicy(item);
- if(!recent(item.publishedAt,240))return out({status:"outdated",headline:preliminary,reason:"Rilis sudah lama; tidak boleh dipakai untuk arah trading terbaru."},200);
+ if(!recent(item.publishedAt,720))return out({status:"outdated",headline:preliminary,reason:"Rilis lebih dari 30 hari; tidak layak menjadi analisis kondisi pasar terbaru."},200);
  const cacheKey=new Request(new URL("/api/policy-brief?symbol="+symbol+"&source="+encodeURIComponent(item.url)+"&v=1",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
  const k=await publicAIKey("policy:v1",item.url);

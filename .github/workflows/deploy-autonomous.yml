@@ -66,6 +66,29 @@ jobs:
           database_name = "katarina-research-data"
           database_id = "$uuid"
           EOF
+          # KV is optional. Never change billing or fail an existing D1 pipeline for KV permissions.
+          kv_endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces"
+          kv_json=$(curl -sS --max-time 15 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$kv_endpoint?per_page=100" || true)
+          kv_id=$(printf '%s' "$kv_json" | jq -r '.result[]?|select(.title=="katarina-edge-cache")|.id' | head -n1)
+          if [[ -z "$kv_id" ]]; then
+            echo "Requesting one free KV namespace, without activating billing."
+            kv_response=$(curl -sS --max-time 20 -X POST "$kv_endpoint" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data '{"title":"katarina-edge-cache"}' || true)
+            kv_id=$(printf '%s' "$kv_response" | jq -r '.result.id // empty')
+          fi
+          if [[ "$kv_id" =~ ^[0-9a-f]{32}$ ]]; then
+            cat >> workers/wrangler.generated.toml <<EOF
+
+          [[kv_namespaces]]
+          binding = "CACHE"
+          id = "$kv_id"
+          EOF
+            echo "Free KV namespace and binding ready."
+          else
+            echo "::warning::KV edit permission unavailable. D1 and existing Worker stay operational."
+          fi
           npx --yes wrangler@4 d1 execute katarina-research-data --remote --config workers/wrangler.generated.toml --file workers/schema.sql --yes
           npx --yes wrangler@4 deploy --config workers/wrangler.generated.toml
           sed -e 's/name = "katarina-free-ingest"/name = "katarina-free-ingest-b"/' \

@@ -11,9 +11,11 @@ async function asset(env,request,path){
  try{const url=new URL(path,request.url);const r=await env.ASSETS.fetch(new Request(url.toString()));if(!r.ok)return null;return r.json()}catch{return null}
 }
 const parse=v=>{
- const raw=String(v?.response||v?.result?.response||"").replace(/^```(?:json)?/i,"").trim();
+ const answer=v?.response??v?.result?.response??v?.choices?.[0]?.message?.content??v?.result?.choices?.[0]?.message?.content??"";
+ const raw=(typeof answer==="string"?answer:JSON.stringify(answer)).replace(/^\x60\x60\x60(?:json)?/i,"").trim();
  const keys=["summary","drivers","upside","downside","watch","uncertainty"];
- let obj=null;const first=raw.indexOf("{"),last=raw.lastIndexOf("}");
+ let obj=answer&&typeof answer==="object"&&!Array.isArray(answer)?answer:null;
+ const first=raw.indexOf("{"),last=raw.lastIndexOf("}");
  if(first>=0&&last>first){try{obj=JSON.parse(raw.slice(first,last+1))}catch{}}
  if(!obj){obj={};const regex=/"(summary|drivers|upside|downside|watch|uncertainty)"\s*:\s*"((?:\\.|[^"\\])*)"/g;for(const match of raw.matchAll(regex)){try{obj[match[1]]=JSON.parse('"'+match[2]+'"')}catch{obj[match[1]]=match[2]}}}
  if(!keys.every(k=>typeof obj[k]==="string"&&obj[k].trim().length>=10)){

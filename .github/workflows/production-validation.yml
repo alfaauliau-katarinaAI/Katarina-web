@@ -6,6 +6,7 @@ on:
       - 'scripts/production-probe.mjs'
       - 'scripts/policy-production-check.mjs'
       - 'scripts/all-news-production-check.mjs'
+      - 'scripts/real-article-evidence.mjs'
       - '.github/workflows/production-validation.yml'
   workflow_run:
     workflows:
@@ -49,6 +50,8 @@ jobs:
         run: node scripts/policy-production-check.mjs
       - name: Confirm articles beyond the first three are eligible for detailed AI
         run: node scripts/all-news-production-check.mjs
+      - name: Read and analyze exact user-reported news from original publisher
+        run: node scripts/real-article-evidence.mjs
       - name: Save only sanitized JSON measurements
         if: always()
         uses: actions/upload-artifact@v4

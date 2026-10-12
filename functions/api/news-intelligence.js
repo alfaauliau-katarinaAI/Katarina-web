@@ -41,7 +41,7 @@ export async function onRequestGet({request,env}){
  }}catch{}
  const key=await publicAIKey("policy:v1",item.url);
  const cached=await readPublicAI(env,key,21600000,
-  x=>x.status==="ai-full-article"&&x.url===item.url&&x.basis==="Isi artikel publik dari penerbit"&&typeof x.summary==="string");
+  x=>x.status==="ai-full-article"&&x.url===item.url&&x.basis==="Isi artikel publik dari penerbit"&&typeof x.summary==="string"&&Array.isArray(x.keyFacts)&&Array.isArray(x.marketEffects)&&typeof x.macroMechanism==="string");
  if(cached){
   const response=json(pairView(cached,symbol),200,900);
   try{await caches.default.put(cacheKey,json(cached,200,900))}catch{}

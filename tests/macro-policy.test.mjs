@@ -76,3 +76,20 @@ test("non-FX macro implications are shown but only independent reports can veto 
  const conflicting=summarizeMacro("XAUUSD",[x,{...x,url:"https://www.federalreserve.gov/two",marketEffects:[{symbol:"XAUUSD",direction:"DOWN",reason:"Yield riil meningkat dan menekan logam tanpa kupon."}]}],now);
  assert.equal(conflicting.crossAssetBias,"CONFLICT");
 });
+
+test("validated AI must not invent unsourced numbers even with fast JSON object output",()=>{
+ const body="China increased purchases of gold as households sought safety, and the central bank disclosed more reserve buying.";
+ const a={eventType:"MARKET",policyDirection:"NO_DECISION",currencyBias:"UNKNOWN",
+ summary:"Permintaan emas dari rumah tangga di China meningkat karena mencari tempat menyimpan kekayaan.",
+ policyEvidence:"Ini adalah laporan permintaan dan bukan keputusan suku bunga.",
+ benefits:"Produsen emas berpotensi diuntungkan jika kenaikan permintaan bertahan.",
+ harms:"Pengguna emas sebagai bahan baku menghadapi biaya yang berpotensi lebih tinggi.",
+ watch:"Pantau rilis pembelian resmi dan harga fisik emas.",
+ uncertainty:"Besarnya dampak terhadap harga dunia belum diketahui.",
+ sourceQuote:"China increased purchases of gold as households sought safety",
+ keyFacts:["China increased purchases of gold as households sought safety"],
+ marketEffects:[{symbol:"XAUUSD",direction:"UP",reason:"Permintaan fisik dapat menambah dukungan pada pasar emas."}],
+ macroMechanism:"Pembelian emas dapat meningkatkan permintaan fisik dunia."};
+ assert.equal(parseBrief({response:a},body)?.marketEffects?.[0]?.symbol,"XAUUSD");
+ assert.equal(parseBrief({response:{...a,summary:"China purchased 9000 tonnes despite no data."}},body),null);
+});

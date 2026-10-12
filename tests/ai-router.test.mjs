@@ -71,3 +71,12 @@ test("policy route prefers verified lightweight models without paid providers",(
  assert.equal(TASK_MODELS.policy[0],"@cf/meta/llama-3.1-8b-instruct-fp8");
  assert.ok(TASK_MODELS.policy.every(x=>x.startsWith("@cf/")));
 });
+
+test("active Cloudflare fast model receives JSON schema only when supported",async()=>{
+ const list=[],format={type:"json_schema",json_schema:{type:"object",properties:{summary:{type:"string"}},required:["summary"]}};
+ const value=await runTaskAI({env:{AI:{run:async(model,payload)=>{list.push({model,payload});return {response:{summary:"Source quote check"}}}}},
+  task:"intelligence",messages:[],response_format:format,validate:r=>r.response?.summary});
+ assert.equal(value.status,"ready");
+ assert.equal(value.model,"@cf/meta/llama-3.1-8b-instruct-fast");
+ assert.deepEqual(list[0].payload.response_format,format);
+});

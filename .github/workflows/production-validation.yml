@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/production-probe.mjs'
       - 'scripts/policy-production-check.mjs'
+      - 'scripts/all-news-production-check.mjs'
       - '.github/workflows/production-validation.yml'
   workflow_run:
     workflows:
@@ -31,7 +32,12 @@ jobs:
         with:
           node-version: '22'
       - name: Unit test AI fallback, public caching and API safety
-        run: npm test
+        run: |
+          npm test
+          node --check website/app-v4.js
+          node --check website/research-v5.js
+          node --check website/hot-news.js
+          node --check website/ka-shell.js
       - name: Read Cloudflare usage (no changes to account)
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -41,6 +47,8 @@ jobs:
         run: node scripts/production-probe.mjs
       - name: Check BoJ headlines and source-grounded policy summaries
         run: node scripts/policy-production-check.mjs
+      - name: Confirm articles beyond the first three are eligible for detailed AI
+        run: node scripts/all-news-production-check.mjs
       - name: Save only sanitized JSON measurements
         if: always()
         uses: actions/upload-artifact@v4

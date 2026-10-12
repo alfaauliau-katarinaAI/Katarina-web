@@ -1,18 +1,8 @@
 name: Validate KATARINA Cloudflare Production (bounded)
 
 on:
-  push:
-    paths:
-      - 'scripts/production-probe.mjs'
-      - 'scripts/policy-production-check.mjs'
-      - 'scripts/all-news-production-check.mjs'
-      - 'scripts/real-article-evidence.mjs'
-      - '.github/workflows/production-validation.yml'
-  workflow_run:
-    workflows:
-      - "Deploy KATARINA Web to Cloudflare Pages (free)"
-    types:
-      - completed
+  # Costly live Cloudflare/Workers-AI probes are explicitly on-demand.
+  # The deployment workflow already runs npm test before publishing.
   workflow_dispatch:
 
 permissions:
@@ -20,11 +10,10 @@ permissions:
 
 concurrency:
   group: katarina-prod-bounded-validation
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   validation:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

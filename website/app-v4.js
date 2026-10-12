@@ -343,13 +343,13 @@ async function start(){
  context=contextResult.status==="fulfilled"&&Array.isArray(contextResult.value.instruments)?contextResult.value.instruments:[];
  calendar=calendarResult.status==="fulfilled"&&Array.isArray(calendarResult.value.events)?calendarResult.value.events:[];
  feed=newsResult.status==="fulfilled"&&Array.isArray(newsResult.value.items)?newsResult.value.items:[];
- if(page==="dashboard"){renderDashboard();void localizeHeadlines("DASHBOARD");setInterval(async()=>{try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){feed=fresh.items;renderDashboard();void localizeHeadlines("DASHBOARD")}}catch{}},15*60000)}
+ if(page==="dashboard"){renderDashboard();void localizeHeadlines("DASHBOARD");setInterval(async()=>{if(document.hidden)return;try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){const old=new Map(feed.map(item=>[item.url,item]));const changed=fresh.items.length!==feed.length||fresh.items.some((item,i)=>item.url!==feed[i]?.url||item.title!==feed[i]?.title);feed=fresh.items.map(item=>({...item,...(old.get(item.url)?.titleId?{titleId:old.get(item.url).titleId}:{})}));if(changed){renderDashboard();void localizeHeadlines("DASHBOARD")}}}catch{}},3*60000)}
  else{
  const param=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";
  selected=items().some(x=>x.id===param)?param:"XAUUSD";try{localStorage.setItem("katarina-selected-symbol",selected)}catch{}
  $("pair-choose")?.addEventListener("click",pick);
  renderResearch();
- setInterval(()=>{if(!document.hidden){get("/api/pair-news?symbol="+selected).then(x=>{official=x?.items||[];renderPairNews();void localizeHeadlines(selected)}).catch(()=>{})}},15*60000)
+ setInterval(()=>{if(!document.hidden){const symbol=selected;get("/api/pair-news?symbol="+symbol).then(x=>{if(symbol!==selected)return;const old=new Map(official.map(item=>[item.url,item]));const fresh=x?.items||[];const changed=fresh.length!==official.length||fresh.some((item,i)=>item.url!==official[i]?.url||item.title!==official[i]?.title);official=fresh.map(item=>({...item,...(old.get(item.url)?.titleId?{titleId:old.get(item.url).titleId}:{})}));if(changed){renderPairNews();void localizeHeadlines(symbol)}}).catch(()=>{})}},3*60000)
  }
 }
 document.addEventListener("DOMContentLoaded",()=>{start().catch(()=>{menu();text("pair-headline","Data sementara belum tersedia. Coba muat ulang halaman.")})});

@@ -1,6 +1,6 @@
 /* KATARINA Cloudflare Pages Function: on-demand, cached headline checking.
  * No API keys, paid API, VPS, cron worker, invented headlines, or financial signals.
- * Runs only on requests; CDN caches successful results for 15 minutes.
+ * Runs on demand; short-term cache preserves free-tier request and CPU budgets.
  */
 const FEEDS = [
   ["CNBC Pasar","https://www.cnbc.com/id/10000664/device/rss/rss.html","www.cnbc.com"],
@@ -63,7 +63,7 @@ async function source([name,feed,host],now){
   const controller=new AbortController();
   const id=setTimeout(()=>controller.abort(),8000);
   try{
-    const r=await fetch(feed,{signal:controller.signal,headers:{"Accept":"application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.5"},cf:{cacheEverything:true,cacheTtl:900}});
+    const r=await fetch(feed,{signal:controller.signal,headers:{"Accept":"application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.5"},cf:{cacheEverything:true,cacheTtl:180}});
     if(!r.ok) return [];
     const payload=await r.text();
     if(payload.length>900000) return [];
@@ -87,7 +87,7 @@ async function source([name,feed,host],now){
   finally{clearTimeout(id)}
 }
 export async function onRequestGet({request}){
-  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v3",request.url).toString());
+  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v4",request.url).toString());
   try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
   const now=Date.now();
   const batches=await Promise.all(FEEDS.map(feed=>source(feed,now)));
@@ -96,7 +96,7 @@ export async function onRequestGet({request}){
   const items=[...uniq.values()].sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt)).slice(0,30);
   const ok=items.length>0;
   const data={schema:1,kind:"attributed-headline-feed",updatedAt:new Date(now).toISOString(),status:ok?"source-headlines":"temporarily-unavailable",items};
-  const response=new Response(JSON.stringify(data),{status:ok?200:503,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":ok?"public, max-age=0, s-maxage=900":"no-store","X-Content-Type-Options":"nosniff"}});
+  const response=new Response(JSON.stringify(data),{status:ok?200:503,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":ok?"public, max-age=0, s-maxage=180":"no-store","X-Content-Type-Options":"nosniff"}});
   if(ok){try{await caches.default.put(cacheKey,response.clone())}catch{}}
   return response;
 }

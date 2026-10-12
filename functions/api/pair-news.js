@@ -13,7 +13,7 @@ function tag(item,k){const m=item.match(new RegExp("<"+k+"(?:\\s[^>]*)?>([\\s\\S
 async function feed(def){
  const [currency,url,host]=def;const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8500);
  try{
-  const r=await fetch(url,{signal:ctrl.signal,cf:{cacheTtl:900}});if(!r.ok)return[];
+  const r=await fetch(url,{signal:ctrl.signal,cf:{cacheTtl:180}});if(!r.ok)return[];
   const xml=(await r.text()).slice(0,350000);const records=xml.match(/<item(?:\s[^>]*)?>[\s\S]*?<\/item\s*>/gi)||[];
   const items=[];
   for(const item of records.slice(0,35)){
@@ -33,7 +33,7 @@ async function feed(def){
 export async function onRequestGet({request}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!VALID.test(symbol))return new Response(JSON.stringify({status:"invalid-symbol"}),{status:400,headers:{"Content-Type":"application/json"}});
- const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v4",u));
+ const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v5",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
  const currencies=symbol==="XAUUSD"||symbol==="XAGUSD"||symbol==="BTCUSD"||["US30","US500","NASDAQ"].includes(symbol)?["USD"]:symbol.length===6?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
  const selected=[...new Set(currencies.filter(x=>DEFS[x]))].map(x=>[x,...DEFS[x].slice(1)]);
@@ -77,7 +77,7 @@ export async function onRequestGet({request}){
  const all=[...matched.slice(0,14),...bank.slice(0,10)];
  const seen=new Set(),unique=all.filter(x=>{if(seen.has(x.url))return false;seen.add(x.url);return true}).slice(0,22);
 
- const res=new Response(JSON.stringify({schema:1,status:unique.length?"official-updates":"no-relevant-official-release",symbol,items:unique,sourcePolicy:"sourced-market-headlines-and-official-central-bank-releases"}),{headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=0, s-maxage=900"}});
+ const res=new Response(JSON.stringify({schema:1,status:unique.length?"official-updates":"no-relevant-official-release",symbol,items:unique,sourcePolicy:"sourced-market-headlines-and-official-central-bank-releases"}),{headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=0, s-maxage=180"}});
  try{await caches.default.put(cacheKey,res.clone())}catch{}
  return res;
 }

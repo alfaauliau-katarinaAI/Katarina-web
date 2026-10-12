@@ -4,7 +4,7 @@ import {onRequestGet as pairNews} from "./pair-news.js";
 import {onRequestGet as hotNews} from "./hot-news.js";
 const MODEL="@cf/meta/llama-3.1-8b-instruct-fp8";
 const VALID=/^(?:XAUUSD|XAGUSD|BTCUSD|US30|US500|NASDAQ|(?:EUR|GBP|USD|AUD|NZD|CAD|CHF)(?:EUR|GBP|USD|JPY|CHF|CAD|AUD|NZD))$/;
-const json=(obj,code=200)=>new Response(JSON.stringify(obj),{status:code,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":code===200?"public,max-age=0,s-maxage=1800":"no-store"}});
+const json=(obj,code=200)=>new Response(JSON.stringify(obj),{status:code,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":code===200?"public,max-age=0,s-maxage=900":"no-store"}});
 function parse(response,n){
  const text=String(response||"").replace(/\r/g,""),out=[];
  let lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
@@ -27,7 +27,7 @@ function checks(title,result){
 export async function onRequestGet({request,env}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"dashboard").toUpperCase();
  if(symbol!=="DASHBOARD"&&!VALID.test(symbol))return json({status:"invalid-symbol"},400);
- const key=new Request(new URL("/api/berita-id?symbol="+symbol+"&revision=v2",u));
+ const key=new Request(new URL("/api/berita-id?symbol="+symbol+"&revision=v3",u));
  try{const hit=await caches.default.match(key);if(hit)return hit}catch{}
  let result;
  try{result=symbol==="DASHBOARD"?await hotNews({request:new Request(new URL("/api/hot-news",u))}):await pairNews({request:new Request(new URL("/api/pair-news?symbol="+symbol,u))});

@@ -58,6 +58,9 @@ jobs:
           [triggers]
           crons = ["* * * * *"]
 
+          [vars]
+          FEED_SHARD = "0"
+
           [[d1_databases]]
           binding = "DB"
           database_name = "katarina-research-data"
@@ -65,4 +68,8 @@ jobs:
           EOF
           npx --yes wrangler@4 d1 execute katarina-research-data --remote --config workers/wrangler.generated.toml --file workers/schema.sql --yes
           npx --yes wrangler@4 deploy --config workers/wrangler.generated.toml
-          echo "Cloudflare autonomous collector deployed. Database ID intentionally not logged."
+          sed -e 's/name = "katarina-free-ingest"/name = "katarina-free-ingest-b"/' \
+              -e 's/FEED_SHARD = "0"/FEED_SHARD = "1"/' \
+              workers/wrangler.generated.toml > workers/wrangler.second.toml
+          npx --yes wrangler@4 deploy --config workers/wrangler.second.toml
+          echo "Both free-tier feed collectors deployed and share one D1 database. IDs not logged."

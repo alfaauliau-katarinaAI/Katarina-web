@@ -78,24 +78,25 @@ export default {
   const now=event.scheduledTime||Date.now(),minute=Math.floor(now/60000);
   ctx.waitUntil((async()=>{
    let total=0;
-   const selected=[FEEDS[minute%5],FEEDS[(minute%5)+5]];
+   const shard=env.FEED_SHARD==="1"?1:0,base=(minute*4)%FEEDS.length;
+   const selected=[FEEDS[(base+shard*2)%FEEDS.length],FEEDS[(base+shard*2+1)%FEEDS.length]];
    for(const def of selected){try{total+=await collectOne(def,env,now)}catch{}}
    // Check H4 twice after each close (+8..19m and +38..49m).
    // Second pass catches data-provider delays and expires any prior plan cache.
    const offset=minute%240;
    const batch=offset>=8&&offset<20?offset-8:offset>=38&&offset<50?offset-38:-1;
-   if(batch>=0&&batch<12){
+   if(shard===0&&batch>=0&&batch<12){
     for(const symbol of PAIRS.slice(batch*3,batch*3+3)){try{await snapshotOne(symbol,env,now)}catch{}}
    }
    // Keep at most 90 days: cheap once-a-day housekeeping.
-   if(minute%1440===22){
+   if(shard===0&&minute%1440===22){
     try{await env.DB.prepare("DELETE FROM headlines WHERE published_at < ?").bind(new Date(now-90*86400000).toISOString()).run()}catch{}
    }
   })());
  },
  async fetch(request,env){
   const u=new URL(request.url);
-  if(u.pathname==="/health")return new Response(JSON.stringify({service:"KATARINA autonomous collector",mode:"free-tier",cron:"every minute",newsSourcesPerRun:2,snapshots:"up to 34 symbols per completed H4, checked twice for provider delays"}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
+  if(u.pathname==="/health")return new Response(JSON.stringify({service:"KATARINA autonomous collector",mode:"free-tier",cron:"every minute",newsSourcesPerRun:2,feedShard:env.FEED_SHARD||"0",snapshots:"up to 34 symbols per completed H4, checked twice for provider delays"}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
   // No public direct database reading: the bound Pages application is the reader.
   return new Response("Not found",{status:404});
  }

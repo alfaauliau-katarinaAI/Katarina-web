@@ -1,0 +1,46 @@
+name: Audit KATARINA Cloudflare Free Capabilities (read only)
+
+on:
+  push:
+    paths:
+      - '.github/workflows/cloudflare-free-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Inspect resource access without modifying Cloudflare
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$CF_TOKEN" || -z "$CF_ACCOUNT" ]]; then
+            echo "Cloudflare credentials unavailable; no write operations attempted."
+            exit 0
+          fi
+          query () {
+            local label="$1" endpoint="$2" response_file
+            response_file=$(mktemp)
+            local http
+            http=$(curl -sS -o "$response_file" -w '%{http_code}' --max-time 12 \
+              -H "Authorization: Bearer $CF_TOKEN" \
+              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT/$endpoint") || http="network-error"
+            local ok="false" count="unknown"
+            if jq -e '.success == true' "$response_file" >/dev/null 2>&1; then
+              ok="true"
+              count=$(jq -r 'if (.result|type)=="array" then (.result|length) else 1 end' "$response_file")
+            fi
+            echo "$label: accessible=$ok; http=$http; result_count=$count"
+            rm -f "$response_file"
+          }
+          query "D1 inventory" "d1/database?per_page=100"
+          query "KV namespaces" "storage/kv/namespaces?per_page=100"
+          query "R2 buckets" "r2/buckets?per_page=100"
+          query "Workers scripts" "workers/scripts"
+          query "Pages project" "pages/projects/katarina-research"

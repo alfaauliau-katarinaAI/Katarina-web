@@ -72,6 +72,44 @@ async function snapshotOne(symbol,env,now){
  await env.DB.prepare("INSERT OR IGNORE INTO h4_analyses(symbol,last_closed_at,status,direction,trigger,invalidation,objective,source,recorded_at,evidence_json) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(...fields).run();
  return true;
 }
+
+/* Low-frequency prewarming of fresh policy releases. Existing scheduled Worker
+ * + KV only; no new cron, no paid services. At most 8 model-bearing
+ * attempts/day account-wide; no inference on repeated content.
+ */
+const POLICY_PAIR_ROTATION=["AUDJPY","USDJPY","EURUSD","GBPUSD","XAUUSD","USDCHF"];
+export async function prewarmPolicy(env,now,fetcher=fetch){
+ if(!env?.CACHE?.get||!env?.CACHE?.put)return "no-kv";
+ const slot=Math.floor(now/900000),symbol=POLICY_PAIR_ROTATION[slot%POLICY_PAIR_ROTATION.length];
+ const date=new Date(now).toISOString().slice(0,10),counter="policy:daily:"+date;
+ try{
+  const used=Number(await env.CACHE.get(counter)||0);
+  if(used>=8)return "daily-cap";
+  const resp=await fetcher("https://katarina-research.pages.dev/api/pair-news?symbol="+symbol,
+    {signal:AbortSignal.timeout(9000)});
+  if(!resp.ok)return "source-down";
+  const items=(await resp.json()).items||[];
+  const candidates=items.map((item,index)=>({...item,index})).filter(item=>{
+   const age=now-Date.parse(item.publishedAt||"");
+   const title=String(item.title||"");
+   return Number.isFinite(age)&&age>=-60000&&age<36*3600000&&
+    !/output gap|potential growth|bonds? held|holdings/i.test(title)&&
+    /policy|rates?|inflation|monetary|economy|meeting|fomc|minutes|employment|jobs/i.test(title);
+  }).slice(0,3);
+  for(const item of candidates){
+   const marker="policy:attempt:"+encodeURIComponent(item.url).slice(0,400);
+   if(await env.CACHE.get(marker))continue;
+   // Reserve BEFORE network work so failures and retries do not burn unbounded neurons.
+   await env.CACHE.put(marker,new Date(now).toISOString(),{expirationTtl:172800});
+   await env.CACHE.put(counter,String(used+1),{expirationTtl:90000});
+   const r=await fetcher("https://katarina-research.pages.dev/api/policy-brief?symbol="+symbol+"&index="+item.index,
+     {signal:AbortSignal.timeout(28000)});
+   return r.ok?"attempted":"source-unavailable";
+  }
+  return "nothing-new";
+ }catch{return "prewarm-unavailable"}
+}
+
 export default {
  async scheduled(event,env,ctx){
   if(!env.DB)return;
@@ -88,6 +126,9 @@ export default {
    if(shard===0&&batch>=0&&batch<12){
     for(const symbol of PAIRS.slice(batch*3,batch*3+3)){try{await snapshotOne(symbol,env,now)}catch{}}
    }
+   // Policy intelligence: only one verified-source prewarm every 15 minutes,
+   // with a hard shared daily budget of 8 and a KV dedupe record.
+   if(shard===0&&minute%15===8)try{await prewarmPolicy(env,now)}catch{}
    // KV serves as regional-disaster fallback, not a per-visitor read path.
    // Shard 0 writes one compact, public-only snapshot every five minutes:
    // at most 288 KV writes/day, safely below the 1,000/day Free allowance.

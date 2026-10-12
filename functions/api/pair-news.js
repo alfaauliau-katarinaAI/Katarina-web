@@ -4,6 +4,8 @@ import {headlinePolicy} from "../../lib/macro-policy.js";
 const DEFS={
  USD:["Fed","https://www.federalreserve.gov/feeds/press_monetary.xml","www.federalreserve.gov"],
  JPY:["Bank of Japan","https://www.boj.or.jp/en/rss/whatsnew.xml","www.boj.or.jp"],
+ AUD:["RBA","https://www.rba.gov.au/rss/rss-cb-media-releases.xml","www.rba.gov.au"],
+ CHF:["SNB","https://www.snb.ch/public/rss/en/mopo","www.snb.ch"],
  EUR:["ECB","https://www.ecb.europa.eu/rss/press.html","www.ecb.europa.eu"],
  GBP:["Bank of England","https://www.bankofengland.co.uk/rss/news","www.bankofengland.co.uk"],
  CAD:["Bank of Canada","https://www.bankofcanada.ca/feed/","www.bankofcanada.ca"]
@@ -34,7 +36,7 @@ async function feed(def){
 export async function onRequestGet({request,env}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!VALID.test(symbol))return new Response(JSON.stringify({status:"invalid-symbol"}),{status:400,headers:{"Content-Type":"application/json"}});
- const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v6",u));
+ const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v7",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
  const currencies=symbol==="XAUUSD"||symbol==="XAGUSD"||symbol==="BTCUSD"||["US30","US500","NASDAQ"].includes(symbol)?["USD"]:symbol.length===6?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
  const selected=[...new Set(currencies.filter(x=>DEFS[x]))].map(x=>[x,...DEFS[x].slice(1)]);

@@ -5,7 +5,7 @@ import {onRequestGet as pairNews} from "./pair-news.js";
 import {runTaskAI,modelText} from "../../lib/ai-router.js";
 import {readPublicAI,writePublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
 import {headlinePolicy,pairDirection,recent} from "../../lib/macro-policy.js";
-const HOSTS=new Set(["www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
+const HOSTS=new Set(["www.rba.gov.au","www.snb.ch","www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
 const out=(data,code=200,ttl=0)=>new Response(JSON.stringify(data),{status:code,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":ttl?"public,max-age=0,s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
 const strip=s=>String(s||"").replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi," ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi," ").replace(/<[^>]*>/g," ").replace(/&(?:nbsp|amp|lt|gt|quot);/gi,n=>({"&nbsp;":" ","&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"'}[n.toLowerCase()]||" ")).replace(/\s+/g," ").trim();
 async function article(url){

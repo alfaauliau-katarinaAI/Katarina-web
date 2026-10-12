@@ -20,7 +20,7 @@ async function checkSignature(payload,header,secret){
  return crypto.subtle.verify("HMAC",key,bytes,payload);
 }
 async function onlyOnce(messageId,request){
- if(!/^[\w.:\-]{10,200}$/.test(messageId))return false;
+ if(!/^wamid\.[A-Za-z0-9_+=\/\-]{8,240}$/.test(messageId))return false;
  try{
   const key=new Request(new URL("/api/wa-webhook?handled="+encodeURIComponent(messageId),request.url));
   const used=await caches.default.match(key);if(used)return false;

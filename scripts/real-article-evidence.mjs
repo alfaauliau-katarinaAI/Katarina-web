@@ -33,11 +33,16 @@ try{
    results.push({case:target.id,index,http:result.http,status:v.status,valid,
     cause:v.reason||null,validationChecks:v.validationChecks||null,summarySample:valid?v.summary.slice(0,220):null,
     evidenceSample:valid?v.sourceQuote.slice(0,110):null,
+    sourceQuoteIsFooter:valid?/data is a real.time snapshot|global business and financial news/i.test(v.sourceQuote):null,
+    policyEvidenceSample:valid?v.policyEvidence?.slice(0,150):null,
+    benefitsSample:valid?v.benefits?.slice(0,135):null,
+    harmsSample:valid?v.harms?.slice(0,135):null,
     effects:valid?v.marketEffects?.map(e=>({symbol:e.symbol,direction:e.direction})):null});
   }catch(e){results.push({case:target.id,index,status:"timeout-or-network",cause:String(e?.name||"fetch-error")})}
  }
  const checked=results.filter(x=>x.status!=="not-in-current-72h-feed"),validated=checked.filter(x=>x.valid).length;
- const report={checked:checked.length,validated,results};
+ const invalidQuotes=checked.filter(x=>x.sourceQuoteIsFooter).length;
+ const report={checked:checked.length,validated,invalidQuotes,results};
  console.log("EVIDENCE_REAL_ARTICLES "+JSON.stringify(report));
- if(!checked.length||validated!==checked.length)process.exitCode=1;
+ if(!checked.length||validated!==checked.length||invalidQuotes)process.exitCode=1;
 }catch(e){console.log("EVIDENCE_REAL_ARTICLES "+JSON.stringify({error:String(e?.message||e).slice(0,150),results}));process.exitCode=1}

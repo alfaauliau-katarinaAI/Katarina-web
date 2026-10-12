@@ -5,7 +5,7 @@ import {onRequestGet as pairNews} from "./pair-news.js";
 import {runTaskAI,modelText} from "../../lib/ai-router.js";
 import {readPublicAI,writePublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
 import {headlinePolicy,pairDirection,recent,normalizeMarketEffects} from "../../lib/macro-policy.js";
-import {articleText} from "../../lib/article-extract.js";
+import {articleText,isNewsBoilerplate} from "../../lib/article-extract.js";
 const HOSTS=new Set(["www.rba.gov.au","www.snb.ch","www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
 const out=(data,code=200,ttl=0)=>new Response(JSON.stringify(data),{status:code,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":ttl?"public,max-age=0,s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
 const SUPPORTED=new Set(["XAUUSD","XAGUSD","BTCUSD","US30","US500","NASDAQ","USOIL","UKOIL"]);
@@ -50,9 +50,10 @@ export function parseBrief(output,body){
  }
  const quote=String(a.sourceQuote||"").trim();
  let groundedQuote=quote;
- if(groundedQuote.length<18||groundedQuote.length>160||!body.includes(groundedQuote)){
-  const preferred=body.split("\n").find(x=>x.length>=40&&/\b(policy|rates?|monetary|inflation|bond|output gap|growth|employment|labou?r|energy|stock|market|oil|tariff|geopolitic)\b/i.test(x));
-  groundedQuote=(preferred||body).trim().slice(0,150);
+ if(groundedQuote.length<18||groundedQuote.length>160||!body.includes(groundedQuote)||isNewsBoilerplate(groundedQuote)){
+  // Quote must come from the real article, never publisher footer / market-data notice.
+  const preferred=body.split("\n").find(x=>x.length>=50&&!isNewsBoilerplate(x));
+  groundedQuote=(preferred||"").trim().slice(0,150);
  }
  if(groundedQuote.length<18||!body.includes(groundedQuote))return null;
  const numbers=t=>[...String(t).matchAll(/\b\d+(?:[.,]\d+)?\b/g)].map(x=>x[0].replace(",","."));
@@ -102,9 +103,9 @@ export async function onRequestGet({request,env}){
  if(url.protocol!=="https:"||!HOSTS.has(url.hostname))return out({status:"unsupported-source",reason:"Penerbit belum didukung."},200);
  const preliminary=headlinePolicy(item);
  if(!recent(item.publishedAt,720))return out({status:"outdated",headline:preliminary,reason:"Rilis lebih dari 30 hari; tidak layak menjadi analisis kondisi pasar terbaru."},200);
- const cacheKey=new Request(new URL("/api/policy-brief?symbol="+symbol+"&source="+encodeURIComponent(item.url)+"&v=1",u));
+ const cacheKey=new Request(new URL("/api/policy-brief?symbol="+symbol+"&source="+encodeURIComponent(item.url)+"&v=2",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
- const k=await publicAIKey("policy:v1",item.url);
+ const k=await publicAIKey("policy:v2",item.url);
  const saved=await readPublicAI(env,k,21600000,x=>x.url===item.url&&x.status==="ai-full-article"&&typeof x.summary==="string");
  if(saved){const hit=out(pairView(saved,symbol),200,3600);try{await caches.default.put(cacheKey,hit.clone())}catch{}return hit}
  const analyzed=await analyzeItem({item,env,symbol});

@@ -135,3 +135,15 @@ test("AI report with missing opinion-specific optional fields stays source-groun
  assert.equal(result.keyFacts.length,1);
  assert.equal(result.keyFacts[0],result.sourceQuote);
 });
+
+test("if AI cites CNBC boilerplate, the selected evidence is a real article sentence",()=>{
+ const body="BEIJING — The EU trade commissioner said China agreed to halve hybrid exports. Brussels must still approve the arrangement.\nData is a real-time snapshot *Data is delayed at least 15 minutes. Global Business and Financial News, Stock Quotes, and Market Data and Analysis.";
+ const a={eventType:"COMMENTARY",policyDirection:"NO_DECISION",currencyBias:"UNKNOWN",
+ summary:"Komisioner perdagangan Uni Eropa menyebut adanya kesepahaman pembatasan ekspor hybrid China, masih menunggu persetujuan.",
+ policyEvidence:"Belum berlaku sampai otoritas Brussels menyetujui langkah berikutnya.",
+ sourceQuote:"Data is a real-time snapshot *Data is delayed at least 15 minutes."};
+ const result=parseBrief({response:a},body);
+ assert.ok(result);
+ assert.ok(result.sourceQuote.startsWith("BEIJING"));
+ assert.ok(!result.sourceQuote.includes("Data is a real-time snapshot"));
+});

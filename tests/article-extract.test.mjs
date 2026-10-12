@@ -30,3 +30,15 @@ test("network response contains article text beyond metadata",async()=>{
  // Response.url is blank for synthetic fetch; test catches without allowing redirects to untrusted hosts.
  assert.equal(body,null);
 });
+
+test("CNBC market-data footer must never enter article text",()=>{
+ const paragraphs=[
+  "<p>BEIJING — European trade authorities discussed hybrid car export curbs and a planned approval process for the next stage.</p>",
+  "<p>Exporters from China and carmakers in the European market could see changes in competitive conditions under the arrangement.</p>",
+  "<p>Officials said the new framework still requires approval before the measure can be implemented.</p>",
+  "<p>Data is a real-time snapshot *Data is delayed at least 15 minutes. Global Business and Financial News, Stock Quotes, and Market Data and Analysis.</p>"
+ ];
+ const body=articleText("<html>"+paragraphs.join("")+"</html>",240);
+ assert.ok(body.includes("BEIJING"));
+ assert.ok(!body.includes("Data is a real-time snapshot"));
+});

@@ -25,5 +25,5 @@ test("all cards use exactly the same source-backed endpoint without 2-item cap",
  assert.ok(s.includes("Fakta penting dari sumber"));
  assert.ok(s.includes("Mengapa bisa menggerakkan pasar?"));
  assert.ok(s.includes("Perbandingan dengan ekspektasi"));
- assert.ok(s.includes("Dampak "+impact.symbol"));
+ assert.ok(s.includes('addBlock(info,"Dampak "+impact.symbol'));
 });

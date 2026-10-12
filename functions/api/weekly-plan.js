@@ -4,7 +4,7 @@
 import {onRequestGet as getH4} from "./h4.js";
 import {onRequestGet as getCOT} from "./cot.js";
 import {onRequestGet as getNews} from "./pair-news.js";
-const OUT=(obj,status=200)=>new Response(JSON.stringify(obj),{status,headers:{"Content-Type":"application/json;charset=UTF-8","Cache-Control":"public,max-age=0,s-maxage=3600"}});
+const OUT=(obj,status=200)=>new Response(JSON.stringify(obj),{status,headers:{"Content-Type":"application/json;charset=UTF-8","Cache-Control":"public,max-age=0,s-maxage=900"}});
 const ALLOWED=/^(?:XAUUSD|XAGUSD|BTCUSD|US30|US500|NASDAQ|(?:EUR|GBP|USD|AUD|NZD|CAD|CHF)(?:EUR|GBP|USD|JPY|CHF|CAD|AUD|NZD))$/;
 function ema(xs,n){let a=xs.slice(0,n).reduce((s,x)=>s+x,0)/n,k=2/(n+1);for(let i=n;i<xs.length;i++)a=xs[i]*k+a*(1-k);return a}
 function rsi(xs){let plus=0,minus=0;const a=xs.slice(-15);for(let i=1;i<a.length;i++){const d=a[i]-a[i-1];if(d>=0)plus+=d;else minus-=d}return minus===0?100:100-100/(1+plus/minus)}
@@ -13,7 +13,7 @@ const round=(x,s)=>Number(x.toFixed(s.endsWith("JPY")?3:/^(EUR|GBP|USD|AUD|NZD|C
 export async function onRequestGet({request,env}){
  const url=new URL(request.url),symbol=String(url.searchParams.get("symbol")||"").toUpperCase();
  if(!ALLOWED.test(symbol))return OUT({schema:1,status:"invalid-symbol"},400);
- const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=4",url));
+ const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=5",url));
  try{const saved=await caches.default.match(key);if(saved)return saved}catch{}
  const req=path=>new Request(new URL(path,url).toString());
  const h4=await getJSON(await getH4({request:req("/api/h4?symbol="+symbol)}));

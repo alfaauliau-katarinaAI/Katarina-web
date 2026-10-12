@@ -30,8 +30,8 @@ for(const [label,url] of feeds){
 for(const url of articles){
  const x=await get(url);
  let extracted;try{extracted=await article(url)}catch(e){extracted="ERROR "+String(e?.message||e)}
- const pTexts=[...(x.text||"").matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)]
-   .map(y=>y[1].replace(/<[^>]+>/g," ").replace(/\\s+/g," ").trim()).filter(t=>t.length>55);
+ const pTexts=[...(x.text||"").matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+   .map(y=>y[1].replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim()).filter(t=>t.length>55);
  console.log("EXTRACTION_CHECK "+JSON.stringify({url,parsedLen:typeof extracted==="string"?extracted.length:0,
   preview:typeof extracted==="string"?extracted.slice(0,190):null,paragraphLengths:pTexts.slice(0,15).map(y=>y.length),
   firstP:pTexts[0]?.slice(0,160)}));

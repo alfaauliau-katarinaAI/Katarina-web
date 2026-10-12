@@ -5,31 +5,28 @@ import {onRequestGet as pairNews} from "./pair-news.js";
 import {runTaskAI,modelText} from "../../lib/ai-router.js";
 import {readPublicAI,writePublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
 import {headlinePolicy,pairDirection,recent} from "../../lib/macro-policy.js";
+import {articleText} from "../../lib/article-extract.js";
 const HOSTS=new Set(["www.rba.gov.au","www.snb.ch","www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
 const out=(data,code=200,ttl=0)=>new Response(JSON.stringify(data),{status:code,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":ttl?"public,max-age=0,s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
-const strip=s=>String(s||"").replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi," ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi," ").replace(/<[^>]*>/g," ").replace(/&(?:nbsp|amp|lt|gt|quot);/gi,n=>({"&nbsp;":" ","&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"'}[n.toLowerCase()]||" ")).replace(/\s+/g," ").trim();
-export async function article(url){
+const SOURCE_MAX_BYTES=1500000;
+export async function article(url, fetcher=fetch){
  try{
-  const req=await fetch(url,{headers:{Accept:"text/html","User-Agent":"KATARINA-Research/1.0"},redirect:"follow",signal:AbortSignal.timeout(7000),cf:{cacheTtl:3600}});
-  if(!req.ok||!String(req.headers.get("content-type")||"").includes("html"))return null;
-  const final=new URL(req.url);if(final.protocol!=="https:"||!HOSTS.has(final.hostname))return null;
-  if(Number(req.headers.get("content-length")||0)>1000000)return null;
-  const html=(await req.text()).slice(0,600000);
-  const ld=[];
-  for(const x of html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
-   try{
-    const parsed=JSON.parse(x[1]);const walk=(n,depth=0)=>{
-     if(depth>4||!n)return;if(Array.isArray(n))return n.forEach(y=>walk(y,depth+1));
-     if(typeof n==="object"){if(typeof n.articleBody==="string")ld.push(strip(n.articleBody));for(const key of ["@graph","mainEntity"])walk(n[key],depth+1)}
-    };walk(parsed);
-   }catch{}
-  }
-  const paragraphs=Array.from(html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi),x=>strip(x[1])).filter(x=>x.length>55&&x.length<2200&&!/subscribe|privacy|cookie|sign up/i.test(x));
-  const body=(ld.find(x=>x.length>600)||[...new Set(paragraphs)].slice(0,32).join("\n")).slice(0,9000);
-  return body.length>=650?body:null;
+  const response=await fetcher(url,{
+   headers:{"Accept":"text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+    "User-Agent":"Mozilla/5.0 (compatible; KATARINA-Research/1.0)"},
+   redirect:"follow",signal:AbortSignal.timeout(9000),cf:{cacheTtl:1800}
+  });
+  if(!response.ok||!String(response.headers.get("content-type")||"").toLowerCase().includes("text/html"))return null;
+  const final=new URL(response.url);
+  if(final.protocol!=="https:"||!HOSTS.has(final.hostname)||
+    Number(response.headers.get("content-length")||0)>SOURCE_MAX_BYTES)return null;
+  // Read the entire permitted HTML to find the real article paragraphs.
+  // CNBC's article body can occur past byte 600000; old code cut it off.
+  const html=await response.text();
+  if(html.length>SOURCE_MAX_BYTES)return null;
+  return articleText(html,650);
  }catch{return null}
 }
-const SUPPORTED=new Set(["XAUUSD","XAGUSD","BTCUSD","US30","US500","NASDAQ","USOIL","UKOIL"]);
 export function parseBrief(output,body){
  const s=modelText(output);let a;
  try{a=JSON.parse(s.slice(s.indexOf("{"),s.lastIndexOf("}")+1))}catch{return null}

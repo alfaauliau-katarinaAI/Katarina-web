@@ -88,6 +88,17 @@ export default {
    if(shard===0&&batch>=0&&batch<12){
     for(const symbol of PAIRS.slice(batch*3,batch*3+3)){try{await snapshotOne(symbol,env,now)}catch{}}
    }
+   // KV serves as regional-disaster fallback, not a per-visitor read path.
+   // Shard 0 writes one compact, public-only snapshot every five minutes:
+   // at most 288 KV writes/day, safely below the 1,000/day Free allowance.
+   if(shard===0&&minute%5===0&&env.CACHE){
+    try{
+     const threshold=new Date(now-72*3600000).toISOString();
+     const result=await env.DB.prepare("SELECT url,title,source,published_at,category,collected_at FROM headlines WHERE published_at >= ? ORDER BY published_at DESC LIMIT 30").bind(threshold).all();
+     const items=(result.results||[]).filter(x=>x.url?.startsWith("https://")&&x.title);
+     if(items.length>=6)await env.CACHE.put("hot-news:latest",JSON.stringify({version:1,createdAt:new Date(now).toISOString(),items}),{expirationTtl:3600});
+    }catch{}
+   }
    // Keep at most 90 days: cheap once-a-day housekeeping.
    if(shard===0&&minute%1440===22){
     try{await env.DB.prepare("DELETE FROM headlines WHERE published_at < ?").bind(new Date(now-90*86400000).toISOString()).run()}catch{}
@@ -96,7 +107,7 @@ export default {
  },
  async fetch(request,env){
   const u=new URL(request.url);
-  if(u.pathname==="/health")return new Response(JSON.stringify({service:"KATARINA autonomous collector",mode:"free-tier",cron:"every minute",newsSourcesPerRun:2,feedShard:env.FEED_SHARD||"0",snapshots:"up to 34 symbols per completed H4, checked twice for provider delays"}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
+  if(u.pathname==="/health")return new Response(JSON.stringify({service:"KATARINA autonomous collector",mode:"free-tier",cron:"every minute",newsSourcesPerRun:2,feedShard:env.FEED_SHARD||"0",kvBound:Boolean(env.CACHE),snapshots:"up to 34 symbols per completed H4, checked twice for provider delays"}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
   // No public direct database reading: the bound Pages application is the reader.
   return new Response("Not found",{status:404});
  }

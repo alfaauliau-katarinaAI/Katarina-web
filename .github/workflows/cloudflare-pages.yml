@@ -69,6 +69,27 @@ jobs:
             exit 1
           fi
 
+      - name: Attach optional free KV read-through snapshot
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          endpoint="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces"
+          response=$(curl -sS --max-time 15 -H "Authorization: Bearer $CF_TOKEN" "$endpoint?per_page=100" || true)
+          ns=$(printf '%s' "$response"|jq -r '.result[]?|select(.title=="katarina-edge-cache")|.id'|head -n1)
+          if [[ "$ns" =~ ^[0-9a-f]{32}$ ]]; then
+            cat >> wrangler.toml <<EOF
+
+          [[kv_namespaces]]
+          binding = "KATARINA_CACHE"
+          id = "$ns"
+          EOF
+            echo "Optional KV read-through fallback bound."
+          else
+            echo "::warning::KV namespace missing. D1/Pages continue with no dependency."
+          fi
+
       - name: Prepare verified public KATARINA project updates
         env:
           GH_PUBLIC_TOKEN: ${{ secrets.GITHUB_TOKEN }}

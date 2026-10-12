@@ -105,6 +105,19 @@ export async function onRequestGet({request,env}){
     }catch{/* D1 binding absent, initializing, or temporarily unavailable: use RSS. */}
   }
 
+  // KV is a resilient fallback when D1 is unavailable; never spend KV reads on
+  // the normal D1 path, and never allow snapshots older than 15 minutes.
+  if(env?.KATARINA_CACHE){
+   try{
+    const saved=await env.KATARINA_CACHE.get("hot-news:latest",{type:"json"});
+    const age=Date.now()-Date.parse(saved?.createdAt||"");
+    if(saved?.version===1&&age>=0&&age<15*60000&&Array.isArray(saved.items)&&saved.items.length>=6){
+     const items=saved.items.filter(x=>x.url?.startsWith("https://")&&x.title)
+       .map(x=>({title:x.title,source:x.source,url:x.url,publishedAt:x.published_at,category:x.category,language:"en",...context(x.title),contextBasis:"Penjelasan bersyarat berdasarkan topik judul; verifikasi sumber."}));
+     if(items.length>=6)return new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",status:"source-headlines",storage:"Cloudflare KV fallback",updatedAt:saved.createdAt,items}),{headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":"public,max-age=0,s-maxage=120"}});
+    }
+   }catch{}
+  }
   const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v4",request.url).toString());
   try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
   const now=Date.now();

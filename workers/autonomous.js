@@ -107,6 +107,24 @@ export default {
  },
  async fetch(request,env){
   const u=new URL(request.url);
+  // Public, no-personal-data read endpoint. Cloudflare Workers Caching can
+  // answer repeated GET requests before Worker execution at global edge.
+  if(u.pathname==="/news"){
+   try{
+    const r=await fetch("https://katarina-research.pages.dev/api/hot-news",{
+     headers:{"Accept":"application/json"},signal:AbortSignal.timeout(10000)
+    });
+    if(!r.ok)return new Response(JSON.stringify({status:"source-unavailable"}),{
+     status:503,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Cache-Control":"no-store"}
+    });
+    return new Response(r.body,{
+     status:200,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=0, s-maxage=120",
+      "Access-Control-Allow-Origin":"*","X-Content-Type-Options":"nosniff"}
+    });
+   }catch{return new Response(JSON.stringify({status:"temporarily-unavailable"}),{
+    status:503,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Cache-Control":"no-store"}
+   })}
+  }
   if(u.pathname==="/health")return new Response(JSON.stringify({service:"KATARINA autonomous collector",mode:"free-tier",cron:"every minute",newsSourcesPerRun:2,feedShard:env.FEED_SHARD||"0",kvBound:Boolean(env.CACHE),snapshots:"up to 34 symbols per completed H4, checked twice for provider delays"}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
   // No public direct database reading: the bound Pages application is the reader.
   return new Response("Not found",{status:404});

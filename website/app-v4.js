@@ -20,7 +20,17 @@ const factors={
 };
 const commodities={XAUUSD:["Yield riil dan indeks dolar AS","Kebijakan Fed serta permintaan safe haven","Pembelian bank sentral dan geopolitik"],XAGUSD:["Permintaan industri, logam dasar dan energi","Yield riil dan indeks dolar","Posisi logam berharga dan volatilitas emas"],BTCUSD:["Arus institusional, likuiditas global dan selera risiko","Kebijakan moneter AS dan regulasi aset digital","Pasokan dan volatilitas pasar kripto"],US30:["Yield obligasi AS dan ekspektasi Fed","Laba korporasi, siklus ekonomi dan kredit","Sektor industri/keuangan, harga energi"],US500:["Laba emiten AS, breadth dan valuasi","Yield riil serta kebijakan moneter Fed","Pertumbuhan konsumsi dan premi risiko"],NASDAQ:["Yield obligasi dan valuasi saham teknologi","Laba teknologi, AI dan pengeluaran modal","Likuiditas pasar serta arah suku bunga"]};
 const safeUrl=u=>{try{const v=new URL(u);return v.protocol==="https:"?v.href:null}catch{return null}};
-const get=async url=>{const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);return r.json()};
+const get=async url=>{
+ // High-traffic public news uses Workers Caching ahead of invocation. Fallback
+ // remains the existing Pages/D1 endpoint when edge distribution is unavailable.
+ if(url==="/api/hot-news"){
+  try{
+   const r=await fetch("https://katarina-free-ingest.alfaaulia8.workers.dev/news");
+   if(r.ok){const j=await r.json();if(Array.isArray(j.items)&&j.items.length)return j}
+  }catch{}
+ }
+ const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);return r.json()
+};
 const page=document.body.dataset.page||"dashboard";
 let newsLanguage=(()=>{try{return localStorage.getItem("katarina-news-language")==="en"?"en":"id"}catch{return "id"}})();
 function pickNewsTitle(item){return newsLanguage==="en"?item.title:(item.titleId||"")}

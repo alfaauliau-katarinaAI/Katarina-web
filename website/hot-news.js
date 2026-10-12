@@ -11,14 +11,14 @@ function trusted(item){
  try{const u=new URL(item.url),date=Date.parse(item.publishedAt);return u.protocol==="https:"&&ALLOWED.has(u.hostname)&&typeof item.title==="string"&&item.title.length>20&&Number.isFinite(date)&&date<=Date.now()+1800000&&Date.now()-date<72*3600000}catch{return false}
 }
 async function analyse(item,index){
- if(aiResults.has(item.url)||requested.has(item.url)||index>2)return;
+ if(aiResults.has(item.url)||requested.has(item.url))return;
  requested.add(item.url);
  try{
   const stop=new AbortController(),timer=setTimeout(()=>stop.abort(),21000);
-  let response;try{response=await fetch("/api/ai-news?index="+index,{cache:"no-store",signal:stop.signal})}finally{clearTimeout(timer)}
+  let response;try{response=await fetch("/api/news-intelligence?"+new URLSearchParams({scope:"dashboard",index:String(index),expected:item.url}),{cache:"no-store",signal:stop.signal})}finally{clearTimeout(timer)}
   if(!response.ok)return;const data=await response.json();
   if(data.status!=="ai-full-article"||data.url!==item.url)return;
-  if(!["summary","impact","drivers","watch","uncertainty"].every(k=>typeof data[k]==="string"))return;
+  if(!["summary","policyEvidence","benefits","harms","watch","uncertainty"].every(k=>typeof data[k]==="string"))return;
   aiResults.set(item.url,data);
   if(selectedUrl===item.url&&document.getElementById("ka-insight-dialog")?.open)window.KatarinaUI?.openNews(item,data);
   render();
@@ -29,7 +29,7 @@ function card(item,index){
  const top=el("div","ka-news-top");top.append(el("span",null,item.source||"Berita Pasar"),el("time",null,time(item.publishedAt)));
  const title=el("strong","ka-news-title",item.title);title.lang="en";
  const bottom=el("div","ka-news-bottom");
- const summary=aiResults.get(item.url)?.summary||item.essence||"Berita makroekonomi terbaru.";
+ const summary=aiResults.get(item.url)?.summary||"Baca rangkuman isi berita, arah kebijakan dan dampak pada aset yang relevan.";
  bottom.append(el("p",null,summary),el("span",null,"Baca analisa →"));
  btn.append(top,title,bottom);
  btn.addEventListener("click",()=>{selectedUrl=item.url;window.KatarinaUI?.openNews(item,aiResults.get(item.url));void analyse(item,index)});

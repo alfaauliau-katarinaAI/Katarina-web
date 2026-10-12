@@ -55,17 +55,27 @@ function event(ev){
  const foot=html("div","ka-dialog-sources");link(foot,"Jadwal resmi",ev.source);link(foot,"Sumber prediksi",ev.forecastSource);link(foot,"Sumber aktual",ev.actualSource);c.append(foot);
 }
 function news(item,analysis){
- const isAI=analysis?.status==="ai-full-article"&&analysis.url===item.url;
+ const done=analysis?.status==="ai-full-article"&&analysis.url===item.url;
  const c=modal((item.source||"Berita pasar")+" · "+new Date(item.publishedAt).toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Jakarta"}),item.title);
- const notice=html("div",isAI?"ka-ai-verified":"ka-ai-context",isAI?"Rangkuman berdasarkan isi artikel":"Analisa awal berdasarkan topik berita");c.append(notice);
- block(c,"Inti berita",isAI?analysis.summary:item.essence);
- if(isAI)block(c,"Pendorong utama",analysis.drivers);
- block(c,"Dampak makro",isAI?analysis.impact:item.impact);
- block(c,"Perlu dipantau",isAI?analysis.watch:item.watch);
- if(isAI)block(c,"Ketidakpastian",analysis.uncertainty);
- else block(c,"Catatan","Isi artikel lengkap belum dianalisis. Dampak di atas adalah skenario umum yang perlu dikonfirmasi.");
+ c.append(html("p",done?"ka-ai-verified":"ka-ai-context",done?"Analisis dari isi sumber asli, bukan sekadar judul":"Buka berita ini untuk memperoleh analisis bersumber; arah tidak boleh ditebak dari judul."));
+ if(done){
+  block(c,"Inti berita",analysis.summary);
+  block(c,"Fakta penting",(analysis.keyFacts||[]).join("\n"));
+  block(c,"Arah kebijakan",analysis.policyDirection+" — "+analysis.policyEvidence);
+  block(c,"Ekspektasi pasar",analysis.expectationComparison);
+  block(c,"Mengapa pasar dapat bergerak",analysis.macroMechanism);
+  block(c,"Yang berpotensi diuntungkan",analysis.benefits);
+  block(c,"Yang berpotensi dirugikan",analysis.harms);
+  for(const effect of (analysis.marketEffects||[]))block(c,"Dampak "+effect.symbol+" ("+effect.direction+")",effect.reason);
+  block(c,"Skenario dekat",analysis.shortTerm);
+  block(c,"Skenario menengah",analysis.mediumTerm);
+  block(c,"Bukti dari sumber",analysis.sourceQuote);
+  block(c,"Konfirmasi",analysis.watch);
+  block(c,"Ketidakpastian",analysis.uncertainty);
+ }else block(c,"Status analisis","Ringkasan isi lengkap belum tervalidasi; tidak ada dampak pasar yang dikarang.");
  const foot=html("div","ka-dialog-sources");link(foot,"Baca sumber asli",item.url);c.append(foot);
 }
+
 function miniEvent(ev){
  const button=html("button","ka-release");button.type="button";button.setAttribute("aria-label","Buka analisa "+ev.title);
  const top=html("div","ka-release-top");const stamp=new Date(ev.dateWIB+"T12:00:00Z");const date=Number.isFinite(stamp.getTime())?stamp.toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}):ev.dateWIB;top.append(html("span",null,"Rilis "+date+" · "+ev.timeWIB+" WIB"),html("span",null,ev.region||""));

@@ -47,7 +47,7 @@ export function parseBrief(output,body){
  if(groundedQuote.length<18||!body.includes(groundedQuote))return null;
  const numbers=t=>[...String(t).matchAll(/\b\d+(?:[.,]\d+)?\b/g)].map(x=>x[0].replace(",","."));
  const fromSource=new Set(numbers(body));
- const claims=[...required,a.macroMechanism||"",...(Array.isArray(a.keyFacts)?a.keyFacts:[]),
+ const claims=[...required.map(k=>a[k]),a.macroMechanism||"",...(Array.isArray(a.keyFacts)?a.keyFacts:[]),
   ...(Array.isArray(a.marketEffects)?a.marketEffects.map(x=>x?.reason):[])];
  if(claims.some(k=>numbers(k).some(n=>!fromSource.has(n))))return null;
  const clean=(x,max=480)=>String(x||"").trim().slice(0,max);

@@ -7,10 +7,10 @@ const ROOT="https://katarina-research.pages.dev";
 const limit=9000,rows=[];
 const started=new Date().toISOString();
 const pctl=(a,p)=>a.length?a[Math.min(a.length-1,Math.max(0,Math.ceil((p/100)*a.length)-1))]:null;
-async function check(path,kind="json"){
+async function check(path,kind="json",timeoutMs=limit){
  const begin=performance.now();let status=0,payload=null,err=null,cacheStatus=null;
  try{
-  const r=await fetch(ROOT+path,{headers:{Accept:kind==="json"?"application/json":"text/html","User-Agent":"KATARINA-bounded-smoke/1.0"},signal:AbortSignal.timeout(limit)});
+  const r=await fetch(ROOT+path,{headers:{Accept:kind==="json"?"application/json":"text/html","User-Agent":"KATARINA-bounded-smoke/1.0"},signal:AbortSignal.timeout(timeoutMs)});
   status=r.status;cacheStatus=r.headers.get("cf-cache-status");
   const raw=await r.text();
   if(kind==="json")try{payload=JSON.parse(raw)}catch{err="invalid-json"}
@@ -30,7 +30,7 @@ for(const [path,kind]of smokePaths){
   assetsBound:typeof result.data?.assets==="boolean"?result.data.assets:undefined}));
 }
 // Exactly one production AI API request, never in the concurrent burst.
-const ai=await check("/api/pair-outlook?symbol=XAUUSD","json");
+const ai=await check("/api/pair-outlook?symbol=XAUUSD","json",30000);
 rows.push(ai);
 console.log("AI_LIVE "+JSON.stringify({httpStatus:ai.status,appStatus:ai.appStatus,
  model:ai.data?.model||null,fallbackUsed:ai.data?.fallbackUsed??null,latencyMs:ai.ms,

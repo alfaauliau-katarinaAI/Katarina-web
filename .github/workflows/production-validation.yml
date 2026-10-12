@@ -1,6 +1,10 @@
 name: Validate KATARINA Cloudflare Production (bounded)
 
 on:
+  push:
+    paths:
+      - 'scripts/production-probe.mjs'
+      - '.github/workflows/production-validation.yml'
   workflow_run:
     workflows:
       - "Deploy KATARINA Web to Cloudflare Pages (free)"

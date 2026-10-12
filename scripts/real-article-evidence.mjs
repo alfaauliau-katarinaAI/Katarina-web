@@ -31,8 +31,9 @@ try{
     (v.keyFacts||[]).length>=1&&
     Array.isArray(v.marketEffects);
    results.push({case:target.id,index,http:result.http,status:v.status,valid,
-    cause:v.reason||null,validationChecks:v.validationChecks||null,summarySample:valid?v.summary.slice(0,220):null,
-    evidenceSample:valid?v.sourceQuote.slice(0,110):null,
+    verifiedChecks:{basis:v.basis==="Isi artikel publik dari penerbit",summaryLength:v.summary?.length||0,policyLength:v.policyEvidence?.length||0,sourceQuoteLength:v.sourceQuote?.length||0,keyFactsCount:v.keyFacts?.length||0,effectsIsArray:Array.isArray(v.marketEffects)},
+    cause:v.reason||null,validationChecks:v.validationChecks||null,summarySample:typeof v.summary==="string"?v.summary.slice(0,220):null,
+    evidenceSample:typeof v.sourceQuote==="string"?v.sourceQuote.slice(0,110):null,
     sourceQuoteIsFooter:valid?/data is a real.time snapshot|global business and financial news/i.test(v.sourceQuote):null,
     policyEvidenceSample:valid?v.policyEvidence?.slice(0,150):null,
     benefitsSample:valid?v.benefits?.slice(0,135):null,

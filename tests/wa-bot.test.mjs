@@ -32,6 +32,7 @@ test("Group publication deduplicates and changes only for a new week or changed 
  assert.match(invalidatedText({symbol:"USDJPY",previous:state,plan:breached}),/BATAL/);
  const stopped=savedState({...ctx,...invalid,plan:breached,previous:state});
  assert.equal(chooseGroupUpdate({...ctx,plan:breached,previous:stopped}).action,"skip");
+ assert.equal(chooseGroupUpdate({...ctx,plan:sell,previous:stopped}).action,"report");
  assert.equal(chooseGroupUpdate({...ctx,plan:{status:"no-clear-direction"},previous:state}).action,"no-plan");
  assert.equal(chooseGroupUpdate({...ctx,plan:{status:"stale-data"},previous:state}).action,"skip");
 });

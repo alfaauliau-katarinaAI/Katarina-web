@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "status": "ready",
+  "items": [
+    {
+      "category": "Riset KATARINA",
+      "title": "Strategi diuji pada 55 instrumen pasar",
+      "date": "2026-10-12T00:08:28Z",
+      "link": "https://github.com/alfaauliau-katarinaAI/Katarina-AI/commit/b7ef98bf6af1e8b94e0c1fbe6b191460a3b01466"
+    },
+    {
+      "category": "Riset KATARINA",
+      "title": "KATARINA mengembangkan cara membaca kondisi pasar",
+      "date": "2026-10-11T23:15:54Z",
+      "link": "https://github.com/alfaauliau-katarinaAI/Katarina-AI/commit/7e8db7e5302181d6f29863b9733a3336c5013a42"
+    },
+    {
+      "category": "Website KATARINA",
+      "title": "Peta harga dan grafik H4 diperbarui",
+      "date": "2026-10-11T23:57:46Z",
+      "link": "https://github.com/alfaauliau-katarinaAI/Katarina-web/commit/f477acc8f012be037d9c9d6cc25a98baf8cf43fd"
+    },
+    {
+      "category": "Website KATARINA",
+      "title": "Berita dan pilihan bahasa disempurnakan",
+      "date": "2026-10-11T23:59:34Z",
+      "link": "https://github.com/alfaauliau-katarinaAI/Katarina-web/commit/1af6a633464e5a435dea5e466f6b102ff61839d6"
+    }
+  ],
+  "source": "Public GitHub commits",
+  "updatedAt": "2026-10-12T00:02:33Z"
+}

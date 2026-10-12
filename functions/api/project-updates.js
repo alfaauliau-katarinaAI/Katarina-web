@@ -27,11 +27,18 @@ async function history(source){
   .map(c=>({category:source.category,title:summary(c.commit.message,source.category),date:c.commit.committer.date,link:c.html_url,detail:"Pembaruan kode tersedia di GitHub. Status pengujian dan kinerja strategi perlu diperiksa terpisah."}));
  }catch{return []}
 }
-export async function onRequestGet({request}){
+export async function onRequestGet({request,env}){
  const u=new URL(request.url),key=new Request(new URL("/api/project-updates?version=1",u));
  try{const hit=await caches.default.match(key);if(hit)return hit}catch{}
  const runs=await Promise.all(SOURCES.map(history)),all=runs.flat().sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)),seen=new Set();
  const items=all.filter(x=>{const key=x.category+"|"+x.title;if(seen.has(key))return false;seen.add(key);return true}).slice(0,5);
+ if(!items.length&&env?.ASSETS?.fetch){
+  try{
+   const resource=new URL("/project-updates.json",u);
+   const r=await env.ASSETS.fetch(new Request(resource.toString()));
+   if(r.ok){const archive=await r.json();if(Array.isArray(archive?.items)&&archive.items.length)return response(archive)}
+  }catch{}
+ }
  const answer=response({schema:1,status:items.length?"ready":"unavailable",items,source:"Commit publik GitHub",updatedAt:new Date().toISOString()});
  if(items.length)try{await caches.default.put(key,answer.clone())}catch{}
  return answer;

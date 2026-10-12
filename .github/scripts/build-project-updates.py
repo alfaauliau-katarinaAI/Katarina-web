@@ -48,22 +48,21 @@ def fetch(repo, category):
         rows.append({"category": category, "title": headline(data.get("message", ""), category), "date": date, "link": link})
     return rows
 
-rows = []
+unique = []
 for repository, category in REPOS:
     try:
-        rows.extend(fetch(repository, category))
+        candidates = fetch(repository, category)
+        seen = set()
+        for row in candidates:
+            if row["title"] in seen:
+                continue
+            seen.add(row["title"])
+            unique.append(row)
+            if len(seen) == 2:
+                break
     except Exception as e:
         print("Public GitHub activity temporarily unavailable:", category, type(e).__name__)
-rows.sort(key=lambda x: x["date"], reverse=True)
-seen = set()
-unique = []
-for row in rows:
-    key = (row["category"], row["title"])
-    if key not in seen:
-        seen.add(key)
-        unique.append(row)
-    if len(unique) == 6:
-        break
+unique.sort(key=lambda x: x["date"], reverse=True)
 if unique:
     OUT.write_text(json.dumps({"schema": 1, "status": "ready", "items": unique, "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(), "source": "Public GitHub commits"}, ensure_ascii=False), encoding="utf-8")
     print("Project update cards published:", len(unique))

@@ -81,6 +81,6 @@ async function refresh(symbol){
  }catch{if(token===version){lastPlan=null;showMissing("Layanan H4 sedang tidak tersedia. Coba beberapa saat lagi.");window.dispatchEvent(new CustomEvent("katarina:weekly-plan",{detail:{plan:null,symbol}}));}}
 }
 window.addEventListener("katarina:pair-change",e=>{const symbol=e.detail?.symbol;if(symbol)refresh(symbol)});
-const start=()=>{const symbol=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";refresh(symbol)};
+const start=()=>{const symbol=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";refresh(symbol);setInterval(()=>{if(!document.hidden&&current)refresh(current)},60*60*1000)};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
 })();

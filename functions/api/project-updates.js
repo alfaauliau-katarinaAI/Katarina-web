@@ -28,10 +28,15 @@ async function history(source){
  }catch{return []}
 }
 export async function onRequestGet({request,env}){
- const u=new URL(request.url),key=new Request(new URL("/api/project-updates?version=1",u));
+ const u=new URL(request.url),key=new Request(new URL("/api/project-updates?version=2",u));
  try{const hit=await caches.default.match(key);if(hit)return hit}catch{}
- const runs=await Promise.all(SOURCES.map(history)),all=runs.flat().sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)),seen=new Set();
- const items=all.filter(x=>{const key=x.category+"|"+x.title;if(seen.has(key))return false;seen.add(key);return true}).slice(0,5);
+ const runs=await Promise.all(SOURCES.map(history));
+ const items=[];for(const sourceRows of runs){
+  const unique=new Set();for(const item of sourceRows.sort((a,b)=>Date.parse(b.date)-Date.parse(a.date))){
+   if(unique.has(item.title))continue;unique.add(item.title);items.push(item);if(unique.size>=2)break;
+  }
+ }
+ items.sort((a,b)=>Date.parse(b.date)-Date.parse(a.date));
  if(!items.length&&env?.ASSETS?.fetch){
   try{
    const resource=new URL("/project-updates.json",u);

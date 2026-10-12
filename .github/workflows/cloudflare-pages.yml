@@ -6,6 +6,9 @@ on:
     paths:
       - 'website/**'
       - 'functions/**'
+      - 'lib/**'
+      - 'tests/**'
+      - 'package.json'
       - 'wrangler.toml'
       - '.github/workflows/cloudflare-pages.yml'
   workflow_dispatch:
@@ -38,6 +41,9 @@ jobs:
             echo "::error::Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to Katarina-web > Settings > Secrets and variables > Actions."
             exit 1
           fi
+
+      - name: Validate WhatsApp bot logic without sending messages
+        run: npm test
 
       - name: Prepare verified public KATARINA project updates
         env:

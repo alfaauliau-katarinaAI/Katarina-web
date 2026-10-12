@@ -28,3 +28,11 @@ CREATE TABLE IF NOT EXISTS ingestion_status (
  last_success_at TEXT,
  accepted_count INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS headline_translations (
+ url TEXT PRIMARY KEY,
+ original_title TEXT NOT NULL,
+ title_id TEXT NOT NULL,
+ updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_translations_at ON headline_translations(updated_at DESC);

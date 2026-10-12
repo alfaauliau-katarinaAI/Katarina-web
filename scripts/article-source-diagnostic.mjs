@@ -1,5 +1,5 @@
-import {article} from "../functions/api/policy-brief.js";
 #!/usr/bin/env node
+import {article} from "../functions/api/policy-brief.js";
 /* Read-only publisher diagnostic. Logs status, lengths and short feed summaries
  * (not cookies, credentials or copyrighted full articles). */
 const feeds=[

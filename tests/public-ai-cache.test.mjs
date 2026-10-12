@@ -36,7 +36,7 @@ test("public pages optimize existing polling and avoid speculative AI traffic",(
  const story=readFileSync(new URL("../website/hot-news.js",import.meta.url),"utf8");
  const chart=readFileSync(new URL("../website/chart-draw-v6.js",import.meta.url),"utf8");
  assert.ok(app.includes("15*60000"));
- assert.ok(app.includes("katarina:public:v2:"));
+ assert.ok(app.includes("katarina:public:v3:"));
  assert.ok(story.includes("void analyse(item,index)"));
  assert.ok(!story.includes("void analyse(items[0],0)"));
  assert.ok(chart.includes("10*60000"));

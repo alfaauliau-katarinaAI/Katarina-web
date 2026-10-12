@@ -35,7 +35,19 @@ export function parseBrief(output,body){
  !["TIGHTENING","EASING","HOLD","NO_DECISION","UNCLEAR"].includes(a.policyDirection)||
  !["STRONGER","WEAKER","NEUTRAL","UNKNOWN"].includes(a.currencyBias))return null;
  const required=["summary","policyEvidence","benefits","harms","watch","uncertainty"];
- if(!required.every(k=>typeof a[k]==="string"&&a[k].trim().length>=8)||a.summary.length<35)return null;
+ if(typeof a.summary!=="string"||a.summary.trim().length<35)return null;
+ // Valid factual summaries must not be discarded because an AI explicitly left
+ // an inapplicable winner/loser/forecast blank. Mark missing aspects UNKNOWN.
+ const defaults={
+  policyEvidence:"Rincian keputusan belum dapat dipastikan dari bukti yang tersedia.",
+  benefits:"Pihak yang diuntungkan belum dapat dipastikan dari teks berita.",
+  harms:"Pihak yang dirugikan belum dapat dipastikan dari teks berita.",
+  watch:"Konfirmasi pengumuman lanjutan dan bukti penerapan perkembangan tersebut.",
+  uncertainty:"Besaran dampak dan respons pasar belum terverifikasi dari sumber ini."
+ };
+ for(const k of required.slice(1)){
+  if(typeof a[k]!=="string"||a[k].trim().length<8)a[k]=defaults[k];
+ }
  const quote=String(a.sourceQuote||"").trim();
  let groundedQuote=quote;
  if(groundedQuote.length<18||groundedQuote.length>160||!body.includes(groundedQuote)){
@@ -63,7 +75,7 @@ export function parseBrief(output,body){
  ).slice(0,6).map(x=>({symbol:x.symbol,direction:x.direction,reason:clean(x.reason,280)})):[];
  return {eventType:a.eventType,policyDirection:a.policyDirection,currencyBias:a.currencyBias,
   ...Object.fromEntries(required.map(k=>[k,clean(a[k],580)])),sourceQuote:groundedQuote,
-  keyFacts:facts,macroMechanism:clean(a.macroMechanism||a.policyEvidence,600),
+  keyFacts:facts.length?facts:[groundedQuote],macroMechanism:clean(a.macroMechanism||a.policyEvidence,600),
   marketEffects:normalizeMarketEffects(effects),expectationComparison:clean(a.expectationComparison||"Ekspektasi pasar belum terverifikasi dari sumber ini.",290),
   shortTerm:clean(a.shortTerm||"",250),mediumTerm:clean(a.mediumTerm||"",250)};
 }
@@ -142,7 +154,7 @@ export async function analyzeItem({item,env,symbol="XAUUSD"}){
    try{data=JSON.parse(text.slice(text.indexOf("{"),text.lastIndexOf("}")+1))}catch{}
    const required=["summary","policyEvidence","benefits","harms","watch","uncertainty"];
    validationNotes.push(!data?"invalid-json":required.filter(k=>typeof data[k]!=="string"||data[k].trim().length<8).length?
-    "incomplete-fields":!["DECISION","STATISTICS","COMMENTARY","MARKET","OTHER"].includes(data.eventType)?
+    "incomplete-fields:"+required.filter(k=>typeof data[k]!=="string"||data[k].trim().length<8).join(","):!["DECISION","STATISTICS","COMMENTARY","MARKET","OTHER"].includes(data.eventType)?
     "invalid-event-type":!["TIGHTENING","EASING","HOLD","NO_DECISION","UNCLEAR"].includes(data.policyDirection)?
     "invalid-policy-type":"claim-validation");
   }

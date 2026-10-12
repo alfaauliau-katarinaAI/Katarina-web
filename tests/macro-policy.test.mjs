@@ -121,3 +121,17 @@ test("a written half in source supports equivalent 50 percent but not invented a
  assert.ok(parseBrief({response:{...data,summary:data.summary+" 50%."}},body));
  assert.equal(parseBrief({response:{...data,summary:data.summary+" 75%."}},body),null);
 });
+
+test("AI report with missing opinion-specific optional fields stays source-grounded",()=>{
+ const body="EU Trade Commissioner said China agreed to halve hybrid exports, with final approval still needed in Brussels. Talks addressed commercial relations.";
+ const record={eventType:"COMMENTARY",policyDirection:"NO_DECISION",currencyBias:"UNKNOWN",
+  summary:"Pejabat Uni Eropa menyampaikan kesepahaman pengurangan ekspor mobil hybrid, tetapi persetujuan akhir masih dibutuhkan.",
+  policyEvidence:"Persetujuan akhir dari otoritas Brussels masih diperlukan.",
+  sourceQuote:"EU Trade Commissioner said China agreed to halve hybrid exports"};
+ const result=parseBrief({response:record},body);
+ assert.ok(result);
+ assert.equal(result.eventType,"COMMENTARY");
+ assert.equal(result.benefits,"Pihak yang diuntungkan belum dapat dipastikan dari teks berita.");
+ assert.equal(result.keyFacts.length,1);
+ assert.equal(result.keyFacts[0],result.sourceQuote);
+});

@@ -28,8 +28,25 @@ async function history(source){
  }catch{return []}
 }
 export async function onRequestGet({request,env}){
- const u=new URL(request.url),key=new Request(new URL("/api/project-updates?version=2",u));
+ const u=new URL(request.url),key=new Request(new URL("/api/project-updates?version=3",u));
  try{const hit=await caches.default.match(key);if(hit)return hit}catch{}
+ // The deploy pipeline already snapshots GitHub activity into public assets.
+ // Serve it first: normal page traffic must not fan out into GitHub REST calls.
+ if(env?.ASSETS?.fetch){
+  try{
+   const resource=new URL("/project-updates.json",u);
+   const r=await env.ASSETS.fetch(new Request(resource.toString()));
+   if(r.ok){
+    const archive=await r.json();
+    if(Array.isArray(archive?.items)&&archive.items.length){
+     const answer=response({...archive,source:"Commit publik GitHub (snapshot deploy)"});
+     try{await caches.default.put(key,answer.clone())}catch{}
+     return answer;
+    }
+   }
+  }catch{}
+ }
+ // Only fall back to bounded live requests when a deployment has no snapshot.
  const runs=await Promise.all(SOURCES.map(history));
  const items=[];for(const sourceRows of runs){
   const unique=new Set();for(const item of sourceRows.sort((a,b)=>Date.parse(b.date)-Date.parse(a.date))){
@@ -37,14 +54,8 @@ export async function onRequestGet({request,env}){
   }
  }
  items.sort((a,b)=>Date.parse(b.date)-Date.parse(a.date));
- if(!items.length&&env?.ASSETS?.fetch){
-  try{
-   const resource=new URL("/project-updates.json",u);
-   const r=await env.ASSETS.fetch(new Request(resource.toString()));
-   if(r.ok){const archive=await r.json();if(Array.isArray(archive?.items)&&archive.items.length)return response(archive)}
-  }catch{}
- }
  const answer=response({schema:1,status:items.length?"ready":"unavailable",items,source:"Commit publik GitHub",updatedAt:new Date().toISOString()});
- if(items.length)try{await caches.default.put(key,answer.clone())}catch{}
+ // Cache failures too, preventing repeated rate-limited GitHub lookups.
+ try{await caches.default.put(key,answer.clone())}catch{}
  return answer;
 }

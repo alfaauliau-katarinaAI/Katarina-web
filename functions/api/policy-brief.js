@@ -65,10 +65,16 @@ export function parseBrief(output,body){
 }
 
 export function pairView(data,symbol){
- const side=recent(data.publishedAt,72)?pairDirection(symbol,data.currency,data.currencyBias):"UNKNOWN";
- return {...data,symbol,pairDirection:side,pairMessage:side==="UNKNOWN"?
- recent(data.publishedAt,72)?"Belum ada bukti memadai untuk menentukan BUY/SELL "+symbol+" dari rilis ini.":"Rilis historis: berguna untuk memahami kebijakan, tetapi terlalu lama untuk menentukan arah trading saat ini.":
- "Bias kebijakan relatif "+symbol+": "+side+" (bersyarat, bukan sinyal entry)."};
+ const fx=recent(data.publishedAt,72)?pairDirection(symbol,data.currency,data.currencyBias):"UNKNOWN";
+ const asset=(data.marketEffects||[]).find(x=>x.symbol===symbol);
+ const side=fx!=="UNKNOWN"?fx:recent(data.publishedAt,72)&&asset?.direction==="UP"?"BUY":
+  recent(data.publishedAt,72)&&asset?.direction==="DOWN"?"SELL":"UNKNOWN";
+ const detail=!recent(data.publishedAt,72)?
+  "Artikel historis, tidak dipakai untuk arah trading terkini.":
+  asset?"Transmisi bersyarat "+symbol+": "+asset.reason+" (perkiraan "+asset.direction+", bukan pergerakan yang telah terjadi).":
+  fx!=="UNKNOWN"?"Kesimpulan kebijakan relatif "+symbol+": "+fx+", perlu konfirmasi data dan harga.":
+  "Sumber ini belum memberikan dasar cukup untuk arah spesifik "+symbol+".";
+ return {...data,symbol,pairDirection:side,pairMessage:detail};
 }
 export async function onRequestGet({request,env}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase(),index=Number(u.searchParams.get("index"));

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {auditArticleImpact} from "../lib/analysis-guard.js";
+import {auditArticleImpact,scrubUnsupportedCausalClaims} from "../lib/analysis-guard.js";
 test("hybrid China-EU deal must not invent GBPUSD or EURUSD direction",()=>{
  const body="BEIJING — European trade commissioner said China agreed to halve its exports of hybrid cars to the bloc. The final decision still needs Brussels approval. The ministers held bilateral talks.";
  const a=auditArticleImpact({eventType:"COMMENTARY",policyDirection:"NO_DECISION",currencyBias:"UNKNOWN",
@@ -23,4 +23,11 @@ test("Dalio commentary is not a new rate decision",()=>{
  const a=auditArticleImpact({eventType:"COMMENTARY",policyDirection:"TIGHTENING",currencyBias:"STRONGER",policyEvidence:"Rates will rise",benefits:"",harms:"",marketEffects:[{symbol:"US500",direction:"DOWN",reason:"Bond yields pressure valuations"}]},"Investor Ray Dalio warned stocks may face pressure from bond yields.",{title:"Ray Dalio warning"});
  assert.equal(a.policyDirection,"NO_DECISION");
  assert.equal(a.marketEffects[0].direction,"DOWN");
+});
+
+test("cached gold article may not claim that gold demand mechanically reduces its value",()=>{
+ const x=scrubUnsupportedCausalClaims({title:"Why China is importing a record amount of gold",benefits:"Penggunaan emas sebagai tempat aman oleh masyarakat Cina",harms:"Penggunaan emas yang berlebihan dapat menyebabkan penurunan nilai emas"});
+ assert.ok(x.benefits.includes("berpotensi"));
+ assert.ok(!x.harms.includes("penggunaan emas yang berlebihan"));
+ assert.ok(x.harms.includes("belum membuktikan"));
 });

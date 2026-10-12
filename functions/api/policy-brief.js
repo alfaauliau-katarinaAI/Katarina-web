@@ -6,7 +6,7 @@ import {runTaskAI,modelText} from "../../lib/ai-router.js";
 import {readPublicAI,writePublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
 import {headlinePolicy,pairDirection,recent,normalizeMarketEffects} from "../../lib/macro-policy.js";
 import {articleText,isNewsBoilerplate} from "../../lib/article-extract.js";
-import {auditArticleImpact} from "../../lib/analysis-guard.js";
+import {auditArticleImpact,scrubUnsupportedCausalClaims} from "../../lib/analysis-guard.js";
 const HOSTS=new Set(["www.rba.gov.au","www.snb.ch","www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
 const out=(data,code=200,ttl=0)=>new Response(JSON.stringify(data),{status:code,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":ttl?"public,max-age=0,s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
 const SUPPORTED=new Set(["XAUUSD","XAGUSD","BTCUSD","US30","US500","NASDAQ","USOIL","UKOIL"]);
@@ -83,6 +83,7 @@ export function parseBrief(output,body){
 }
 
 export function pairView(data,symbol){
+ data=scrubUnsupportedCausalClaims(data);
  const fx=recent(data.publishedAt,72)?pairDirection(symbol,data.currency,data.currencyBias):"UNKNOWN";
  const marketEffects=normalizeMarketEffects(data.marketEffects);
  const asset=marketEffects.find(x=>x.symbol===symbol);

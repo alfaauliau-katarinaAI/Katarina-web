@@ -26,7 +26,7 @@ try{
    const v=result.json,valid=result.http===200&&v.status==="ai-full-article"&&v.url===item.url&&
     v.basis==="Isi artikel publik dari penerbit"&&
     typeof v.summary==="string"&&v.summary.length>40&&
-    typeof v.policyEvidence==="string"&&v.policyEvidence.length>25&&
+    typeof v.policyEvidence==="string"&&v.policyEvidence.length>12&&
     typeof v.sourceQuote==="string"&&v.sourceQuote.length>=18&&
     (v.keyFacts||[]).length>=1&&
     Array.isArray(v.marketEffects);

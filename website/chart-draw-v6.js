@@ -9,7 +9,7 @@ const html=(name,cls,value)=>{const n=document.createElement(name);if(cls)n.clas
 const fmt=(n,id)=>Number(n).toLocaleString("id-ID",{maximumFractionDigits:id.endsWith("JPY")?3:/^(EUR|GBP|AUD|NZD|USD|CAD|CHF)[A-Z]{3}$/.test(id)?5:2});
 const when=sec=>new Date(sec*1000).toLocaleDateString("id-ID",{timeZone:"Asia/Jakarta",day:"numeric",month:"short"});
 let selected=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";
-let completed=[],active=null,source=null,plan=null,loadId=0,view={count:48,back:0},host=null,pointers=new Map(),drag=null;
+let completed=[],active=null,source=null,plan=null,loadId=0,view={count:48,back:0},host=null,pan=null;
 const latest=()=>[...completed,...(active?.bar?[active.bar]:[])];
 const status=(text)=>{const h=get("chart-feed-status");if(h)h.textContent=text};
 function render(){
@@ -83,18 +83,13 @@ function render(){
  function updateTip(evt){const point=pointerPosition(evt);if(!point||point.x<L||point.x>chartRight+8){tip.hidden=true;return}
   const index=Math.min(bars.length-1,Math.max(0,Math.round((point.x-L)/(chartRight-L)*(bars.length-1)))),v=bars[index];
   tip.textContent=when(v[0])+" · O "+fmt(v[1],selected)+" H "+fmt(v[2],selected)+" L "+fmt(v[3],selected)+" C "+fmt(v[4],selected)+(active?.bar?.[0]===v[0]?" · berjalan":"");tip.hidden=false}
- root.addEventListener("pointermove",evt=>{if(!drag)updateTip(evt)});
+ root.addEventListener("pointermove",evt=>{if(!pan)updateTip(evt)});
  root.addEventListener("pointerleave",()=>{tip.hidden=true});
- // Use window-level pointer tracking to keep pan smooth when leaving the SVG bounds.
- let panStart=null;const captured=e=>{const rect=root.getBoundingClientRect();return (e.clientX-rect.left)/Math.max(rect.width,1)};
- const onDown=e=>{if(e.pointerType==="mouse"&&e.button!==0)return;panStart={x:e.clientX,offset:view.back,active:true};try{root.setPointerCapture(e.pointerId)}catch{};root.style.cursor="grabbing"};
- const onMove=e=>{if(!panStart?.active)return;const pixelsPerCandle=root.getBoundingClientRect().width*(chartRight-L)/W/Math.max(bars.length-1,1),shift=Math.round((e.clientX-panStart.x)/Math.max(2,pixelsPerCandle));const next=Math.min(Math.max(list.length-view.count,0),Math.max(0,panStart.offset-shift));if(next!==view.back){view.back=next;drag=true;render()}};
- const onUp=()=>{panStart=null;drag=false;root.style.cursor="grab"};
- // Pan handlers on the persistent host so gestures survive SVG redraws.
- root.addEventListener("pointerdown",onDown);
- root.addEventListener("pointermove",onMove);
- root.addEventListener("pointerup",onUp);
- root.addEventListener("pointercancel",onUp);
+ // Pan state persists across SVG redraws; pointer events continue on window.
+ root.addEventListener("pointerdown",evt=>{
+  if(evt.pointerType==="mouse"&&evt.button!==0)return;
+  pan={id:evt.pointerId,start:evt.clientX,back:view.back,perBar:Math.max(2,root.getBoundingClientRect().width*(chartRight-L)/W/Math.max(bars.length-1,1)),moved:false};
+ });
  root.addEventListener("wheel",evt=>{evt.preventDefault();zoom(evt.deltaY>0?-1:1)},{passive:false});
  const header=html("div","analysis-chart-header","");header.append(html("strong","",selected+" · Grafik H4 interaktif"),html("span","",atLatest?(active?.bar?"Candle berjalan":"Candle terakhir selesai"):"Melihat riwayat"));
  const controls=html("div","chart-controls","");
@@ -104,6 +99,16 @@ function render(){
  html("span","",atLatest?(active?.bar?"Candle H4 yang sedang berjalan, bukan tick broker. ":"Harga penutupan H4. ")+(p?"Garis rencana "+p.direction+"; batal di "+fmt(p.invalidation,selected)+".":"Belum ada satu arah yang terkonfirmasi."): "Geser kembali ke candle terbaru untuk melihat rencana mingguan."));
  host.append(header,controls,root,tip,bottom);
 }
+
+function movePan(evt){
+ if(!pan||evt.pointerId!==pan.id)return;
+ const px=evt.clientX-pan.start;
+ if(Math.abs(px)<5&&!pan.moved)return;
+ pan.moved=true;
+ const step=Math.round(px/pan.perBar),maxBack=Math.max(0,latest().length-view.count),next=Math.min(maxBack,Math.max(0,pan.back-step));
+ if(view.back!==next){view.back=next;render()}
+}
+function endPan(evt){if(pan&&evt.pointerId===pan.id){pan=null}}
 function zoom(direction){const n=Math.max(18,Math.min(105,view.count+(direction>0?-12:12)));if(n!==view.count){view.count=n;render()}}
 async function refresh(symbol,reset=false){
  const id=++loadId;if(reset){selected=symbol;completed=[];active=null;source=null;plan=null;view.back=0;render()}
@@ -121,6 +126,6 @@ function tabs(){
 }
 window.addEventListener("katarina:pair-change",event=>{if(event.detail?.symbol)refresh(event.detail.symbol,true)});
 window.addEventListener("katarina:weekly-plan",event=>{if(event.detail?.plan?.symbol===selected){plan=event.detail.plan;render()}else if(event.detail?.symbol===selected){plan=null;render()}});
-const init=()=>{tabs();refresh(selected,true);setInterval(()=>{if(!document.hidden)refresh(selected,false)},180000)};
+const init=()=>{tabs();refresh(selected,true);window.addEventListener("pointermove",movePan,{passive:true});window.addEventListener("pointerup",endPan);window.addEventListener("pointercancel",endPan);setInterval(()=>{if(!document.hidden)refresh(selected,false)},180000)};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

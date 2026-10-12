@@ -92,13 +92,13 @@ export async function onRequestGet({request,env}){
   if(env?.KATARINA_DB){
     try{
       const limitDate=new Date(Date.now()-72*3600000).toISOString();
-      const result=await env.KATARINA_DB.prepare("SELECT url,title,source,published_at,category FROM headlines WHERE published_at >= ? ORDER BY published_at DESC LIMIT 30").bind(limitDate).all();
+      const result=await env.KATARINA_DB.prepare("SELECT url,title,source,published_at,category,collected_at FROM headlines WHERE published_at >= ? ORDER BY published_at DESC LIMIT 30").bind(limitDate).all();
       const records=result?.results||[];
       if(records.length>=6){
         const now=Date.now();
         const items=records.filter(x=>x.url?.startsWith("https://")&&x.title&&Number.isFinite(Date.parse(x.published_at))&&Date.parse(x.published_at)<=now+1800000)
         .map(x=>({title:x.title,source:x.source,url:x.url,publishedAt:x.published_at,category:x.category,language:"en",...context(x.title),contextBasis:"Penjelasan bersyarat berdasarkan judul; periksa sumber lengkap."}));
-        if(items.length>=6)return new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",updatedAt:new Date().toISOString(),status:"source-headlines",storage:"Cloudflare D1 (minute-cron)",items}),{
+        if(items.length>=6)return new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",updatedAt:records.reduce((latest,row)=>row.collected_at>latest?row.collected_at:latest,"")||null,status:"source-headlines",storage:"Cloudflare D1 (minute-cron)",items}),{
           headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public,max-age=0,s-maxage=180","X-Content-Type-Options":"nosniff"}
         });
       }

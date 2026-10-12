@@ -1,7 +1,7 @@
 name: KATARINA verified news backup (free build budget)
 on:
   schedule:
-    - cron: '41 */6 * * *'
+    - cron: '41 0 * * *' # Once-daily fallback; minute-cron D1 is primary
   workflow_dispatch:
 permissions:
   contents: write

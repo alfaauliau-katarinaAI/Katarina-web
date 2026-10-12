@@ -12,8 +12,6 @@ on:
       - 'wrangler.toml'
       - '.github/workflows/cloudflare-pages.yml'
   workflow_dispatch:
-  schedule:
-    - cron: "20 */6 * * *" # Refresh published public development updates on the free tier
 
 permissions:
   contents: read

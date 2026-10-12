@@ -1,0 +1,35 @@
+name: KATARINA WhatsApp Group Announcement Check (test)
+
+on:
+  schedule:
+    - cron: "27 */4 * * *" # Every 4 hours; roughly 07:27 WIB etc.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: katarina-group-trial
+  cancel-in-progress: false
+
+jobs:
+  group-report:
+    name: Evaluate and publish material H4 changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger group announcement only after owner activation
+        env:
+          WA_GROUP_JOB_TOKEN: ${{ secrets.WA_GROUP_JOB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${WA_GROUP_JOB_TOKEN}" ]]; then
+            echo "Group trial not connected; no WhatsApp messages sent."
+            exit 0
+          fi
+          response=$(curl --fail-with-body --silent --show-error --max-time 170 \
+            -X POST -H "Authorization: Bearer ${WA_GROUP_JOB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            'https://katarina-research.pages.dev/api/wa-group-dispatch')
+          printf '%s' "$response" | python3 -c \
+            'import json,sys; d=json.load(sys.stdin); print("Group: status=%s, accepted=%s, skipped=%s, errors=%s"%(d.get("status","?"),d.get("accepted",0),d.get("skipped",0),d.get("failed",0)))'

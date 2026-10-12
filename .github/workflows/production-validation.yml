@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'scripts/production-probe.mjs'
+      - 'scripts/policy-production-check.mjs'
       - '.github/workflows/production-validation.yml'
   workflow_run:
     workflows:
@@ -38,6 +39,8 @@ jobs:
         run: node scripts/cloudflare-capacity-check.mjs
       - name: Bounded live traffic and single AI request
         run: node scripts/production-probe.mjs
+      - name: Check BoJ headlines and source-grounded policy summaries
+        run: node scripts/policy-production-check.mjs
       - name: Save only sanitized JSON measurements
         if: always()
         uses: actions/upload-artifact@v4

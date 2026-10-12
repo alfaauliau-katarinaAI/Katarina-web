@@ -31,7 +31,7 @@ try{
     (v.keyFacts||[]).length>=1&&
     Array.isArray(v.marketEffects);
    results.push({case:target.id,index,http:result.http,status:v.status,valid,
-    cause:v.reason||null,summarySample:valid?v.summary.slice(0,220):null,
+    cause:v.reason||null,validationChecks:v.validationChecks||null,summarySample:valid?v.summary.slice(0,220):null,
     evidenceSample:valid?v.sourceQuote.slice(0,110):null,
     effects:valid?v.marketEffects?.map(e=>({symbol:e.symbol,direction:e.direction})):null});
   }catch(e){results.push({case:target.id,index,status:"timeout-or-network",cause:String(e?.name||"fetch-error")})}

@@ -104,3 +104,20 @@ test("opposing effects on the same asset are reported MIXED, never contradictory
  assert.equal(mixed.find(x=>x.symbol==="XAUUSD").direction,"MIXED");
  assert.ok(mixed.find(x=>x.symbol==="XAUUSD").reason.includes("yield"));
 });
+
+test("a written half in source supports equivalent 50 percent but not invented amounts",()=>{
+ const body="Officials have agreed to halve vehicle shipments next year, while the final endorsement is still required.";
+ const data={eventType:"COMMENTARY",policyDirection:"NO_DECISION",currencyBias:"UNKNOWN",
+ summary:"Pejabat mengatakan pengiriman kendaraan akan dibatasi hingga setengah, tetapi masih menunggu persetujuan.",
+ policyEvidence:"Belum menjadi keputusan akhir karena pihak berwenang harus menyetujuinya.",
+ benefits:"Produsen di kawasan tujuan berpotensi menghadapi persaingan impor lebih rendah.",
+ harms:"Eksportir kendaraan bisa kehilangan peluang penjualan di pasar tujuan.",
+ watch:"Pantau persetujuan otoritas dan jadwal penerapan pembatasan tersebut.",
+ uncertainty:"Volume rujukan dan waktu pelaksanaan tetap belum diketahui.",
+ sourceQuote:"Officials have agreed to halve vehicle shipments next year",
+ macroMechanism:"Pembatasan volume ekspor mengubah tekanan persaingan di pasar tujuan.",
+ keyFacts:["The final endorsement is still required."],
+ marketEffects:[{symbol:"EURUSD",direction:"UNKNOWN",reason:"Dampak terhadap kurs tidak langsung dan belum cukup data."}]};
+ assert.ok(parseBrief({response:{...data,summary:data.summary+" 50%."}},body));
+ assert.equal(parseBrief({response:{...data,summary:data.summary+" 75%."}},body),null);
+});

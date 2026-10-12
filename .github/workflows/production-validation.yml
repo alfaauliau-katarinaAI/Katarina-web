@@ -1,0 +1,44 @@
+name: Validate KATARINA Cloudflare Production (bounded)
+
+on:
+  workflow_run:
+    workflows:
+      - "Deploy KATARINA Web to Cloudflare Pages (free)"
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: katarina-prod-bounded-validation
+  cancel-in-progress: false
+
+jobs:
+  validation:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit test AI fallback, public caching and API safety
+        run: npm test
+      - name: Read Cloudflare usage (no changes to account)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/cloudflare-capacity-check.mjs
+      - name: Bounded live traffic and single AI request
+        run: node scripts/production-probe.mjs
+      - name: Save only sanitized JSON measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: katarina-production-probe
+          path: test-results/*.json
+          retention-days: 7
+          if-no-files-found: ignore

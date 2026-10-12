@@ -49,3 +49,10 @@ test("missing binding or invalid output does not fabricate result",async()=>{
 test("invalid task is rejected",async()=>{
  await assert.rejects(()=>runTaskAI({env:{},task:"unused",messages:[]}),TypeError);
 });
+
+test("deprecated Cloudflare model is not used and chat-completion variants parse",()=>{
+ const values=Object.values(TASK_MODELS).flat();
+ assert.equal(values.some(x=>x.includes("gemma-3-12b-it")),false);
+ assert.equal(modelText({choices:[{message:{content:"new"}}]}),"new");
+ assert.equal(modelText({result:{choices:[{message:{content:"nested"}}]}}),"nested");
+});

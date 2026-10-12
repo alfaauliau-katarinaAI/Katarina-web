@@ -9,6 +9,8 @@ on:
       - 'wrangler.toml'
       - '.github/workflows/cloudflare-pages.yml'
   workflow_dispatch:
+  schedule:
+    - cron: "20 */6 * * *" # Refresh published public development updates on the free tier
 
 permissions:
   contents: read
@@ -36,6 +38,11 @@ jobs:
             echo "::error::Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to Katarina-web > Settings > Secrets and variables > Actions."
             exit 1
           fi
+
+      - name: Prepare verified public KATARINA project updates
+        env:
+          GH_PUBLIC_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/build-project-updates.py
 
       - name: Deploy existing katarina-research project (no new paid services)
         uses: cloudflare/wrangler-action@v4

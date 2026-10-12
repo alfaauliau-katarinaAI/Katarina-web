@@ -34,11 +34,11 @@ jobs:
             exit 0
           fi
           endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database"
-          existing=$(curl --fail-with-body -fsS --max-time 20 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$endpoint?per_page=100")
+          existing=$(curl --fail-with-body -sS --max-time 20 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$endpoint?per_page=100")
           uuid=$(echo "$existing" | jq -r '.result[]|select(.name=="katarina-research-data")|.uuid' | head -n1)
           if [[ -z "$uuid" ]]; then
             echo "Creating one D1 database within the free tier."
-            response=$(curl --fail-with-body -fsS --max-time 20 -X POST "$endpoint" \
+            response=$(curl --fail-with-body -sS --max-time 20 -X POST "$endpoint" \
               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
               -H "Content-Type: application/json" \
               --data '{"name":"katarina-research-data"}')

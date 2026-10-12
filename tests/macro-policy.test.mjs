@@ -36,3 +36,14 @@ test("AI output requires actual excerpt and verified numbers",()=>{
  assert.equal(parseBrief({response:JSON.stringify({...a,sourceQuote:"An invented quote unrelated to article"})},body),null);
  assert.equal(parseBrief({response:JSON.stringify({...a,summary:"Bank sentral menaikkan suku bunga menjadi 3.75% tanpa bukti."})},body),null);
 });
+
+test("headline currency mapping only uses unambiguous country signals",()=>{
+ const a=headlinePolicy({title:"Bank of Japan gives monetary-policy commentary"});
+ assert.equal(a.currency,"JPY");
+ assert.equal(a.currencyBias,"UNKNOWN");
+ const b=headlinePolicy({title:"Federal Reserve may cut policy interest rates"});
+ assert.equal(b.currency,"USD");
+ assert.equal(b.currencyBias,"UNKNOWN");
+ const c=headlinePolicy({title:"EUR and GBP inflation outlook mixed"});
+ assert.equal(c.currency,null);
+});

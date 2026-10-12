@@ -26,7 +26,7 @@ const publicTTL=url=>url==="/api/hot-news"?12*60000:
  url.startsWith("/api/pair-news?")?12*60000:
  url.startsWith("/api/berita-id?")?15*60000:0;
 const get=async url=>{
- const ttl=publicTTL(url),key="katarina:public:v2:"+url;
+ const ttl=publicTTL(url),key="katarina:public:v3:"+url;
  if(ttl)try{
   const record=JSON.parse(localStorage.getItem(key)||"null");
   if(record&&Number.isFinite(record.at)&&Date.now()-record.at>=0&&Date.now()-record.at<ttl&&

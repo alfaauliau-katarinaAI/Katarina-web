@@ -45,6 +45,32 @@ jobs:
       - name: Validate WhatsApp bot logic without sending messages
         run: npm test
 
+      - name: Attach existing D1 database to Pages at deployment
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          result=$(curl --fail-with-body -sS --max-time 20 \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/d1/database?per_page=100")
+          uuid=$(printf '%s' "$result" | jq -r '.result[]|select(.name=="katarina-research-data")|.uuid'|head -n1)
+          if [[ -z "$uuid" ]]; then
+            echo "::warning::No Cloudflare D1 instance; website continues to use RSS fallback."
+          elif [[ "$uuid" =~ ^[0-9a-f-]{36}$ ]]; then
+            cat >> wrangler.toml <<EOF
+
+          [[d1_databases]]
+          binding = "KATARINA_DB"
+          database_name = "katarina-research-data"
+          database_id = "$uuid"
+          EOF
+            echo "Configured KATARINA_DB as a free D1 Pages binding."
+          else
+            echo "::error::Invalid Cloudflare D1 identifier"
+            exit 1
+          fi
+
       - name: Prepare verified public KATARINA project updates
         env:
           GH_PUBLIC_TOKEN: ${{ secrets.GITHUB_TOKEN }}

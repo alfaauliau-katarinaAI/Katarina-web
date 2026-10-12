@@ -30,7 +30,7 @@ async function feed(def){
   }return items;
  }catch{return []}finally{clearTimeout(timer)}
 }
-export async function onRequestGet({request}){
+export async function onRequestGet({request,env}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!VALID.test(symbol))return new Response(JSON.stringify({status:"invalid-symbol"}),{status:400,headers:{"Content-Type":"application/json"}});
  const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v5",u));
@@ -60,7 +60,7 @@ export async function onRequestGet({request}){
  const paired=(symbol.length===6&&!topics[symbol])?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
  const matched=[];
  try{
- const mr=await marketHeadlines({request:new Request(new URL("/api/hot-news",u).toString())});
+ const mr=await marketHeadlines({request:new Request(new URL("/api/hot-news",u).toString()),env});
  if(mr.ok){const news=await mr.json();for(const article of news.items||[]){
  const title=String(article.title||"");
  let strength=0,match=[];

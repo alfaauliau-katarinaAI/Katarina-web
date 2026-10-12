@@ -10,7 +10,7 @@ function ema(xs,n){let a=xs.slice(0,n).reduce((s,x)=>s+x,0)/n,k=2/(n+1);for(let 
 function rsi(xs){let plus=0,minus=0;const a=xs.slice(-15);for(let i=1;i<a.length;i++){const d=a[i]-a[i-1];if(d>=0)plus+=d;else minus-=d}return minus===0?100:100-100/(1+plus/minus)}
 function getJSON(response){return response?.ok?response.json().catch(()=>null):Promise.resolve(null)}
 const round=(x,s)=>Number(x.toFixed(s.endsWith("JPY")?3:/^(EUR|GBP|USD|AUD|NZD|CAD|CHF)[A-Z]{3}$/.test(s)?5:2));
-export async function onRequestGet({request}){
+export async function onRequestGet({request,env}){
  const url=new URL(request.url),symbol=String(url.searchParams.get("symbol")||"").toUpperCase();
  if(!ALLOWED.test(symbol))return OUT({schema:1,status:"invalid-symbol"},400);
  const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=4",url));
@@ -27,7 +27,7 @@ export async function onRequestGet({request}){
  const last6=prices.at(-1)-prices.at(-7);
  const score=(close>e20?1:-1)+(e20>e50?1:-1)+(momentum>=52?1:momentum<=48?-1:0)+(last6>=0?1:-1);
  const direction=score>=2?"BUY":score<=-2?"SELL":null;
- const [cotResponse,newsResponse]=await Promise.allSettled([getCOT({request:req("/api/cot?symbol="+symbol)}),getNews({request:req("/api/pair-news?symbol="+symbol)})]);
+ const [cotResponse,newsResponse]=await Promise.allSettled([getCOT({request:req("/api/cot?symbol="+symbol)}),getNews({request:req("/api/pair-news?symbol="+symbol),env})]);
  const cotData=cotResponse.status==="fulfilled"?await getJSON(cotResponse.value):null;
  const newsData=newsResponse.status==="fulfilled"?await getJSON(newsResponse.value):null;
  const news=(newsData?.items||[]).filter(x=>x.url&&x.title).slice(0,4).map(x=>({title:x.title,url:x.url,source:x.source,publishedAt:x.publishedAt,relevanceNote:x.relevanceNote||null}));

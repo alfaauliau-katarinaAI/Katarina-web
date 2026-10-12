@@ -30,7 +30,7 @@ export async function onRequestGet({request,env}){
  const key=new Request(new URL("/api/berita-id?symbol="+symbol+"&revision=v3",u));
  try{const hit=await caches.default.match(key);if(hit)return hit}catch{}
  let result;
- try{result=symbol==="DASHBOARD"?await hotNews({request:new Request(new URL("/api/hot-news",u))}):await pairNews({request:new Request(new URL("/api/pair-news?symbol="+symbol,u))});
+ try{result=symbol==="DASHBOARD"?await hotNews({request:new Request(new URL("/api/hot-news",u)),env}):await pairNews({request:new Request(new URL("/api/pair-news?symbol="+symbol,u)),env});
  }catch{return json({status:"source-unavailable",items:[]},503)}
  if(!result.ok)return json({status:"source-unavailable",items:[]},503);
  const data=await result.json(),items=(data.items||[]).slice(0,symbol==="DASHBOARD"?8:10);

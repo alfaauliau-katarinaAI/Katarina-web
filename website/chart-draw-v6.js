@@ -126,6 +126,6 @@ function tabs(){
 }
 window.addEventListener("katarina:pair-change",event=>{if(event.detail?.symbol)refresh(event.detail.symbol,true)});
 window.addEventListener("katarina:weekly-plan",event=>{if(event.detail?.plan?.symbol===selected){plan=event.detail.plan;render()}else if(event.detail?.symbol===selected){plan=null;render()}});
-const init=()=>{tabs();refresh(selected,true);window.addEventListener("pointermove",movePan,{passive:true});window.addEventListener("pointerup",endPan);window.addEventListener("pointercancel",endPan);setInterval(()=>{if(!document.hidden)refresh(selected,false)},180000)};
+const init=()=>{tabs();refresh(selected,true);window.addEventListener("pointermove",movePan,{passive:true});window.addEventListener("pointerup",endPan);window.addEventListener("pointercancel",endPan);setInterval(()=>{if(!document.hidden)refresh(selected,false)},10*60000)};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

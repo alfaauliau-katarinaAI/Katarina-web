@@ -48,8 +48,7 @@ async function refresh(){
   const data=await res.json();if(data.schema!==1||!Array.isArray(data.items))throw Error("invalid");
   items=data.items.filter(trusted).sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt)).slice(0,12);
   render();
-  if(items.length)void analyse(items[0],0);
-  if(items.length>1)void analyse(items[1],1);
+  // Analyse full article only when the user opens its details (no speculative AI spend).
  }catch{if(!items.length)render()}
  finally{busy=false}
 }

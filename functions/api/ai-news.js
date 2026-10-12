@@ -4,6 +4,7 @@
  */
 import {onRequestGet as headlines} from "./hot-news.js";
 import {runTaskAI,modelText} from "../../lib/ai-router.js";
+import {readPublicAI,writePublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
 const TRUSTED=new Set(["www.cnbc.com","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bls.gov","www.bea.gov"]);
 const json=(payload,status=200,ttl=0)=>new Response(JSON.stringify(payload),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":ttl?"public, max-age=0, s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
 const deEnt=s=>String(s||"").replace(/&#(x[0-9a-f]+|\d+);/gi,(_,n)=>{const i=n.toLowerCase().startsWith("x")?parseInt(n.slice(1),16):parseInt(n,10);return i>0&&i<0x110000?String.fromCodePoint(i):""}).replace(/&(?:amp|lt|gt|quot|apos|nbsp);/gi,n=>({"&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"',"&apos;":"'","&nbsp;":" "}[n.toLowerCase()]||n));
@@ -58,8 +59,15 @@ export async function onRequestGet(ctx){
  let feed;try{feed=await h.json()}catch{return json({schema:1,status:"source-invalid"},503)}
  const item=feed.items?.[ix];if(!item)return json({schema:1,status:"no-article"},404);
  const source=new URL(item.url);if(!TRUSTED.has(source.hostname))return json({schema:1,status:"host-not-allowed"},400);
- const cacheUrl=new URL("/api/ai-news",url);cacheUrl.searchParams.set("article",item.url);cacheUrl.searchParams.delete("index");cacheUrl.searchParams.set("revision","v2");
+ const cacheUrl=new URL("/api/ai-news",url);cacheUrl.searchParams.set("article",item.url);cacheUrl.searchParams.delete("index");cacheUrl.searchParams.set("revision","v3");
  const cacheKey=new Request(cacheUrl.toString());try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
+ const kvKey=await publicAIKey("web:news:v3",item.url);
+ const shared=await readPublicAI(ctx.env,kvKey,10800000,x=>x.url===item.url&&typeof x.summary==="string");
+ if(shared){
+  const hit=json(shared,200,10800);
+  try{await caches.default.put(cacheKey,hit.clone())}catch{}
+  return hit;
+ }
  const body=await readArticle(item.url);
  if(!body)return json({schema:1,status:"full-text-unavailable",url:item.url,reason:"Sumber tidak menyediakan isi artikel lengkap yang dapat diakses secara sah. Tidak mengarang analisa lengkap."},200,0);
  if(!ctx.env?.AI?.run)return json({schema:1,status:"ai-unavailable",url:item.url,reason:"Workers AI binding belum tersedia."},503);
@@ -79,5 +87,6 @@ export async function onRequestGet(ctx){
  const result={schema:1,status:"ai-full-article",model:routed.model,fallbackUsed:routed.fallbackUsed,url:item.url,title:item.title,source:item.source,publishedAt:item.publishedAt,basis:"Isi artikel publik dari penerbit",articleCharacters:body.length,analysedAt:new Date().toISOString(),...analysis};
  const response=json(result,200,10800);
  try{await caches.default.put(cacheKey,response.clone())}catch{}
+ await writePublicAI(ctx.env,kvKey,result,10800);
  return response;
 }

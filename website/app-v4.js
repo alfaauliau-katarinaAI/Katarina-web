@@ -20,16 +20,39 @@ const factors={
 };
 const commodities={XAUUSD:["Yield riil dan indeks dolar AS","Kebijakan Fed serta permintaan safe haven","Pembelian bank sentral dan geopolitik"],XAGUSD:["Permintaan industri, logam dasar dan energi","Yield riil dan indeks dolar","Posisi logam berharga dan volatilitas emas"],BTCUSD:["Arus institusional, likuiditas global dan selera risiko","Kebijakan moneter AS dan regulasi aset digital","Pasokan dan volatilitas pasar kripto"],US30:["Yield obligasi AS dan ekspektasi Fed","Laba korporasi, siklus ekonomi dan kredit","Sektor industri/keuangan, harga energi"],US500:["Laba emiten AS, breadth dan valuasi","Yield riil serta kebijakan moneter Fed","Pertumbuhan konsumsi dan premi risiko"],NASDAQ:["Yield obligasi dan valuasi saham teknologi","Laba teknologi, AI dan pengeluaran modal","Likuiditas pasar serta arah suku bunga"]};
 const safeUrl=u=>{try{const v=new URL(u);return v.protocol==="https:"?v.href:null}catch{return null}};
+// Public-only browser cache shared across tabs, reducing requests per visitor.
+// Never store private, personalized or unsuccessful API results.
+const publicTTL=url=>url==="/api/hot-news"?12*60000:
+ url.startsWith("/api/pair-news?")?12*60000:
+ url.startsWith("/api/berita-id?")?15*60000:0;
 const get=async url=>{
- // High-traffic public news uses Workers Caching ahead of invocation. Fallback
- // remains the existing Pages/D1 endpoint when edge distribution is unavailable.
+ const ttl=publicTTL(url),key="katarina:public:v2:"+url;
+ if(ttl)try{
+  const record=JSON.parse(localStorage.getItem(key)||"null");
+  if(record&&Number.isFinite(record.at)&&Date.now()-record.at>=0&&Date.now()-record.at<ttl&&
+     record.data?.schema===1&&Array.isArray(record.data.items)&&record.data.items.length>0)return record.data;
+ }catch{}
+ // Workers Cache runs before the existing news ingestion Worker. The Pages endpoint
+ // is available if edge news is unavailable. Static JSON uses browser HTTP caching.
+ let data;
  if(url==="/api/hot-news"){
   try{
    const r=await fetch("https://katarina-free-ingest.alfaaulia8.workers.dev/news");
-   if(r.ok){const j=await r.json();if(Array.isArray(j.items)&&j.items.length)return j}
+   if(r.ok){const j=await r.json();if(j.schema===1&&Array.isArray(j.items)&&j.items.length)data=j}
   }catch{}
  }
- const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);return r.json()
+ if(!data){
+  const r=await fetch(url,{cache:ttl?"no-store":"default"});
+  if(!r.ok)throw Error("HTTP "+r.status);
+  data=await r.json();
+ }
+ if(ttl&&data?.schema===1&&Array.isArray(data.items)&&data.items.length&&data.status!=="unavailable"){
+  try{
+   const serialized=JSON.stringify({at:Date.now(),data});
+   if(serialized.length<95000)localStorage.setItem(key,serialized);
+  }catch{}
+ }
+ return data;
 };
 const page=document.body.dataset.page||"dashboard";
 let newsLanguage=(()=>{try{return localStorage.getItem("katarina-news-language")==="en"?"en":"id"}catch{return "id"}})();
@@ -353,13 +376,13 @@ async function start(){
  context=contextResult.status==="fulfilled"&&Array.isArray(contextResult.value.instruments)?contextResult.value.instruments:[];
  calendar=calendarResult.status==="fulfilled"&&Array.isArray(calendarResult.value.events)?calendarResult.value.events:[];
  feed=newsResult.status==="fulfilled"&&Array.isArray(newsResult.value.items)?newsResult.value.items:[];
- if(page==="dashboard"){renderDashboard();void localizeHeadlines("DASHBOARD");setInterval(async()=>{if(document.hidden)return;try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){const old=new Map(feed.map(item=>[item.url,item]));const changed=fresh.items.length!==feed.length||fresh.items.some((item,i)=>item.url!==feed[i]?.url||item.title!==feed[i]?.title);feed=fresh.items.map(item=>({...item,...(old.get(item.url)?.titleId?{titleId:old.get(item.url).titleId}:{})}));if(changed){renderDashboard();void localizeHeadlines("DASHBOARD")}}}catch{}},3*60000)}
+ if(page==="dashboard"){renderDashboard();void localizeHeadlines("DASHBOARD");setInterval(async()=>{if(document.hidden)return;try{const fresh=await get("/api/hot-news");if(Array.isArray(fresh.items)){const old=new Map(feed.map(item=>[item.url,item]));const changed=fresh.items.length!==feed.length||fresh.items.some((item,i)=>item.url!==feed[i]?.url||item.title!==feed[i]?.title);feed=fresh.items.map(item=>({...item,...(old.get(item.url)?.titleId?{titleId:old.get(item.url).titleId}:{})}));if(changed){renderDashboard();void localizeHeadlines("DASHBOARD")}}}catch{}},15*60000)}
  else{
  const param=new URLSearchParams(location.search).get("symbol")?.toUpperCase()||"XAUUSD";
  selected=items().some(x=>x.id===param)?param:"XAUUSD";try{localStorage.setItem("katarina-selected-symbol",selected)}catch{}
  $("pair-choose")?.addEventListener("click",pick);
  renderResearch();
- setInterval(()=>{if(!document.hidden){const symbol=selected;get("/api/pair-news?symbol="+symbol).then(x=>{if(symbol!==selected)return;const old=new Map(official.map(item=>[item.url,item]));const fresh=x?.items||[];const changed=fresh.length!==official.length||fresh.some((item,i)=>item.url!==official[i]?.url||item.title!==official[i]?.title);official=fresh.map(item=>({...item,...(old.get(item.url)?.titleId?{titleId:old.get(item.url).titleId}:{})}));if(changed){renderPairNews();void localizeHeadlines(symbol)}}).catch(()=>{})}},3*60000)
+ setInterval(()=>{if(!document.hidden){const symbol=selected;get("/api/pair-news?symbol="+symbol).then(x=>{if(symbol!==selected)return;const old=new Map(official.map(item=>[item.url,item]));const fresh=x?.items||[];const changed=fresh.length!==official.length||fresh.some((item,i)=>item.url!==official[i]?.url||item.title!==official[i]?.title);official=fresh.map(item=>({...item,...(old.get(item.url)?.titleId?{titleId:old.get(item.url).titleId}:{})}));if(changed){renderPairNews();void localizeHeadlines(symbol)}}).catch(()=>{})}},15*60000)
  }
 }
 document.addEventListener("DOMContentLoaded",()=>{start().catch(()=>{menu();text("pair-headline","Data sementara belum tersedia. Coba muat ulang halaman.")})});

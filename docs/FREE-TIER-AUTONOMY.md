@@ -50,3 +50,14 @@
 - https://developers.cloudflare.com/workers-ai/platform/pricing/
 - https://developers.cloudflare.com/pages/platform/limits/
 - https://docs.github.com/en/actions/concepts/billing-and-usage
+
+
+## Optimasi lonjakan trafik (12 Oktober 2026)
+
+- Halaman dashboard & riset kini memeriksa berita tiap **15 menit** saat terlihat, bukan setiap 3 menit. Grafik H4 di halaman riset memeriksa setiap **10 menit**, bukan 3 menit, karena analisa mengacu candle H4.
+- Browser menyimpan hanya snapshot API **publik** (berita 12 menit, berita per instrumen 12 menit, terjemahan valid 15 menit) di localStorage lintas tab; tidak menyimpan data pribadi. Data static JSON mendapat browser/CDN cache 2/10 menit, bukan revalidasi paksa pada setiap muatan.
+- Endpoint `/api/hot-news` sekarang mengecek **Cloudflare Cache API lebih dahulu**, termasuk saat D1 sehat; respons D1/KV yang berhasil disimpan pada cache tepi 2–3 menit. Ini mengurangi beban query D1 per pengunjung, tetapi **Cache API di dalam Function tidak menghapus biaya/jatah invokasi Pages Function**.
+- Endpoint AI analisa instrumen dan artikel memakai KV yang **sudah terikat jika ada**, hanya untuk output valid dan publik; hasil yang sama bisa dipakai antarregion (3 jam artikel, 6 jam instrumen). Jika KV tidak tersedia/penuh, endpoint tetap bekerja dengan edge cache saja.
+- Analisa artikel penuh di komponen `hot-news.js` hanya saat berita diklik; pemanggilan AI otomatis atas dua artikel teratas dinonaktifkan.
+- Worker berita yang ada sudah memiliki Workers Caching `cache.enabled = true`; cache hit tidak menjalankan Worker tetapi permintaannya **masih dihitung terhadap jatah Workers Free**. Pengurangan polling adalah penghemat invokasi utama. Jangan menambah cron atau otomatis mengaktifkan Workers Paid.
+- Ukur kebutuhan upgrade dari **Workers Analytics requests/day, D1 rows read, Workers AI neurons/day dan error 429/1015/3036**, bukan dari angka pengunjung saja. Uji lonjakan bertahap dan periksa cache HIT/MISS; jangan klaim sanggup menanggung jumlah trafik tertentu tanpa load test nyata.

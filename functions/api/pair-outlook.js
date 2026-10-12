@@ -2,6 +2,7 @@
  * Calls Workers AI only for new cached symbol/day combinations and has no paid fallback.
  */
 import {runTaskAI} from "../../lib/ai-router.js";
+import {readPublicAI,writePublicAI} from "../../lib/public-ai-cache.js";
 const ASSETS={XAUUSD:"xau",XAGUSD:"silver",BTCUSD:"bitcoin",US30:"us30",US500:"sp500",NASDAQ:"nasdaq"};
 const SYMBOLS=/^(?:XAUUSD|XAGUSD|BTCUSD|US30|US500|NASDAQ|(?:EUR|GBP|USD|AUD|NZD|CAD|CHF)(?:EUR|GBP|USD|JPY|CHF|CAD|AUD|NZD))$/;
 const response=(v,status=200,ttl=0)=>new Response(JSON.stringify(v),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":ttl?"public, max-age=0, s-maxage="+ttl:"no-store"}});
@@ -28,8 +29,15 @@ export async function onRequestGet({request,env}){
  const url=new URL(request.url),symbol=(url.searchParams.get("symbol")||"").toUpperCase();
  if(!SYMBOLS.test(symbol))return response({schema:1,status:"invalid-symbol"},400);
  if(url.searchParams.get("health")==="1")return response({schema:1,status:"healthy",assets:typeof env?.ASSETS?.fetch==="function",ai:typeof env?.AI?.run==="function"});
- const key=new Request(new URL("/api/pair-outlook?symbol="+symbol+"&revision=v3",url).toString());
+ const key=new Request(new URL("/api/pair-outlook?symbol="+symbol+"&revision=v4",url).toString());
  try{const found=await caches.default.match(key);if(found)return found}catch{}
+ const kvKey="web:outlook:v4:"+symbol;
+ const existing=await readPublicAI(env,kvKey,21600000,x=>x.symbol===symbol&&typeof x.summary==="string"&&x.source?.pair===symbol);
+ if(existing){
+  const hit=response(existing,200,21600);
+  try{await caches.default.put(key,hit.clone())}catch{}
+  return hit;
+ }
  if(!env?.AI?.run)return response({schema:1,status:"unavailable"},503);
  const [market,ctx,calendar]=await Promise.all(["/market-ohlc.json","/instrument-context.json","/calendar-brief.json"].map(path=>asset(env,request,path)));
  if(!market?.series||!Array.isArray(ctx?.instruments))return response({schema:1,status:"source-unavailable",reason:"Sumber harga dan konteks belum dapat diakses."},503);
@@ -52,7 +60,9 @@ export async function onRequestGet({request,env}){
   reason:routed.status==="quota-exhausted"?"Kuota harian Workers AI bersama habis; analisa baru ditunda.":"Model AI tidak tersedia atau jawaban tidak lolos validasi."},503);
  const ai=routed.value;
 
- const result=response({schema:1,status:"ready",symbol,source,generatedAt:new Date().toISOString(),model:routed.model,fallbackUsed:routed.fallbackUsed,...ai},200,21600);
+ const payload={schema:1,status:"ready",symbol,source,generatedAt:new Date().toISOString(),model:routed.model,fallbackUsed:routed.fallbackUsed,...ai};
+ const result=response(payload,200,21600);
  try{await caches.default.put(key,result.clone())}catch{}
+ await writePublicAI(env,kvKey,payload,21600);
  return result;
 }

@@ -5,22 +5,22 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 /market-ohlc.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
 
 /calendar-brief.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
 
 /reports.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
 
 /instrument-context.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
 
 /market-analysis.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
 
 /updates.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
 
 /hot-news.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300

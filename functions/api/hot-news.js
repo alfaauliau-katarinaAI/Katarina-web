@@ -87,6 +87,13 @@ async function source([name,feed,host],now){
   finally{clearTimeout(id)}
 }
 export async function onRequestGet({request,env}){
+  // Cache-first BEFORE D1/KV reads: high-volume visitors do not query D1 each time.
+  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v5",request.url).toString());
+  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
+  async function cacheReady(reply){
+    if(reply.ok)try{await caches.default.put(cacheKey,reply.clone())}catch{}
+    return reply;
+  }
   // The minute-scheduled Worker collects source RSS into D1, without visitors.
   // Prefer durable, source-attributed snapshots; fall back to RSS when D1 is empty.
   if(env?.KATARINA_DB){
@@ -98,9 +105,9 @@ export async function onRequestGet({request,env}){
         const now=Date.now();
         const items=records.filter(x=>x.url?.startsWith("https://")&&x.title&&Number.isFinite(Date.parse(x.published_at))&&Date.parse(x.published_at)<=now+1800000)
         .map(x=>({title:x.title,source:x.source,url:x.url,publishedAt:x.published_at,category:x.category,language:"en",...context(x.title),contextBasis:"Penjelasan bersyarat berdasarkan judul; periksa sumber lengkap."}));
-        if(items.length>=6)return new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",updatedAt:records.reduce((latest,row)=>row.collected_at>latest?row.collected_at:latest,"")||null,status:"source-headlines",storage:"Cloudflare D1 (minute-cron)",items}),{
+        if(items.length>=6)return cacheReady(new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",updatedAt:records.reduce((latest,row)=>row.collected_at>latest?row.collected_at:latest,"")||null,status:"source-headlines",storage:"Cloudflare D1 (minute-cron)",items}),{
           headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public,max-age=0,s-maxage=180","X-Content-Type-Options":"nosniff"}
-        });
+        }));
       }
     }catch{/* D1 binding absent, initializing, or temporarily unavailable: use RSS. */}
   }
@@ -114,12 +121,10 @@ export async function onRequestGet({request,env}){
     if(saved?.version===1&&age>=0&&age<15*60000&&Array.isArray(saved.items)&&saved.items.length>=6){
      const items=saved.items.filter(x=>x.url?.startsWith("https://")&&x.title)
        .map(x=>({title:x.title,source:x.source,url:x.url,publishedAt:x.published_at,category:x.category,language:"en",...context(x.title),contextBasis:"Penjelasan bersyarat berdasarkan topik judul; verifikasi sumber."}));
-     if(items.length>=6)return new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",status:"source-headlines",storage:"Cloudflare KV fallback",updatedAt:saved.createdAt,items}),{headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":"public,max-age=0,s-maxage=120"}});
+     if(items.length>=6)return cacheReady(new Response(JSON.stringify({schema:1,kind:"attributed-headline-feed",status:"source-headlines",storage:"Cloudflare KV fallback",updatedAt:saved.createdAt,items}),{headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":"public,max-age=0,s-maxage=120"}}));
     }
    }catch{}
   }
-  const cacheKey=new Request(new URL("/api/hot-news?schema=macro-v4",request.url).toString());
-  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
   const now=Date.now();
   const batches=await Promise.all(FEEDS.map(feed=>source(feed,now)));
   const uniq=new Map();
@@ -128,6 +133,5 @@ export async function onRequestGet({request,env}){
   const ok=items.length>0;
   const data={schema:1,kind:"attributed-headline-feed",updatedAt:new Date(now).toISOString(),status:ok?"source-headlines":"temporarily-unavailable",items};
   const response=new Response(JSON.stringify(data),{status:ok?200:503,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":ok?"public, max-age=0, s-maxage=180":"no-store","X-Content-Type-Options":"nosniff"}});
-  if(ok){try{await caches.default.put(cacheKey,response.clone())}catch{}}
-  return response;
+  return cacheReady(response);
 }

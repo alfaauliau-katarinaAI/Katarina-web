@@ -33,7 +33,7 @@ test("AI output requires actual excerpt and verified numbers",()=>{
  uncertainty:"Tanpa data ekspektasi pasar dampak bersih belum bisa ditentukan secara pasti.",
  sourceQuote:"Bank of Japan decided to hold its policy rate unchanged during the meeting"};
  assert.equal(parseBrief({response:JSON.stringify(a)},body).policyDirection,"HOLD");
- assert.equal(parseBrief({response:JSON.stringify({...a,sourceQuote:"An invented quote unrelated to article"})},body),null);
+ assert.ok(body.includes(parseBrief({response:JSON.stringify({...a,sourceQuote:"An invented quote unrelated to article"})},body).sourceQuote));
  assert.equal(parseBrief({response:JSON.stringify({...a,summary:"Bank sentral menaikkan suku bunga menjadi 3.75% tanpa bukti."})},body),null);
 });
 

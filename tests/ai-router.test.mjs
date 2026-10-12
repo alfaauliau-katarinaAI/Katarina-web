@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {TASK_MODELS,modelText,isSharedQuotaError,runTaskAI} from "../lib/ai-router.js";
 test("roles have different primary models and backups",()=>{
- const primaries=Object.values(TASK_MODELS).map(x=>x[0]);
+ const primaries=["outlook","news","translation"].map(k=>TASK_MODELS[k][0]);
  assert.equal(new Set(primaries).size,3);
- for(const models of Object.values(TASK_MODELS)){
+ for(const models of ["outlook","news","translation"].map(k=>TASK_MODELS[k])){
   assert.equal(models.length,3);
   assert.equal(new Set(models).size,3);
   assert.ok(models.every(x=>x.startsWith("@cf/")));
@@ -64,4 +64,10 @@ test("busy-queue rejection option is passed to Cloudflare binding",async()=>{
  assert.equal(args.length,1);
  assert.equal(args[0][0],TASK_MODELS.outlook[0]);
  assert.deepEqual(args[0][2],{rejectIfBusy:true});
+});
+
+test("policy route prefers verified lightweight models without paid providers",()=>{
+ assert.equal(TASK_MODELS.policy.length,2);
+ assert.equal(TASK_MODELS.policy[0],"@cf/meta/llama-3.1-8b-instruct-fp8");
+ assert.ok(TASK_MODELS.policy.every(x=>x.startsWith("@cf/")));
 });

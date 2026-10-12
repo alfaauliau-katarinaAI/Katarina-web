@@ -47,3 +47,17 @@ test("headline currency mapping only uses unambiguous country signals",()=>{
  const c=headlinePolicy({title:"EUR and GBP inflation outlook mixed"});
  assert.equal(c.currency,null);
 });
+
+test("missing model sourceQuote is replaced ONLY by a real publisher excerpt",()=>{
+ const body="Bank of Japan publishes latest data about government bond holdings and related historical series. The article clarifies the reporting period.";
+ const a={eventType:"STATISTICS",policyDirection:"NO_DECISION",currencyBias:"UNKNOWN",
+ summary:"Publikasi memuat data historis kepemilikan obligasi pemerintah Jepang.",
+ policyEvidence:"Dokumen hanya memuat pengumuman statistik, tidak memutuskan suku bunga.",
+ benefits:"Tidak ada keuntungan teridentifikasi dari rilis statistik ini.",
+ harms:"Tidak ada kerugian teridentifikasi langsung dari rilis statistik ini.",
+ watch:"Pantau rilis rapat kebijakan aktual dari Bank of Japan.",
+ uncertainty:"Tidak tersedia konteks reaksi pasar langsung."};
+ const r=parseBrief({response:JSON.stringify(a)},body);
+ assert.equal(r.sourceQuote,body.slice(0,150));
+ assert.ok(body.includes(r.sourceQuote));
+});

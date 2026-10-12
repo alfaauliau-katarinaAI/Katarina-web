@@ -10,6 +10,9 @@ try{
  const news=await request("/api/hot-news",11000);
  const article=news.data?.items?.[3];
  if(news.status!==200||!article?.url)throw Error("Fourth headline unavailable");
+ report.publisher=new URL(article.url).hostname;
+ report.title=article.title.slice(0,120);
+ report.sourceUrl=article.url;
  const query=new URLSearchParams({scope:"dashboard",index:"3",expected:article.url});
  const result=await request("/api/news-intelligence?"+query.toString(),36000);
  report.http=result.status;report.status=result.data.status;

@@ -1,0 +1,68 @@
+name: Deploy KATARINA Autonomous Free Worker and D1 (no paid services)
+
+on:
+  push:
+    paths:
+      - 'workers/**'
+      - '.github/workflows/deploy-autonomous.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: katarina-autonomous-cloud
+  cancel-in-progress: false
+
+jobs:
+  provision-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Cloudflare account scope and locate D1 database
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$CLOUDFLARE_API_TOKEN" || -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "::warning::No Cloudflare credentials; leaving autonomous Worker offline."
+            exit 0
+          fi
+          endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database"
+          existing=$(curl --fail-with-body -fsS --max-time 20 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$endpoint?per_page=100")
+          uuid=$(echo "$existing" | jq -r '.result[]|select(.name=="katarina-research-data")|.uuid' | head -n1)
+          if [[ -z "$uuid" ]]; then
+            echo "Creating one D1 database within the free tier."
+            response=$(curl --fail-with-body -fsS --max-time 20 -X POST "$endpoint" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data '{"name":"katarina-research-data"}')
+            uuid=$(echo "$response"| jq -er '.result.uuid')
+          fi
+          if [[ ! "$uuid" =~ ^[0-9a-f-]{36}$ ]]; then
+            echo "::error::Cloudflare returned an invalid D1 database identifier."
+            exit 1
+          fi
+          echo "D1 is ready; writing ephemeral binding configuration."
+          cat > workers/wrangler.generated.toml <<EOF
+          name = "katarina-free-ingest"
+          main = "autonomous.js"
+          compatibility_date = "2026-10-12"
+          workers_dev = true
+
+          [triggers]
+          crons = ["* * * * *"]
+
+          [[d1_databases]]
+          binding = "DB"
+          database_name = "katarina-research-data"
+          database_id = "$uuid"
+          EOF
+          npx --yes wrangler@4 d1 execute katarina-research-data --remote --config workers/wrangler.generated.toml --file workers/schema.sql --yes
+          npx --yes wrangler@4 deploy --config workers/wrangler.generated.toml
+          echo "Cloudflare autonomous collector deployed. Database ID intentionally not logged."

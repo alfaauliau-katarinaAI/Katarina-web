@@ -19,7 +19,7 @@ test("Meta webhook verifies token/signature, allowlist, and disabled-by-default"
  assert.equal(await (await onRequestGet({request:check,env:{WA_VERIFY_TOKEN:"verify"}})).text(),"1234");
  assert.equal((await onRequestGet({request:check,env:{WA_VERIFY_TOKEN:"wrong"}})).status,403);
  const env={WA_BOT_ENABLED:"true",WA_VERIFY_TOKEN:"verify",WA_APP_SECRET:"test_secret",WA_ACCESS_TOKEN:"not_real",WA_PHONE_NUMBER_ID:"1234567890",WA_ALLOWED_TEST_NUMBERS:"628123456789"};
- const msg={object:"whatsapp_business_account",entry:[{changes:[{field:"messages",value:{metadata:{phone_number_id:"1234567890"},messages:[{id:"wamid.example12345",from:"628123456789",type:"text",text:{body:"BANTUAN"}}]}}]}]};
+ const msg={object:"whatsapp_business_account",entry:[{changes:[{field:"messages",value:{metadata:{phone_number_id:"1234567890"},messages:[{id:"wamid.HBgMMExample12345==",from:"628123456789",type:"text",text:{body:"BANTUAN"}}]}}]}]};
  const raw=JSON.stringify(msg);
  const fakeSig="sha256="+createHmac("sha256","test_secret").update(raw).digest("hex");
  const req=(signature,body=raw)=>new Request("https://katarina-research.pages.dev/api/wa-webhook",{method:"POST",headers:{"x-hub-signature-256":signature},body});

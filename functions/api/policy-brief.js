@@ -4,7 +4,7 @@
 import {onRequestGet as pairNews} from "./pair-news.js";
 import {runTaskAI,modelText} from "../../lib/ai-router.js";
 import {readPublicAI,writePublicAI,publicAIKey} from "../../lib/public-ai-cache.js";
-import {headlinePolicy,pairDirection,recent} from "../../lib/macro-policy.js";
+import {headlinePolicy,pairDirection,recent,normalizeMarketEffects} from "../../lib/macro-policy.js";
 import {articleText} from "../../lib/article-extract.js";
 const HOSTS=new Set(["www.rba.gov.au","www.snb.ch","www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
 const out=(data,code=200,ttl=0)=>new Response(JSON.stringify(data),{status:code,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":ttl?"public,max-age=0,s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
@@ -58,13 +58,14 @@ export function parseBrief(output,body){
  return {eventType:a.eventType,policyDirection:a.policyDirection,currencyBias:a.currencyBias,
   ...Object.fromEntries(required.map(k=>[k,clean(a[k],580)])),sourceQuote:groundedQuote,
   keyFacts:facts,macroMechanism:clean(a.macroMechanism||a.policyEvidence,600),
-  marketEffects:effects,expectationComparison:clean(a.expectationComparison||"Ekspektasi pasar belum terverifikasi dari sumber ini.",290),
+  marketEffects:normalizeMarketEffects(effects),expectationComparison:clean(a.expectationComparison||"Ekspektasi pasar belum terverifikasi dari sumber ini.",290),
   shortTerm:clean(a.shortTerm||"",250),mediumTerm:clean(a.mediumTerm||"",250)};
 }
 
 export function pairView(data,symbol){
  const fx=recent(data.publishedAt,72)?pairDirection(symbol,data.currency,data.currencyBias):"UNKNOWN";
- const asset=(data.marketEffects||[]).find(x=>x.symbol===symbol);
+ const marketEffects=normalizeMarketEffects(data.marketEffects);
+ const asset=marketEffects.find(x=>x.symbol===symbol);
  const side=fx!=="UNKNOWN"?fx:recent(data.publishedAt,72)&&asset?.direction==="UP"?"BUY":
   recent(data.publishedAt,72)&&asset?.direction==="DOWN"?"SELL":"UNKNOWN";
  const detail=!recent(data.publishedAt,72)?
@@ -72,7 +73,7 @@ export function pairView(data,symbol){
   asset?"Transmisi bersyarat "+symbol+": "+asset.reason+" (perkiraan "+asset.direction+", bukan pergerakan yang telah terjadi).":
   fx!=="UNKNOWN"?"Kesimpulan kebijakan relatif "+symbol+": "+fx+", perlu konfirmasi data dan harga.":
   "Sumber ini belum memberikan dasar cukup untuk arah spesifik "+symbol+".";
- return {...data,symbol,pairDirection:side,pairMessage:detail};
+ return {...data,marketEffects,symbol,pairDirection:side,pairMessage:detail};
 }
 export async function onRequestGet({request,env}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase(),index=Number(u.searchParams.get("index"));

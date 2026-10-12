@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {headlinePolicy,pairDirection,summarizeMacro} from "../lib/macro-policy.js";
+import {headlinePolicy,pairDirection,summarizeMacro,normalizeMarketEffects} from "../lib/macro-policy.js";
 import {parseBrief} from "../functions/api/policy-brief.js";
 const now=Date.parse("2026-10-12T04:00:00Z");
 test("two Japanese report headings do NOT imply BOJ tightening or AUDJPY sell",()=>{
@@ -92,4 +92,15 @@ test("validated AI must not invent unsourced numbers even with fast JSON object 
  macroMechanism:"Pembelian emas dapat meningkatkan permintaan fisik dunia."};
  assert.equal(parseBrief({response:a},body)?.marketEffects?.[0]?.symbol,"XAUUSD");
  assert.equal(parseBrief({response:{...a,summary:"China purchased 9000 tonnes despite no data."}},body),null);
+});
+
+test("opposing effects on the same asset are reported MIXED, never contradictory",()=>{
+ const mixed=normalizeMarketEffects([
+  {symbol:"XAUUSD",direction:"UP",reason:"Permintaan fisik bank sentral China menopang emas."},
+  {symbol:"XAUUSD",direction:"DOWN",reason:"Kenaikan yield riil dapat menekan harga."},
+  {symbol:"NASDAQ",direction:"DOWN",reason:"Tekanan valuasi dari yield obligasi tinggi."}
+ ]);
+ assert.equal(mixed.length,2);
+ assert.equal(mixed.find(x=>x.symbol==="XAUUSD").direction,"MIXED");
+ assert.ok(mixed.find(x=>x.symbol==="XAUUSD").reason.includes("yield"));
 });

@@ -1,3 +1,4 @@
+import {article} from "../functions/api/policy-brief.js";
 #!/usr/bin/env node
 /* Read-only publisher diagnostic. Logs status, lengths and short feed summaries
  * (not cookies, credentials or copyrighted full articles). */
@@ -8,7 +9,7 @@ const feeds=[
 ];
 const articles=[
  "https://www.cnbc.com/2026/10/12/china-gold-buying-interest-rate-.html",
- "https://www.cnbc.com/2026/10/09/china-europe-hybrid-vehicle-exports.html"
+ "https://www.cnbc.com/2026/10/09/china-europe-hybrid-vehicle-exports-deal.html"
 ];
 async function get(url){
  try{const resp=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0 (compatible; KATARINA-news-analysis/1.0)","Accept":"text/html,application/rss+xml,application/xml,*/*"},signal:AbortSignal.timeout(7500),redirect:"follow"});
@@ -28,6 +29,12 @@ for(const [label,url] of feeds){
 }
 for(const url of articles){
  const x=await get(url);
+ let extracted;try{extracted=await article(url)}catch(e){extracted="ERROR "+String(e?.message||e)}
+ const pTexts=[...(x.text||"").matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)]
+   .map(y=>y[1].replace(/<[^>]+>/g," ").replace(/\\s+/g," ").trim()).filter(t=>t.length>55);
+ console.log("EXTRACTION_CHECK "+JSON.stringify({url,parsedLen:typeof extracted==="string"?extracted.length:0,
+  preview:typeof extracted==="string"?extracted.slice(0,190):null,paragraphLengths:pTexts.slice(0,15).map(y=>y.length),
+  firstP:pTexts[0]?.slice(0,160)}));
  console.log("PUBLISHER_ARTICLE "+JSON.stringify({url,http:x.status,contentType:x.contentType,length:x.length,blocked:x.blocked,
   hasBody:/articleBody|ArticleBody-articleBody|<article\b/i.test(x.text||""),
   paragraphs:[...(x.text||"").matchAll(/<p\b[^>]*>/gi)].length,

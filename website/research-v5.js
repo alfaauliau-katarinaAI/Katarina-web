@@ -29,6 +29,10 @@ function present(p){
  text("forecast-bear",fmt(p.invalidation,id));
  text("plan-heading","Rencana "+dir+" "+id);
  text("technical-state",positive?"Cenderung menguat":"Cenderung melemah");
+ const prev6=m.h4Close-m.last6H4Change;
+ const change6=prev6>0?100*m.last6H4Change/prev6:0;
+ text("pair-week-change",(change6>=0?"+":"")+change6.toFixed(2)+"%");
+ text("pair-move",(m.lastH4ChangePct>=0?"+":"")+m.lastH4ChangePct.toFixed(2)+"% H4");
  text("pair-last",fmt(m.h4Close,id));
  text("pair-asof","Penutupan H4 "+when(p.lastClosedAt)+" WIB"+(p.proxy?" · acuan futures/indeks":" · harga referensi"));
  const metrics=$("deep-metrics");if(metrics){

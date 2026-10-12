@@ -1,4 +1,5 @@
 import {onRequestGet as marketHeadlines} from "./hot-news.js";
+import {headlinePolicy} from "../../lib/macro-policy.js";
 /* Official bank news by symbol, priority weights genuinely differ per selected currency. */
 const DEFS={
  USD:["Fed","https://www.federalreserve.gov/feeds/press_monetary.xml","www.federalreserve.gov"],
@@ -33,7 +34,7 @@ async function feed(def){
 export async function onRequestGet({request,env}){
  const u=new URL(request.url),symbol=(u.searchParams.get("symbol")||"").toUpperCase();
  if(!VALID.test(symbol))return new Response(JSON.stringify({status:"invalid-symbol"}),{status:400,headers:{"Content-Type":"application/json"}});
- const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v5",u));
+ const cacheKey=new Request(new URL("/api/pair-news?symbol="+symbol+"&revision=coverage-v6",u));
  try{const hit=await caches.default.match(cacheKey);if(hit)return hit}catch{}
  const currencies=symbol==="XAUUSD"||symbol==="XAGUSD"||symbol==="BTCUSD"||["US30","US500","NASDAQ"].includes(symbol)?["USD"]:symbol.length===6?[symbol.slice(0,3),symbol.slice(3)]:["USD"];
  const selected=[...new Set(currencies.filter(x=>DEFS[x]))].map(x=>[x,...DEFS[x].slice(1)]);
@@ -75,7 +76,7 @@ export async function onRequestGet({request,env}){
  bank.sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
  matched.sort((a,b)=>b.relevance-a.relevance||Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
  const all=[...matched.slice(0,14),...bank.slice(0,10)];
- const seen=new Set(),unique=all.filter(x=>{if(seen.has(x.url))return false;seen.add(x.url);return true}).slice(0,22);
+ const seen=new Set(),unique=all.filter(x=>{if(seen.has(x.url))return false;seen.add(x.url);return true}).slice(0,22).map(x=>({...x,policyHeadline:headlinePolicy(x)}));
 
  const res=new Response(JSON.stringify({schema:1,status:unique.length?"official-updates":"no-relevant-official-release",symbol,items:unique,sourcePolicy:"sourced-market-headlines-and-official-central-bank-releases"}),{headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=0, s-maxage=180"}});
  try{await caches.default.put(cacheKey,res.clone())}catch{}

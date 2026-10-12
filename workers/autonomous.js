@@ -99,7 +99,7 @@ export async function prewarmPublicNews(env,now,fetcher=fetch){
    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(item.url));
    const hex=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
    const marker="intel:seen:"+hex;
-   if(await env.CACHE.get(marker)||await env.CACHE.get("policy:v2:"+hex))continue;
+   if(await env.CACHE.get(marker)||await env.CACHE.get("policy:v3:"+hex))continue;
    // Reserve one per URL and daily inference BEFORE calling the server endpoint.
    await env.CACHE.put(marker,String(now),{expirationTtl:259200});
    await env.CACHE.put(counter,String(used+1),{expirationTtl:90000});

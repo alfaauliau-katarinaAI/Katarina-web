@@ -35,11 +35,11 @@ export async function onRequestGet({request,env}){
  let uri;try{uri=new URL(item.url)}catch{return json({status:"invalid-source"},400)}
  if(uri.protocol!=="https:"||!HOSTS.has(uri.hostname))return json({status:"source-not-supported",
   url:item.url,reason:"Sumber ini belum mendukung pembacaan isi secara penuh. Silakan baca sumber aslinya."},200);
- const cacheKey=new Request(new URL("/api/news-intelligence?article="+encodeURIComponent(item.url)+"&v=2",u).toString());
+ const cacheKey=new Request(new URL("/api/news-intelligence?article="+encodeURIComponent(item.url)+"&v=3",u).toString());
  try{const hit=await caches.default.match(cacheKey);if(hit){
   const content=await hit.json();return json(pairView(content,symbol),200,900);
  }}catch{}
- const key=await publicAIKey("policy:v2",item.url);
+ const key=await publicAIKey("policy:v3",item.url);
  const cached=await readPublicAI(env,key,21600000,
   x=>x.status==="ai-full-article"&&x.url===item.url&&x.basis==="Isi artikel publik dari penerbit"&&typeof x.summary==="string"&&Array.isArray(x.keyFacts)&&Array.isArray(x.marketEffects)&&typeof x.macroMechanism==="string");
  if(cached){

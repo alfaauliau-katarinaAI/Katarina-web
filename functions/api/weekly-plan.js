@@ -15,7 +15,7 @@ const round=(x,s)=>Number(x.toFixed(s.endsWith("JPY")?3:/^(EUR|GBP|USD|AUD|NZD|C
 export async function onRequestGet({request,env}){
  const url=new URL(request.url),symbol=String(url.searchParams.get("symbol")||"").toUpperCase();
  if(!ALLOWED.test(symbol))return OUT({schema:1,status:"invalid-symbol"},400);
- const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=7",url));
+ const key=new Request(new URL("/api/weekly-plan?symbol="+symbol+"&revision=8",url));
  if(url.searchParams.get("fresh")!=="1")try{const saved=await caches.default.match(key);if(saved)return saved}catch{}
  const req=path=>new Request(new URL(path,url).toString());
  const h4=await getJSON(await getH4({request:req("/api/h4?symbol="+symbol)}));
@@ -38,7 +38,7 @@ export async function onRequestGet({request,env}){
  const candidates=allNews.filter(x=>Date.now()-Date.parse(x.publishedAt)<=72*3600000).slice(0,12);
  const verified=await Promise.all(candidates.map(async x=>{
   try{
-   const key=await publicAIKey("policy:v2",x.url);
+   const key=await publicAIKey("policy:v3",x.url);
    return await readPublicAI(env,key,21600000,v=>v.url===x.url&&v.basis==="Isi artikel publik dari penerbit");
   }catch{return null}
  }));

@@ -32,6 +32,9 @@ for(const [path,kind]of smokePaths){
 // Exactly one production AI API request, never in the concurrent burst.
 const ai=await check("/api/pair-outlook?symbol=XAUUSD","json",30000);
 rows.push(ai);
+const warmAI=ai.status===200&&ai.data?.status==="ready"?await check("/api/pair-outlook?symbol=XAUUSD","json",7500):null;
+if(warmAI)rows.push(warmAI);
+console.log("AI_WARM "+JSON.stringify({httpStatus:warmAI?.status??null,appStatus:warmAI?.appStatus??null,latencyMs:warmAI?.ms??null,valid:warmAI?.status===200&&warmAI?.data?.status==="ready",model:warmAI?.data?.model||null}));
 console.log("AI_LIVE "+JSON.stringify({httpStatus:ai.status,appStatus:ai.appStatus,
  model:ai.data?.model||null,fallbackUsed:ai.data?.fallbackUsed??null,latencyMs:ai.ms,
  validatedFields:["summary","drivers","upside","downside","watch","uncertainty"].every(k=>typeof ai.data?.[k]==="string"&&ai.data[k].length>=10)}));
@@ -60,7 +63,7 @@ const badHealth=health?.status!==200||health?.data?.status!=="ready";
 const badBurst=groups.some(g=>g.errors>Math.max(1,Math.floor(g.requests*.1)));
 const report={started,finished:new Date().toISOString(),maxConcurrent:8,
  requestsTotal:rows.length+groups.reduce((s,x)=>s+x.requests,0),
- productionAI:{httpStatus:ai.status,appStatus:ai.appStatus,model:ai.data?.model||null,fallbackUsed:ai.data?.fallbackUsed??null,
+ productionAI:{httpStatus:ai.status,appStatus:ai.appStatus,model:ai.data?.model||null,fallbackUsed:ai.data?.fallbackUsed??null,warmCacheLatencyMs:warmAI?.ms??null,warmCacheValid:warmAI?.status===200&&warmAI?.data?.status==="ready",
  valid:ai.status===200&&ai.data?.status==="ready"&&["summary","drivers","upside","downside","watch","uncertainty"].every(k=>typeof ai.data[k]==="string"&&ai.data[k].length>=10)},
  endpoints:rows.map(({path,status,ms,err,appStatus,cacheStatus})=>({path,status,ms,err,appStatus,cacheStatus})),
  bursts:groups,verdict:badHealth||badBurst?"failed":!ai.status||ai.status!==200?"degraded":"passed",

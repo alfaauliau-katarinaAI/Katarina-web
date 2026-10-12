@@ -8,6 +8,7 @@ import {headlinePolicy,pairDirection,recent} from "../../lib/macro-policy.js";
 import {articleText} from "../../lib/article-extract.js";
 const HOSTS=new Set(["www.rba.gov.au","www.snb.ch","www.boj.or.jp","www.federalreserve.gov","www.ecb.europa.eu","www.bankofengland.co.uk","www.bankofcanada.ca","www.cnbc.com","www.bls.gov","www.bea.gov"]);
 const out=(data,code=200,ttl=0)=>new Response(JSON.stringify(data),{status:code,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":ttl?"public,max-age=0,s-maxage="+ttl:"no-store","X-Content-Type-Options":"nosniff"}});
+const SUPPORTED=new Set(["XAUUSD","XAGUSD","BTCUSD","US30","US500","NASDAQ","USOIL","UKOIL"]);
 const SOURCE_MAX_BYTES=1500000;
 export async function article(url, fetcher=fetch){
  try{

@@ -1,104 +1,104 @@
 {
   "schema": 1,
   "kind": "attributed-headline-feed",
-  "updatedAt": "2026-10-13T01:06:01Z",
+  "updatedAt": "2026-10-14T01:16:20Z",
   "scope": "market-moving headlines from dated publisher RSS (not independently fact-checked claims)",
   "status": "source-headlines",
   "items": [
     {
-      "title": "Singapore PM Wong rejects weaker currency as shortcut to competitiveness",
+      "title": "CNBC Daily Open: Diesel deal may not be enough to curb high energy prices",
       "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/13/singapore-pm-wong-rejects-weakening-currency-for-competitiveness.html",
-      "publishedAt": "2026-10-13T00:39:36Z",
-      "category": "Valas",
+      "url": "https://www.cnbc.com/2026/10/14/cnbc-daily-open-diesel-energy-apple-anthropic-imf.html",
+      "publishedAt": "2026-10-14T01:09:16Z",
+      "category": "Energi / Geopolitik",
       "language": "en"
     },
     {
-      "title": "CNBC's The China Connection newsletter: How a gold-buying spree helps the yuan go global",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/12/cnbc-china-connection-newsletter-gold-purchases-yuan-globalization.html",
-      "publishedAt": "2026-10-12T23:00:01Z",
-      "category": "Emas / Logam",
-      "language": "en"
-    },
-    {
-      "title": "Earnings beats are now the norm. What the stock market needs to keep rallying",
+      "title": "FBI arrests Saudi OpenAI employee who allegedly planted recording device in conference room",
       "source": "CNBC Utama",
-      "url": "https://www.cnbc.com/2026/10/07/here-comes-third-quarter-earnings-season-booming-profits-could-propel-the-sp-500-to-new-heights.html",
-      "publishedAt": "2026-10-12T20:35:51Z",
-      "category": "Pasar Global",
+      "url": "https://www.cnbc.com/2026/10/13/openai-employee-arrested-recording-device.html",
+      "publishedAt": "2026-10-14T00:13:45Z",
+      "category": "Energi / Geopolitik",
       "language": "en"
     },
     {
-      "title": "IonQ to acquire cybersecurity firm Elisity in an all-stock deal for up to $1.3 billion",
+      "title": "Here's where Jim Cramer stands on this newly public AI infrastructure stock",
       "source": "CNBC Utama",
-      "url": "https://www.cnbc.com/2026/10/12/ionq-elisity-acquisition-cybersecurity.html",
-      "publishedAt": "2026-10-12T19:35:48Z",
+      "url": "https://www.cnbc.com/2026/10/13/jim-cramer-accelevation-stock.html",
+      "publishedAt": "2026-10-13T22:47:07Z",
       "category": "Pasar Global",
       "language": "en"
     },
     {
-      "title": "The bull market turned 4 years old on Monday. Investors say reaching a fifth birthday could be challenging",
-      "source": "CNBC Pasar",
-      "url": "https://www.cnbc.com/2026/10/12/the-bull-market-just-turned-four-after-climbing-a-wall-of-worry.html",
-      "publishedAt": "2026-10-12T18:18:39Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "Higher rates could be needed to avoid 'inflationary mindset' taking hold, says Fed's Hammack",
-      "source": "CNBC Pasar",
-      "url": "https://www.cnbc.com/2026/10/12/beth-hammack-fed-inflation-policy.html",
-      "publishedAt": "2026-10-12T17:15:21Z",
+      "title": "Don't let inflation bite — how to hedge with TIPS, commodities and infrastructure funds",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/2026/10/13/inflation-hedge-tips-commodities-infrastructure.html",
+      "publishedAt": "2026-10-13T20:52:22Z",
       "category": "Suku Bunga / Inflasi",
       "language": "en"
     },
     {
-      "title": "FAA warns U.S. airlines of safety risks over Saudi Arabia after attacks",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/12/faa-saudi-arabia-flight-risks.html",
-      "publishedAt": "2026-10-12T16:50:44Z",
-      "category": "Energi / Geopolitik",
-      "language": "en"
-    },
-    {
-      "title": "Delta delays debut of Saudi Arabia service until March after Riyadh airport attacks",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/12/delta-riyadh-nonstop-service-delay.html",
-      "publishedAt": "2026-10-12T15:48:28Z",
-      "category": "Energi / Geopolitik",
-      "language": "en"
-    },
-    {
-      "title": "Inflation likely peaked for 2026 but will remain sticky, according to prediction markets",
+      "title": "JPMorgan Chase blocks outside AI agents like Muse, Instinct from directly accessing accounts",
       "source": "CNBC Pasar",
-      "url": "https://www.cnbc.com/2026/10/12/inflation-will-remain-sticky-in-2026-according-to-prediction-markets.html",
-      "publishedAt": "2026-10-12T15:37:26Z",
+      "url": "https://www.cnbc.com/2026/10/13/jpmorgan-ai-agents-account-access.html",
+      "publishedAt": "2026-10-13T20:48:37Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "Bank of America fined $1.2 billion over money-laundering violations",
+      "source": "CNBC Dunia",
+      "url": "https://www.cnbc.com/2026/10/13/bank-of-america-treasury-money-laundering.html",
+      "publishedAt": "2026-10-13T20:45:01Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "10-year Treasury yield falls as energy prices stabilize",
+      "source": "CNBC Dunia",
+      "url": "https://www.cnbc.com/2026/10/13/us-treasurys-bonds-yields.html",
+      "publishedAt": "2026-10-13T20:11:33Z",
+      "category": "Energi / Geopolitik",
+      "language": "en"
+    },
+    {
+      "title": "Why this little known Chinese chipmaker has caused a global stock rout",
+      "source": "CNBC Dunia",
+      "url": "https://www.cnbc.com/2026/10/13/cxmt-memory-chip-stock-rout.html",
+      "publishedAt": "2026-10-13T20:05:58Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "We're upgrading our rating on Wells Fargo as the stock's pullback offers a nice entry point",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/investingclub/2026/10/13/were-upgrading-our-rating-on-wells-fargo-as-the-stocks-pullback-offers-a-nice-entry-point.html",
+      "publishedAt": "2026-10-13T19:51:06Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "Williams says Fed may not have to hike rates in 2027, at odds with traders",
+      "source": "CNBC Pasar",
+      "url": "https://www.cnbc.com/2026/10/13/john-williams-fed-rate-hikes-2027.html",
+      "publishedAt": "2026-10-13T19:46:12Z",
       "category": "Suku Bunga / Inflasi",
       "language": "en"
     },
     {
-      "title": "Nobel prize in economics awarded to Robert E. Hall and Michael Woodford",
+      "title": "Oil prices mixed as traders assess Russian diesel supply prospects and Saudi-Houthi conflict",
       "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/12/nobel-economics-prize-winner-woodford-hall.html",
-      "publishedAt": "2026-10-12T14:09:02Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "Banks are set to report this week. Here's what the options market expects",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/12/banks-are-set-to-report-this-week-heres-what-the-options-market-expects.html",
-      "publishedAt": "2026-10-12T13:27:20Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "Saudi Arabia says drones and missiles still targeting kingdom as Iran-backed Houthis step up attacks",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/12/us-iran-war-trump-hormuz-saudi.html",
-      "publishedAt": "2026-10-12T13:01:49Z",
+      "url": "https://www.cnbc.com/2026/10/13/oil-prices-today-brent-wti-hormuz.html",
+      "publishedAt": "2026-10-13T19:35:50Z",
       "category": "Energi / Geopolitik",
+      "language": "en"
+    },
+    {
+      "title": "Paul Tudor Jones says 2027 could be a really challenging year for the stock market",
+      "source": "CNBC Dunia",
+      "url": "https://www.cnbc.com/2026/10/13/paul-tudor-jones-2027-really-challenging-year.html",
+      "publishedAt": "2026-10-13T19:21:27Z",
+      "category": "Pasar Global",
       "language": "en"
     }
   ]

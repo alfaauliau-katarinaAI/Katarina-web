@@ -1,104 +1,104 @@
 {
   "schema": 1,
   "kind": "attributed-headline-feed",
-  "updatedAt": "2026-10-15T01:15:08Z",
+  "updatedAt": "2026-10-16T01:13:45Z",
   "scope": "market-moving headlines from dated publisher RSS (not independently fact-checked claims)",
   "status": "source-headlines",
   "items": [
     {
-      "title": "SK Hynix shares plunge 10% amid Asia tech rout as Fed rate hike fears, AI funding worries mount",
+      "title": "India's rupee forecast to weaken toward 100-per-dollar level even as RBI pushes back",
       "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/15/sk-hynix-samsung-softbank-stocks-asia-tech-rout-ai-funding-worries.html",
-      "publishedAt": "2026-10-15T01:07:01Z",
-      "category": "Suku Bunga / Inflasi",
+      "url": "https://www.cnbc.com/2026/10/16/india-rupee-rbi-dollar-iran-war.html",
+      "publishedAt": "2026-10-16T00:54:25Z",
+      "category": "Valas",
       "language": "en"
     },
     {
-      "title": "Jim Cramer explains why even strong bank earnings couldn't save their stocks",
+      "title": "A lot changed in stock market in just a few months. The single biggest risk did not",
       "source": "CNBC Utama",
-      "url": "https://www.cnbc.com/2026/10/14/cramer-big-bank-earnings-stock-reaction.html",
-      "publishedAt": "2026-10-14T22:48:06Z",
+      "url": "https://www.cnbc.com/2026/10/15/spx-sp500-tech-stocks-invest.html",
+      "publishedAt": "2026-10-15T23:12:24Z",
       "category": "Pasar Global",
       "language": "en"
     },
     {
-      "title": "Jim Cramer says don't give up on this unpredictable market. Here's why",
+      "title": "People in China are spending nearly as much of their income as Americans on healthcare",
+      "source": "CNBC Pasar",
+      "url": "https://www.cnbc.com/2026/10/15/chinese-spending-nearly-as-much-of-income-as-americans-on-healthcare.html",
+      "publishedAt": "2026-10-15T23:00:01Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "Nvidia and Cisco confirm multimillion-dollar donations to Trump's White House ballroom",
       "source": "CNBC Utama",
-      "url": "https://www.cnbc.com/2026/10/14/cramer-stock-market-selloff-inflation.html",
-      "publishedAt": "2026-10-14T22:19:32Z",
+      "url": "https://www.cnbc.com/2026/10/15/trump-ballroom-nvidia-cisco-donations.html",
+      "publishedAt": "2026-10-15T22:48:12Z",
+      "category": "Valas",
+      "language": "en"
+    },
+    {
+      "title": "CoreWeave credit default swaps hit distress levels as investors sour on AI debt",
+      "source": "CNBC Dunia",
+      "url": "https://www.cnbc.com/2026/10/15/coreweave-credit-default-swaps-hit-distress-levels-as-investors-sour-on-ai-debt.html",
+      "publishedAt": "2026-10-15T21:33:24Z",
       "category": "Pasar Global",
       "language": "en"
     },
     {
-      "title": "Traders pile into 'bubble puts' on CoreWeave as neocloud stocks plunge",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/14/coreweave-put-options-ai-trade.html",
-      "publishedAt": "2026-10-14T21:19:09Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "OpenAI bugging suspect booked one-way ticket to Saudi Arabia with family before arrest",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/14/openai-alfozan-recording-raed-ventures.html",
-      "publishedAt": "2026-10-14T21:18:13Z",
+      "title": "Brian Sullivan: Why the 'real' price of oil is likely $30-$40 higher than where it is now",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/2026/10/15/brian-sullivan-why-the-real-price-of-oil-is-likely-30-40-higher-than-where-it-is-now.html",
+      "publishedAt": "2026-10-15T19:53:29Z",
       "category": "Energi / Geopolitik",
       "language": "en"
     },
     {
-      "title": "CoreWeave shares tumble as bond yields near 15% on concern about AI borrowing binge",
+      "title": "U.S. crude oil near $98 as Iran steps up attacks in Strait of Hormuz",
       "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/14/coreweave-stock-bond-yields-ai-debt.html",
-      "publishedAt": "2026-10-14T20:46:32Z",
-      "category": "Suku Bunga / Inflasi",
-      "language": "en"
-    },
-    {
-      "title": "Morgan Stanley tops estimates as equities trading revenue beats expectations by $909 million",
-      "source": "CNBC Pasar",
-      "url": "https://www.cnbc.com/2026/10/14/morgan-stanley-ms-q3-2026-earnings.html",
-      "publishedAt": "2026-10-14T20:22:09Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "Bank of America shares drop after third-quarter revenue miss and regulatory penalty",
-      "source": "CNBC Pasar",
-      "url": "https://www.cnbc.com/2026/10/14/bank-of-america-bac-q3-2026-earnings.html",
-      "publishedAt": "2026-10-14T20:20:46Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "Dell stock plunges 11%, leading data center sell-off as fears mount about 'enterprise AI timing'",
-      "source": "CNBC Utama",
-      "url": "https://www.cnbc.com/2026/10/14/dell-stock-barclays-enterprise-ai.html",
-      "publishedAt": "2026-10-14T20:19:25Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "Bank of America hired 1,000 contractors to patch software flaws exposed by Anthropic's Mythos",
-      "source": "CNBC Pasar",
-      "url": "https://www.cnbc.com/2026/10/14/anthropic-mythos-bank-of-america-hiring-cost.html",
-      "publishedAt": "2026-10-14T20:06:28Z",
-      "category": "Pasar Global",
-      "language": "en"
-    },
-    {
-      "title": "10-year Treasury yield dips as traders look ahead to Thursday economic reports",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/14/us-treasury-yields-cpi-inflation-report.html",
-      "publishedAt": "2026-10-14T20:03:22Z",
-      "category": "Suku Bunga / Inflasi",
-      "language": "en"
-    },
-    {
-      "title": "Container ship sinks in Strait of Hormuz as Iran steps up attacks",
-      "source": "CNBC Dunia",
-      "url": "https://www.cnbc.com/2026/10/14/container-ship-sinks-strait-hormuz-as-iran-war-attacks.html",
-      "publishedAt": "2026-10-14T19:22:00Z",
+      "url": "https://www.cnbc.com/2026/10/15/oil-prices-today-brent-wti.html",
+      "publishedAt": "2026-10-15T19:08:44Z",
       "category": "Energi / Geopolitik",
+      "language": "en"
+    },
+    {
+      "title": "Here's our monthly update on our 32 stocks, including 2 more names to buy",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/investingclub/2026/10/15/heres-our-monthly-update-on-our-32-stocks-including-2-more-names-to-buy.html",
+      "publishedAt": "2026-10-15T19:08:05Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "Banks with Jeffrey Epstein ties eyed by Democrats Warren and Garcia",
+      "source": "CNBC Dunia",
+      "url": "https://www.cnbc.com/2026/10/15/banks-congress-jeffrey-epstein-oversight.html",
+      "publishedAt": "2026-10-15T19:07:36Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "Who gets to have 'good debt'? A sociologist, theologian, philosopher and other experts weigh in",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/2026/10/15/good-debt-access.html",
+      "publishedAt": "2026-10-15T17:54:30Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "She made college ‘good debt’ for herself. Can she do the same for her daughter?",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/2026/10/15/college-good-debt-cfp-daughter.html",
+      "publishedAt": "2026-10-15T17:53:35Z",
+      "category": "Pasar Global",
+      "language": "en"
+    },
+    {
+      "title": "The problem with 'good debt': Why borrowers should think twice about the label",
+      "source": "CNBC Utama",
+      "url": "https://www.cnbc.com/2026/10/15/good-debt-vs-bad-debt-why-experts-say-rethink-labels.html",
+      "publishedAt": "2026-10-15T17:52:39Z",
+      "category": "Pasar Global",
       "language": "en"
     }
   ]

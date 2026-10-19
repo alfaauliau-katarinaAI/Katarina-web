@@ -58,6 +58,7 @@ body{background:radial-gradient(ellipse at 50% 0,#102a4d60,transparent 55%),#040
 .report-alert{border-left:3px solid #f6d76b;background:#171b20;padding:12px;margin-bottom:12px;color:#f6d76b}.report-summary{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.report-summary span{border:1px solid var(--line);padding:5px 9px;color:var(--muted)}.report-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.report-card{border:1px solid var(--line);padding:12px;background:#0a111a}.report-card h3{font-size:12px;margin:0 0 7px}.report-card p{margin:6px 0;color:var(--muted)}.report-checks{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.report-checks span{padding:3px 6px;border:1px solid #354355}.report-checks .passed{color:#63d9ad}.report-checks .pending{color:#f6d76b}.report-checks .failed{color:#ff748d}.report-card details{margin-top:8px}.report-card summary{cursor:pointer;min-height:32px}.report-card small{display:block}.report-notice{margin:10px 0;color:var(--muted)}
 h1,h2,strong,b,.live-status strong{font-weight:400}.live-status .scene-overlay strong{font-size:11px}.katarina-logo{width:48px;height:48px}.panelhead h2{font-size:9px;letter-spacing:.08em}
 body.embedded .topbar,body.embedded .ticker,body.embedded .overview,body.embedded .rail,body.embedded .entry-lab,body.embedded .architecture,body.embedded .bottom,body.embedded .footer,body.embedded #research-report-panel,body.embedded .selectwrap,body.embedded .detail,body.embedded .shell>section.panel:not(.entry-lab){display:none!important}body.embedded .shell{padding:0;max-width:none}body.embedded .workspace{display:block}body.embedded .scene{height:430px}body.embedded .brain{border:0;border-radius:0}body.embedded .live-status{padding:8px 12px}body.embedded .scene-coordinates{padding:5px 12px}body.embedded .pulse-proof{min-height:0;font-size:10px}body.embedded .controls{padding:5px 10px}
+canvas#network{touch-action:none;overscroll-behavior:contain;-webkit-tap-highlight-color:transparent;cursor:grab}canvas#network:active{cursor:grabbing}
 </style></head><body><main class="shell">
 <header class="topbar"><div class="brand"><img class="katarina-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiNjMmU4ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzOTg3ZWQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJNNDggNSA4MyAyNXY0Nkw0OCA5MSAxMyA3MVYyNVoiIGZpbGw9IiMwYTE4MmIiIHN0cm9rZT0iIzM3NzliYSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMzAgMjZ2NDRtMi0yMSAzMS0yM00zMiA0OGwzMyAyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2IpIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iMjYiIHI9IjQiIGZpbGw9IiNhOGRkZmYiLz48Y2lyY2xlIGN4PSI2NSIgY3k9IjcwIiByPSI0IiBmaWxsPSIjNjliNWZmIi8+PC9zdmc+" alt="Logo Katarina AI" width="76" height="76"></div><div class="topmeta"><span class="badge" id="overall">CONNECTING</span><span class="badge off" id="execution">LIVE / BELUM DIPERIKSA</span><div class="clock">JAKARTA / UTC+7<br><span id="clock">—</span></div></div></header>
 <div class="ticker"><span>MESIN <b id="engine">MENUNGGU VPS</b></span><span>PEKERJAAN <strong id="ticker-phase">—</strong></span><span>MODEL <strong id="ticker-model">BELUM DIPERIKSA</strong></span><span>ORDER <strong id="ticker-delivery">—</strong></span><span>AKSES <b>PUBLIK / TANPA TOKEN</b></span></div>
@@ -67,10 +68,10 @@ body.embedded .topbar,body.embedded .ticker,body.embedded .overview,body.embedde
 <article class="panel"><div class="panelhead"><h2>02 / ISI JARINGAN</h2><span>BERASAL DARI CATATAN</span></div><div class="inside"><div id="regime-chart" class="chartempty">Menunggu hasil analisis</div><div class="chartcaption" id="regime-caption">Dokumen, bagian teks, topik, dan bukti</div></div></article>
 <article class="panel activitycard"><div class="panelhead"><h2>03 / AKTIVITAS PROSES</h2><span>KEJADIAN / 10 DETIK</span></div><div class="inside"><div id="activity-chart" class="chartempty">Menunggu event VPS</div><div class="chartcaption"><span>KEJADIAN <b id="event-total">—</b></span><span>RENTANG <b>120s</b></span><span id="last-event">—</span></div></div></article></section>
 <section class="panel entry-lab"><div class="panelhead"><h2>EKSPERIMEN ENTRY KATARINA</h2><span>UJI HISTORIS · TIDAK MENGIRIM ORDER</span></div><div class="inside"><p>Yang diuji saat ini: momentum, kembali ke rata-rata, dan breakout. BUY dan SELL diperiksa terpisah.</p><div id="lab-progress" aria-live="polite">Menunggu hasil eksperimen dari VPS.</div></div></section><section class="workspace" aria-label="Pusat observasi Katarina">
-<aside class="rail left"><article class="panel"><div class="panelhead"><h2>POSISI ENTRY</h2><span>TERAMATI</span></div><div id="methods" class="inside"><small>Menunggu posisi entry teramati.</small></div></article><article class="panel"><div class="panelhead"><h2>STATUS MESIN</h2></div><div class="inside evidence"><div>ID PROSES VPS<b id="pid">—</b></div><div>KESESUAIAN PROSES<b id="process-match">BELUM DIPERIKSA</b></div><div>WAKTU DATA / UTC<b id="market-tick">—</b></div><div>MODEL BAHASA<b id="model-proof">BELUM DIPERIKSA</b></div><div>PERUBAHAN BOBOT MODEL<b class="warn">BELUM DIUKUR</b></div></div></article></aside>
-<article class="panel brain" id="brain-panel"><div class="panelhead"><h2>◈ KATARINA / JARINGAN RISET</h2><span id="node-count">WAITING FOR DATA</span></div><div class="live-status"><div class="scene-overlay"><strong id="current-phase">MENUNGGU EVENT</strong><span id="current-time">Belum ada aktivitas tervalidasi</span></div><div id="pulse-proof" class="pulse-proof" aria-live="polite">Menunggu event proses VPS…</div></div><div class="scene" id="scene"><canvas id="network" tabindex="0" role="img" aria-label="Jaringan proses 3D. Geser untuk memutar, cubit untuk zoom. Gunakan panah keyboard untuk memutar. Rincian titik tersedia melalui pilihan di bawah."></canvas><i class="cross tl"></i><i class="cross tr"></i><i class="cross bl"></i><i class="cross br"></i><div class="empty-scene" id="empty-scene"><div><strong>WAITING FOR VPS</strong>Jaringan terbentuk setelah bukti proses diterima.</div></div></div>
-<div class="scene-coordinates">SATU ENGINE / BUKTI TERSIMPAN<br><span id="view-state">PERSPECTIVE / 1.00×</span><br><span id="growth-state">MENUNGGU NODE SUMBER</span></div><div class="controls"><button id="zoom-in" aria-label="Perbesar jaringan">＋</button><button id="zoom-out" aria-label="Perkecil jaringan">−</button><button id="reset">Atur ulang sudut</button><button id="detail-mode" aria-pressed="false">Jejak proses: sembunyi</button><button id="orbit" aria-pressed="true">Putar tampilan: aktif</button><button id="motion" aria-pressed="true">Sorot proses: ya</button><button id="fullscreen">Layar penuh</button><span class="hint">Geser: putar · cubit: zoom · ketuk: rincian</span></div>
-<div class="selectwrap"><label for="node-select" class="eyebrow">PILIH TITIK UNTUK PENJELASAN</label><select id="node-select"><option value="">Pilih tahap, simbol, atau event…</option></select></div>
+<aside class="rail left"><article class="panel"><div class="panelhead"><h2>POSISI ENTRY</h2><span>TERAMATI</span></div><div id="methods" class="inside"><small>Menunggu posisi entry teramati.</small></div></article><article class="panel"><div class="panelhead"><h2>STATUS MESIN</h2></div><div class="inside evidence"><div>KONEKSI VPS<b id="runtime-state">—</b></div><div>KESESUAIAN PROSES<b id="process-match">BELUM DIPERIKSA</b></div><div>WAKTU DATA / UTC<b id="market-tick">—</b></div><div>MODEL BAHASA<b id="model-proof">BELUM DIPERIKSA</b></div><div>PERUBAHAN BOBOT MODEL<b class="warn">BELUM DIUKUR</b></div></div></article></aside>
+<article class="panel brain" id="brain-panel"><div class="panelhead"><h2>◈ KATARINA / JARINGAN RISET</h2><span id="node-count">WAITING FOR DATA</span></div><div class="live-status"><div class="scene-overlay"><strong id="current-phase">MENUNGGU EVENT</strong><span id="current-time">Belum ada aktivitas tervalidasi</span></div><div id="pulse-proof" class="pulse-proof" aria-live="polite">Menunggu event proses VPS…</div></div><div class="scene" id="scene"><canvas id="network" tabindex="0" role="img" aria-label="Jaringan 3D Katarina. Geser satu jari untuk putar, dua jari untuk zoom dan geser, ketuk dua kali untuk atur ulang. Keyboard: panah, plus minus, Home, dan spasi untuk jeda."></canvas><i class="cross tl"></i><i class="cross tr"></i><i class="cross bl"></i><i class="cross br"></i><div class="empty-scene" id="empty-scene"><div><strong>WAITING FOR VPS</strong>Jaringan terbentuk setelah bukti proses diterima.</div></div></div>
+<div class="scene-coordinates">SATU ENGINE / BUKTI TERSIMPAN<br><span id="view-state">PERSPECTIVE / 1.00×</span><br><span id="growth-state">MENUNGGU NODE SUMBER</span></div>
+
 <div class="detail" id="selection"><b>JARINGAN CATATAN RISET</b>Titik mewakili dokumen, bagian teks, topik, atau bukti riset tersimpan. Garis menunjukkan asal dan hubungan catatan. Node baru muncul hanya dari data sumber baru; bukan neuron biologis atau bobot model.</div>
 <div class="legend"><span><i style="background:#66d9ef"></i>DATA</span><span><i style="background:#ff9d4d"></i>EKSPERIMEN</span><span><i style="background:#b39aff"></i>GEMINI / INFORMASI</span><span><i style="background:#f6d76b"></i>VALIDASI / PEMULIHAN</span><span><i style="background:#63d9ad"></i>MEMORI</span><span><i style="background:#ff748d"></i>RISIKO / GANGGUAN</span></div></article>
 <aside class="rail right"><article class="panel"><div class="panelhead"><h2>DAFTAR INFORMASI</h2><span id="watch-count">—</span></div><div id="watch" class="symbol-list rail-scroll"><div class="inside"><small>Menunggu informasi riset.</small></div></div></article><article class="panel"><div class="panelhead"><h2>STATUS TRADING</h2><span>HANYA MEMANTAU</span></div><div class="inside evidence"><div>PENGIRIMAN ORDER<b id="delivery-proof">BELUM DIPERIKSA</b></div><div>IZIN TRADING LIVE<b id="live-proof">BELUM DIPERIKSA</b></div><small>Data akun dan kredensial tidak dipublikasikan. Tidak ada kontrol pengiriman order.</small></div></article></aside></section>
@@ -79,12 +80,12 @@ body.embedded .topbar,body.embedded .ticker,body.embedded .overview,body.embedde
 <section class="panel architecture"><div class="panelhead"><h2>BAGIAN KERJA KATARINA</h2><span>SATU MESIN · ENAM FUNGSI</span></div><div class="architecture-line"></div><div class="lanes" id="lanes"><small class="inside">Menunggu status kapabilitas.</small></div></section>
 <section class="bottom"><article class="panel"><div class="panelhead"><h2>RIWAYAT PEKERJAAN</h2><span>UTC</span></div><div class="tablewrap"><table><thead><tr><th>WAKTU</th><th>PEKERJAAN</th><th>STATUS</th><th>PENJELASAN</th></tr></thead><tbody id="events"></tbody></table></div></article><article class="panel"><div class="panelhead"><h2>KESEGARAN DATA</h2><div class="mob-tools"><button id="refresh">Perbarui</button><button id="auto" aria-pressed="true">Auto: ON</button></div></div><div class="audit"><div>SNAPSHOT <b id="snapshot-proof">BELUM DIPERIKSA</b></div><div id="blockers">Menunggu pemeriksaan sumber.</div><div>DATA DARI VPS / UTC <b id="timestamp">—</b></div><div>TAMPILAN <b>Jaringan proses, bukan neuron model AI</b></div><div>Model percakapan, profit, dan eksekusi broker memiliki verifikasi terpisah. Angka yang belum tersedia ditandai.</div></div></article></section>
 
-<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Natural research flow / v18</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
+<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Touch spatial flow / v19</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
 <script>
 "use strict";
 if(typeof location!=="undefined"&&new URLSearchParams(location.search).has("embed"))document.body.classList.add("embedded");
 const PUBLIC_STATUS = true;
-const $=id=>document.getElementById(id),put=(id,v)=>$(id).textContent=String(v);
+const $=id=>document.getElementById(id),put=(id,v)=>{const e=$(id),text=String(v);if(e.textContent!==text)e.textContent=text};
 const colors={gold:"#ff9d4d",purple:"#b39aff",green:"#63d9ad",blue:"#63acff",cyan:"#66d9ef",yellow:"#f6d76b",muted:"#667f9d",red:"#ff748d"};
 const workerPhases=["TEST_MOMENTUM_H4","TEST_MOMENTUM_H12","TEST_MOMENTUM_H24","TEST_REVERSION_H4","TEST_REVERSION_H12","TEST_REVERSION_H24","TEST_BREAKOUT_H4","TEST_BREAKOUT_H12","TEST_BREAKOUT_H24","VALIDATE","VALIDATE3","GEMINI"];
 const phaseMemory=new Map();
@@ -101,7 +102,8 @@ let streamConnected=false,eventStream=null;
 let timer=null,busy=false,lastReceipt=0,lastCaptured=0,activityExpiry=0,graphFresh=false;
 let knowledgeSeen=new Set(),knowledgeBaseline=null;
 let detailed=false,orbitOn=true,lastFrame=null,interactionUntil=0,inView=true,renderSignature="",networkSignature="";
-const pointers=new Map();let gesture=null,dragMoved=false;
+const pointers=new Map();let gesture=null,dragMoved=false,cameraInput=null,panX=0,panY=0,lastTap=null;
+let cameraVelocity={yaw:0,pitch:0},frameMotion=null;
 
 const phaseWords={REPORT:"Menyusun laporan hasil riset","TEST_MOMENTUM_H4":"Momentum · 4H","TEST_MOMENTUM_H12":"Momentum · 12H","TEST_MOMENTUM_H24":"Momentum · 24H","TEST_REVERSION_H4":"Pembalikan · 4H","TEST_REVERSION_H12":"Pembalikan · 12H","TEST_REVERSION_H24":"Pembalikan · 24H","TEST_BREAKOUT_H4":"Breakout · 4H","TEST_BREAKOUT_H12":"Breakout · 12H","TEST_BREAKOUT_H24":"Breakout · 24H","VALIDATE3":"Uji biaya 3×",TEST_MOMENTUM:"Uji momentum",TEST_REVERSION:"Uji pembalikan",TEST_BREAKOUT:"Uji breakout",VALIDATE:"Uji biaya 2×",GEMINI:"Gemini · menyusun hipotesis",HEARTBEAT:"Proses hidup · menunggu jadwal",HISTORY:"MT5 · mengambil histori",EXPERIMENT:"Menguji hipotesis",STARTING:"Menyiapkan sistem",CONNECT:"Memeriksa koneksi",NEWS:"Membaca berita dan informasi",SENSORS:"MT5 · membaca data pasar",TECHNICAL:"Menganalisis pasar",MEMORY:"Meninjau catatan dan riset",RISK_AUDIT:"Memeriksa batas risiko",WAIT_ACK:"Memeriksa balasan penghubung",PUBLISH:"Menerbitkan hasil pemantauan",WAITING:"Menunggu siklus analisis berikutnya",DEGRADED:"Menunda percobaan setelah gangguan",STOPPED:"Proses berhenti",BLOCKED:"Proses terhenti dan perlu diperiksa"};
 Object.assign(phaseWords,{SETTLE:"Memeriksa hasil riset sebelumnya",CHECKPOINT:"Memeriksa catatan acuan",LEARNING_REVIEW:"Menilai bahan belajar",RESEARCH:"Mengevaluasi hipotesis riset",MEMORY_WRITE:"Memeriksa pencatatan bukti",RECALL:"Mengambil ingatan yang relevan",ASSOCIATION:"Meneliti hubungan antar-informasi"});
@@ -224,17 +226,16 @@ function buildGraph(b,now){
  graph={nodes,edges};nodeMap=map;if(selected&&!map.has(selected))selected=null;
  put("node-count",(research.nodes||[]).length+" TITIK RISET / "+(research.edges||[]).length+" HUBUNGAN"+(research.truncated?" / TAMPILAN DIBATASI":""));
  $("empty-scene").hidden=nodes.length>0;$("empty-scene").style.display=nodes.length?"none":"grid";
- const select=$("node-select"),old=selected||"";clear(select);const empty=element("option","Pilih sumber, topik, dokumen, atau event…");empty.value="";select.append(empty);
- for(const n of nodes.filter(x=>x.kind!=="paragraph")){const opt=element("option",(kindWords[n.kind]||"Catatan")+" / "+humanNode(n));opt.value=n.id;select.append(opt)}select.value=old;
  if(selected)selectNode(selected,false,false);requestDraw();
 }
 
 let coreDrift={x:0,y:0,at:0};
 function nodeMotion(n,now){
 
- if(!motionAllowed()||!processAlive())return {x:0,y:0};
+ const fm=frameMotion?.now===now?frameMotion:null;
+ if(!(fm?fm.allowed:motionAllowed())||!(fm?fm.alive:processAlive()))return {x:0,y:0};
  if(n.id==="core"){
-  const active=currentWorks(),replay=eventPulses.findLast(e=>now>=e.start&&now-e.start<1800),targets=active.length?active:replay?[replay]:[];
+  const active=fm?fm.works:currentWorks(),replay=eventPulses.findLast(e=>now>=e.start&&now-e.start<1800),targets=active.length?active:replay?[replay]:[];
   const points=targets.map(e=>nodeMap.get("p:"+e.phase)).filter(Boolean).map(project);
   const tx=points.length?points.reduce((sum,p)=>sum+p.x-width/2,0)/points.length*.16:0,ty=points.length?points.reduce((sum,p)=>sum+p.y-height/2,0)/points.length*.16:0;
   const dt=Math.max(1,Math.min(80,now-coreDrift.at)),ease=1-Math.exp(-dt/500);coreDrift.at=now;
@@ -243,7 +244,8 @@ function nodeMotion(n,now){
  }
 
  const birth=nodeBirths.get(n.id);if(birth&&now-birth.at<4500){const t=(now-birth.at)/4500;return {x:Math.sin(t*Math.PI*4)*(1-t)*3,y:Math.cos(t*Math.PI*4)*(1-t)*3}}
- const work=currentWorks().find(e=>n.id==="p:"+e.phase)||(n.id==="core"?currentWork():null),pulse=eventPulses.findLast(e=>n.id==="p:"+e.phase&&now>=e.start&&now-e.start<1800);
+ if(!n.id.startsWith("p:"))return {x:0,y:0};
+ const work=(fm?fm.works:currentWorks()).find(e=>n.id==="p:"+e.phase)||(n.id==="core"?currentWork():null),pulse=eventPulses.findLast(e=>n.id==="p:"+e.phase&&now>=e.start&&now-e.start<1800);
  const heartbeat=n.id==="core"&&corePulseMode==="HEARTBEAT"&&now>=corePulseAt&&now-corePulseAt<4800;
  const active=work&&n.id==="p:"+work.phase;
  if(!heartbeat&&!active&&!pulse&&!(n.id==="core"&&work))return {x:0,y:0};
@@ -252,7 +254,7 @@ function nodeMotion(n,now){
  const envelope=pulse?Math.sin(Math.PI*age/1800):heartbeat?Math.sin(Math.PI*age/4800):1;
  return {x:Math.sin(age/210)*amplitude*envelope,y:Math.cos(age/270)*amplitude*.65*envelope};
 }
-function project(n){const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pitch),sx=Math.sin(pitch),x=n.x*cy+n.z*sy,z0=-n.x*sy+n.z*cy,y=n.y*cx-z0*sx,z=n.y*sx+z0*cx,s=Math.min(width*.36,height*.38)*zoom,depth=3.7/(3.7+z);return {x:width/2+x*s*depth,y:height/2+y*s*depth,z,depth}}
+function project(n){const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pitch),sx=Math.sin(pitch),x=n.x*cy+n.z*sy,z0=-n.x*sy+n.z*cy,y=n.y*cx-z0*sx,z=n.y*sx+z0*cx,s=Math.min(width*.36,height*.38)*zoom,depth=3.2/(3.2+z);return {x:width/2+panX+x*s*depth,y:height/2+panY+y*s*depth,z,depth}}
 function processAlive(now=Date.now()){
  const b=boardNow,e=b?.activity?.current;if(!b?.snapshot_process_matches||!graphFresh||!e)return false;
  const age=now-Date.parse(e.at_utc);return age>=-30000&&age<=(e.state==="STARTED"?120000:15000);
@@ -286,14 +288,16 @@ function labelPlacement(x,y,text,boxes,priority=false){
 }
 function draw(now){
  raf=0;if(!ctx)return;
- if(lastFrame!==null&&now-lastFrame<30&&graphFresh){requestDraw();return}
+ if(lastFrame!==null&&now-lastFrame<1000/120-.5&&graphFresh){requestDraw();return}
  const dt=lastFrame===null?0:clamp(now-lastFrame,0,70);lastFrame=now;
+ const cameraMoving=advanceCamera(dt);
  const orbiting=orbitOn&&motionAllowed()&&processAlive()&&!document.hidden&&inView&&!pointers.size&&now>=interactionUntil;
- if(orbiting)yaw+=dt*.000065;
+ if(orbiting){yaw+=dt*.000065;if(cameraInput)cameraInput.yaw+=dt*.000065;}
  ctx.clearRect(0,0,width,height);
  if(!graphFresh||!graph.nodes.length){put("pulse-proof","Tidak ada pulse: data proses tidak segar.");return;}
- const pos=new Map();for(const n of graph.nodes){const p=project(n),m=nodeMotion(n,now);pos.set(n.id,{...p,x:p.x+m.x,y:p.y+m.y});}
  const works=currentWorks(),work=works.at(-1)||null,working=works.length>0&&motionAllowed();
+ frameMotion={now,allowed:motionAllowed(),alive:processAlive(),works};
+ const pos=new Map();for(const n of graph.nodes){const p=project(n),m=nodeMotion(n,now);pos.set(n.id,{...p,x:p.x+m.x,y:p.y+m.y});}frameMotion=null;
  const activePulses=motionAllowed()?eventPulses.filter(e=>now>=e.start&&now-e.start<1800):[];
  const growing=motionAllowed()&&processAlive()&&[...nodeBirths.values()].some(b=>now-b.at<4500);
  const queuedPulses=motionAllowed()&&eventPulses.some(e=>now<e.start+1800);
@@ -303,7 +307,7 @@ function draw(now){
  else put("pulse-proof",work?"Analisis aktif · "+humanPhase(work.phase):"Gerak ruang: proses hidup · warna: fungsi · pulse: kerja nyata · titik baru: hasil tersimpan");
  const elapsed=now-pulseAt,pulsing=motionAllowed()&&elapsed>=0&&elapsed<2600;
  for(const edge of graph.edges){const a=pos.get(edge.a),b=pos.get(edge.b);if(!a||!b)continue;
-  const focused=selected&&(edge.a===selected||edge.b===selected),alpha=focused?.9:clamp(.19-(a.z+b.z)*.05,.07,.32);
+  const focused=selected&&(edge.a===selected||edge.b===selected),alpha=focused?.9:clamp(.22-(a.z+b.z)*.075,.045,.40);
   const dx=b.x-a.x,dy=b.y-a.y,bend=.065,cx=(a.x+b.x)/2-dy*bend,cy=(a.y+b.y)/2+dx*bend;
   ctx.globalAlpha=alpha;ctx.strokeStyle=edge.color;ctx.lineWidth=focused?1.1:.55;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(cx,cy,b.x,b.y);ctx.stroke();
   const birth=nodeBirths.get(edge.b);
@@ -328,6 +332,7 @@ function draw(now){
  const corePosition=pos.get("core");const labelBoxes=corePosition?[{left:corePosition.x-38,right:corePosition.x+38,top:corePosition.y+12,bottom:corePosition.y+32}]:[];
  projected=graph.nodes.map(n=>({...pos.get(n.id),node:n})).sort((a,b)=>a.node.id==="core"?1:b.node.id==="core"?-1:b.z-a.z);
  for(const p of projected){const n=p.node;ctx.globalAlpha=clamp(.62-p.z*.38,.17,1);ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.6,n.size*p.depth*.8),0,Math.PI*2);ctx.fill();
+  if(n.id!=="core"&&n.size>=3&&p.z<.4){const radius=Math.max(.6,n.size*p.depth*.8);ctx.globalAlpha=clamp(.65-p.z*.3,.2,.85);ctx.fillStyle="#e4f4ff";ctx.beginPath();ctx.arc(p.x-radius*.23,p.y-radius*.28,Math.max(.55,radius*.26),0,Math.PI*2);ctx.fill()}
   if(n.id==="core"){
    const glow=corePulsing?(1-coreElapsed/coreDuration):0;
    ctx.globalAlpha=1;ctx.fillStyle=work?colors.gold:"#75b1ff";ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=work?22:10;ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="#08172b";ctx.beginPath();ctx.arc(p.x,p.y,7.5,0,Math.PI*2);ctx.fill();
@@ -347,43 +352,45 @@ function draw(now){
    if(placement){ctx.globalAlpha=n.id===selected?1:.85;ctx.font=(n.id===selected?"11":"9")+"px ui-monospace,monospace";ctx.textAlign="left";ctx.fillText(text,placement.x,placement.y)}
   }
  }
- ctx.globalAlpha=1;if((pulsing||working||queuedPulses||corePulsing||orbiting||growing)&&!document.hidden&&inView)requestDraw();
+ ctx.globalAlpha=1;if((pulsing||working||queuedPulses||corePulsing||orbiting||growing||cameraMoving)&&!document.hidden&&inView)requestDraw();
 }
 function requestDraw(){if(!raf&&!document.hidden&&inView)raf=requestAnimationFrame(draw)}
-function holdCamera(){interactionUntil=performance.now()+3000;lastFrame=null}
+function holdCamera(){interactionUntil=performance.now()+1800}
 function resize(){const rect=scene.getBoundingClientRect();width=Math.max(1,rect.width);height=Math.max(1,rect.height);const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);if(ctx)ctx.setTransform(dpr,0,0,dpr,0,0);requestDraw()}
 function selectNode(id,sync=true,user=true){if(user)holdCamera();selected=nodeMap.has(id)?id:null;const n=nodeMap.get(selected),box=$("selection");clear(box);
  box.append(element("b",n?(kindWords[n.kind]||"Catatan")+" / "+humanNode(n):"PROCESS TOPOLOGY / EVENT-DRIVEN"),element("span",n?(n.kind==="phase"?(phaseNotes[n.phase]||n.detail):n.detail.replace(n.kind,kindWords[n.kind]||"Catatan")):"Pilih titik untuk memeriksa bukti aktivitas dari VPS."));
- if(sync)$("node-select").value=selected||"";
  for(const btn of $("watch").children)if(btn.dataset.symbol)btn.setAttribute("aria-pressed",String(n?.symbol===btn.dataset.symbol||n?.label===btn.dataset.symbol));
  requestDraw();
 }
 function viewChange(){holdCamera();put("view-state","PERSPECTIVE / "+zoom.toFixed(2)+"×");requestDraw()}
-function resetView(){yaw=-.28;pitch=.14;zoom=1;viewChange()}
-canvas.addEventListener("pointerdown",e=>{holdCamera();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture?.(e.pointerId);dragMoved=false;gesture=null});
+function startCamera(){if(!cameraInput)cameraInput={yaw,pitch,zoom,panX,panY};return cameraInput}
+function advanceCamera(dt){
+ if(!cameraInput)return false;const c=cameraInput;
+ if(!pointers.size){const decay=Math.exp(-dt/240);cameraVelocity.yaw*=decay;cameraVelocity.pitch*=decay;c.yaw+=cameraVelocity.yaw*dt;c.pitch=clamp(c.pitch+cameraVelocity.pitch*dt,-1.45,1.45)}
+ const ease=1-Math.exp(-Math.max(1,dt)/55);yaw+=(c.yaw-yaw)*ease;pitch+=(c.pitch-pitch)*ease;zoom+=(c.zoom-zoom)*ease;panX+=(c.panX-panX)*ease;panY+=(c.panY-panY)*ease;
+ const moving=Math.abs(c.yaw-yaw)+Math.abs(c.pitch-pitch)+Math.abs(c.zoom-zoom)+Math.abs(c.panX-panX)/100+Math.abs(c.panY-panY)/100>.0001||Math.abs(cameraVelocity.yaw)+Math.abs(cameraVelocity.pitch)>.00001;
+ if(!moving&&!pointers.size)cameraInput=null;return moving||pointers.size>0;
+}
+function resetView(){cameraVelocity={yaw:0,pitch:0};cameraInput={yaw:-.28,pitch:.14,zoom:1,panX:0,panY:0};viewChange()}
+canvas.addEventListener("pointerdown",e=>{holdCamera();startCamera();cameraVelocity={yaw:0,pitch:0};pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,at:e.timeStamp||performance.now()});canvas.setPointerCapture?.(e.pointerId);if(pointers.size===1)dragMoved=false;else dragMoved=true;gesture=null;requestDraw()});
 canvas.addEventListener("pointermove",e=>{
- if(!pointers.has(e.pointerId))return;const before=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
- const points=[...pointers.values()];
- if(points.length===2){const distance=Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y);if(gesture)zoom=clamp(zoom*distance/gesture,.55,2.6);gesture=distance;dragMoved=true}
- else if(points.length===1){const dx=e.clientX-before.x,dy=e.clientY-before.y;if(Math.abs(dx)+Math.abs(dy)>2)dragMoved=true;yaw+=dx*.008;pitch=clamp(pitch+dy*.008,-1.3,1.3)}
+ if(!pointers.has(e.pointerId))return;const before=pointers.get(e.pointerId),at=e.timeStamp||performance.now(),c=startCamera();
+ pointers.set(e.pointerId,{...before,x:e.clientX,y:e.clientY,at});const points=[...pointers.values()];
+ if(points.length>=2){const rect=canvas.getBoundingClientRect(),distance=Math.max(1,Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y)),cx=(points[0].x+points[1].x)/2-rect.left-width/2,cy=(points[0].y+points[1].y)/2-rect.top-height/2;
+  if(gesture){const next=clamp(c.zoom*distance/gesture.distance,.55,2.6),ratio=next/c.zoom;c.zoom=next;c.panX=clamp((c.panX-gesture.cx)*ratio+cx,-width*.35,width*.35);c.panY=clamp((c.panY-gesture.cy)*ratio+cy,-height*.35,height*.35)}
+  gesture={distance,cx,cy};cameraVelocity={yaw:0,pitch:0};dragMoved=true;
+ }else{const dx=e.clientX-before.x,dy=e.clientY-before.y,elapsed=Math.max(4,at-before.at);if(Math.hypot(e.clientX-before.startX,e.clientY-before.startY)>6)dragMoved=true;c.yaw+=dx*.0055;c.pitch=clamp(c.pitch+dy*.0055,-1.45,1.45);cameraVelocity={yaw:clamp(dx*.0055/elapsed,-.0018,.0018),pitch:clamp(dy*.0055/elapsed,-.0018,.0018)}}
  viewChange();
 });
-function pointerEnd(e){if(pointers.has(e.pointerId)&&!dragMoved&&pointers.size===1){const rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;let best=null,distance=18;for(const p of projected){const d=Math.hypot(p.x-x,p.y-y);if(d<distance){best=p.node;distance=d}}if(best)selectNode(best.id)}
- pointers.delete(e.pointerId);gesture=null}
-canvas.addEventListener("pointerup",pointerEnd);canvas.addEventListener("pointercancel",e=>{pointers.delete(e.pointerId);gesture=null;dragMoved=true});
-canvas.addEventListener("wheel",e=>{e.preventDefault();zoom=clamp(zoom*(e.deltaY<0?1.08:.92),.55,2.6);viewChange()},{passive:false});
-canvas.addEventListener("keydown",e=>{let handled=true;if(e.key==="ArrowLeft")yaw-=.1;else if(e.key==="ArrowRight")yaw+=.1;else if(e.key==="ArrowUp")pitch=clamp(pitch-.1,-1.3,1.3);else if(e.key==="ArrowDown")pitch=clamp(pitch+.1,-1.3,1.3);else if(e.key==="+")zoom=clamp(zoom+.1,.55,2.6);else if(e.key==="-")zoom=clamp(zoom-.1,.55,2.6);else if(e.key==="Home")resetView();else handled=false;if(handled){e.preventDefault();viewChange()}});
-$("node-select").addEventListener("change",e=>selectNode(e.target.value));
-$("zoom-in").addEventListener("click",()=>{zoom=clamp(zoom+.15,.55,2.6);viewChange()});
-$("zoom-out").addEventListener("click",()=>{zoom=clamp(zoom-.15,.55,2.6);viewChange()});
-$("reset").addEventListener("click",resetView);
-$("detail-mode").addEventListener("click",()=>{detailed=!detailed;put("detail-mode",detailed?"Jejak proses: tampil":"Jejak proses: sembunyi");$("detail-mode").setAttribute("aria-pressed",String(detailed));networkSignature="";renderSignature="";if(boardNow)buildGraph({...boardNow,activity:{...boardNow.activity,events:graphFresh?boardNow.activity.events:[]}},Date.now())});
-$("orbit").setAttribute("aria-pressed",String(orbitOn));put("orbit",orbitOn?"Putar tampilan: aktif":"Putar tampilan: jeda");
-$("orbit").addEventListener("click",()=>{orbitOn=!orbitOn;lastFrame=null;put("orbit",orbitOn?"Putar tampilan: aktif":"Putar tampilan: jeda");$("orbit").setAttribute("aria-pressed",String(orbitOn));requestDraw()});
-$("motion").setAttribute("aria-pressed",String(pulseOn));put("motion",pulseOn?"Sorot proses: ya":"Sorot proses: tidak");
-$("motion").addEventListener("click",()=>{pulseOn=!pulseOn;motionOverride=pulseOn;put("motion",pulseOn?"Sorot proses: ya":"Sorot proses: tidak");$("motion").setAttribute("aria-pressed",String(pulseOn));requestDraw()});
-$("fullscreen").addEventListener("click",async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if($("brain-panel").requestFullscreen)await $("brain-panel").requestFullscreen();else put("notice","Layar penuh tidak didukung browser ini; putar HP ke posisi landscape.")}catch{put("notice","Layar penuh belum tersedia di browser ini. Putar HP ke landscape untuk ruang lebih luas.")}});
-document.addEventListener("fullscreenchange",()=>{put("fullscreen",document.fullscreenElement?"Keluar layar penuh":"Layar penuh");resize()});
+function pointerEnd(e){
+ if(pointers.has(e.pointerId)&&!dragMoved&&pointers.size===1){const now=e.timeStamp||performance.now();if(lastTap&&now-lastTap.at<320&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<24){resetView();lastTap=null}else{lastTap={at:now,x:e.clientX,y:e.clientY};const rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;let best=null,distance=22;for(const p of projected){const d=Math.hypot(p.x-x,p.y-y);if(d<distance){best=p.node;distance=d}}if(best)selectNode(best.id)}}
+ pointers.delete(e.pointerId);canvas.releasePointerCapture?.(e.pointerId);gesture=null;requestDraw();
+}
+canvas.addEventListener("pointerup",pointerEnd);
+canvas.addEventListener("pointercancel",e=>{pointers.delete(e.pointerId);gesture=null;dragMoved=true;cameraVelocity={yaw:0,pitch:0};requestDraw()});
+canvas.addEventListener("lostpointercapture",e=>{pointers.delete(e.pointerId);gesture=null;requestDraw()});
+canvas.addEventListener("wheel",e=>{e.preventDefault();const c=startCamera();c.zoom=clamp(c.zoom*Math.exp(-clamp(e.deltaY,-100,100)*.002),.55,2.6);cameraVelocity={yaw:0,pitch:0};viewChange()},{passive:false});
+canvas.addEventListener("keydown",e=>{const c=startCamera();let handled=true;if(e.key==="ArrowLeft")c.yaw-=.1;else if(e.key==="ArrowRight")c.yaw+=.1;else if(e.key==="ArrowUp")c.pitch=clamp(c.pitch-.1,-1.45,1.45);else if(e.key==="ArrowDown")c.pitch=clamp(c.pitch+.1,-1.45,1.45);else if(e.key==="+")c.zoom=clamp(c.zoom+.1,.55,2.6);else if(e.key==="-")c.zoom=clamp(c.zoom-.1,.55,2.6);else if(e.key==="Home")resetView();else if(e.key===" "){pulseOn=!pulseOn;orbitOn=pulseOn}else handled=false;if(handled){e.preventDefault();viewChange()}});
 if(typeof ResizeObserver!=="undefined")new ResizeObserver(resize).observe(scene);else window.addEventListener("resize",resize);
 if(typeof IntersectionObserver!=="undefined")new IntersectionObserver(entries=>{inView=entries[0]?.isIntersecting!==false;lastFrame=null;if(inView)requestDraw()},{rootMargin:"60px"}).observe(scene);
 function svg(tag,attrs,text){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const [k,v]of Object.entries(attrs))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=String(text);return el}
@@ -455,11 +462,11 @@ function render(report){
  const current=b.activity?.current,activityFresh=b.snapshot_process_matches===true&&b.activity?.fresh===true&&current&&Date.now()-Date.parse(current.at_utc)<=180000;
  const events=activityFresh&&Array.isArray(b.activity?.events)?b.activity.events:[];
  lastCaptured=captured;lastReceipt=Date.now();activityExpiry=current?Date.parse(current.at_utc)+180000:0;boardNow=b;graphFresh=Boolean(activityFresh);
- put("overall",statusWords[b.result]||"Belum diverifikasi");put("observer-state",valid?"TERVERIFIKASI":"BELUM TERVERIFIKASI");put("engine",b.current_process_pid?"PID "+b.current_process_pid:"BELUM TERVERIFIKASI");put("ticker-phase",activityFresh?humanPhase(current.phase):"Menunggu data baru");
+ put("overall",statusWords[b.result]||"Belum diverifikasi");put("observer-state",valid?"TERVERIFIKASI":"BELUM TERVERIFIKASI");put("engine",b.snapshot_process_matches===true?"KATARINA TERHUBUNG":"BELUM TERVERIFIKASI");put("ticker-phase",activityFresh?humanPhase(current.phase):"Menunggu data baru");
  put("ticker-model",b.model?.configured===true?"Terpasang":"Belum terhubung");put("ticker-delivery",b.delivery==="DISABLED"?"Nonaktif":"Belum diverifikasi");
  put("symbols",valid?(research.total_documents??research.nodes.filter(n=>n.kind==="document").length):"—");put("cycles",b.cycles??"—");put("successful",b.successful_cycles??"—");put("model-calls",b.model?.configured===true?(b.model.telemetry?.successful_calls??"—"):"—");
  const off=b.delivery==="DISABLED";put("execution",off?"LIVE / OFF":"LIVE / BELUM TERVERIFIKASI");put("delivery-proof",off?"DISABLED":"BELUM TERVERIFIKASI");put("live-proof",b.live_execution_authorized===false?"OFF":"BELUM TERVERIFIKASI");
- put("pid",b.current_process_pid||"—");put("process-match",b.snapshot_process_matches===true?"VERIFIED":"BELUM TERVERIFIKASI");put("market-tick",utcStamp(report.captured_at_utc));put("model-proof",b.model?.configured===true?"CONFIGURED / QUALITY UNVERIFIED":"BELUM TERHUBUNG");
+ put("runtime-state",b.snapshot_process_matches===true?"Terhubung":"Belum terverifikasi");put("process-match",b.snapshot_process_matches===true?"VERIFIED":"BELUM TERVERIFIKASI");put("market-tick",utcStamp(report.captured_at_utc));put("model-proof",b.model?.configured===true?"CONFIGURED / QUALITY UNVERIFIED":"BELUM TERHUBUNG");
  put("snapshot-proof",valid?"Sesuai data sumber":"Belum terverifikasi");put("timestamp",utcStamp(report.captured_at_utc));put("watch-count",research.nodes.filter(n=>n.kind==="document").length+" DOCUMENTS");
  const activeWorks=currentWorks();put("current-phase",activeWorks.length?activeWorks.length+" proses aktif · "+activeWorks.map(e=>humanPhase(e.phase)).join(" / "):activityFresh?humanPhase(current.phase):"Menunggu data baru");put("current-time",activityFresh?utcTime(current.at_utc)+" UTC · CYCLE "+b.activity.cycle:"Aktivitas tidak dianggap sedang berjalan");
  const changedPid=lastPid!==b.current_process_pid;if(changedPid){seen.clear();phaseMemory.clear();organicKey="";organicPositions.clear();eventPulses=[];corePulseAt=-10000;firstSnapshot=true;lastPid=b.current_process_pid}
@@ -505,8 +512,8 @@ function renderLearning(l){
 function invalidate(message){
  eventPulses=[];corePulseAt=-10000;put("pulse-proof","Tidak ada pulse: menunggu event VPS terbaru.");
  renderLab(null);renderResearchReports(null);
- renderLearning(null);put("engine-headline","Status mesin belum terverifikasi");put("engine-description","Menunggu data proses terbaru dari VPS.");put("engine-age","Data sebelumnya tidak ditampilkan.");networkSignature="";renderSignature="";lastFrame=null;graphFresh=false;graph={nodes:[],edges:[]};nodeMap.clear();projected=[];pulseKeys.clear();selected=null;boardNow=null;lastCaptured=0;activityExpiry=0;lastReceipt=0;seen.clear();firstSnapshot=true;clear($("node-select"));const option=element("option","Menunggu proses VPS…");option.value="";$("node-select").append(option);
- for(const id of ["symbols","cycles","successful","model-calls","pid","market-tick","watch-count","event-total","last-event","timestamp"])put(id,"—");
+ renderLearning(null);put("engine-headline","Status mesin belum terverifikasi");put("engine-description","Menunggu data proses terbaru dari VPS.");put("engine-age","Data sebelumnya tidak ditampilkan.");networkSignature="";renderSignature="";lastFrame=null;graphFresh=false;graph={nodes:[],edges:[]};nodeMap.clear();projected=[];pulseKeys.clear();selected=null;boardNow=null;lastCaptured=0;activityExpiry=0;lastReceipt=0;seen.clear();firstSnapshot=true;
+ for(const id of ["symbols","cycles","successful","model-calls","runtime-state","market-tick","watch-count","event-total","last-event","timestamp"])put(id,"—");
  for(const id of ["overall","execution","process-match","model-proof","delivery-proof","live-proof","snapshot-proof"])put(id,"BELUM TERVERIFIKASI");
  put("engine","DATA UNAVAILABLE");put("ticker-phase","NO FRESH EVENT");put("ticker-model","UNVERIFIED");put("ticker-delivery","UNVERIFIED");put("observer-state","WAITING");put("node-count","WAITING FOR DATA");put("current-phase","MENUNGGU VPS");put("current-time","Aktivitas tidak terverifikasi");
  for(const id of ["watch","events","lanes","methods"])clear($(id));put("growth-state","DATA BELUM TERVERIFIKASI");for(const id of ["regime-chart","activity-chart"]){clear($(id));$(id).className="chartempty";put(id,"Menunggu data VPS terbaru")}

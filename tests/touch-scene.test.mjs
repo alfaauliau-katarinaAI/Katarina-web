@@ -44,7 +44,7 @@ const orbitNodes=graph.nodes.filter(n=>workerPhases.includes(n.phase));if(orbitN
 const points=orbitNodes.map(project);
 for(const p of points)if(p.x<16||p.x>width-16||p.y<16||p.y>height-16)throw Error('Orbit clipped on mobile');
 if(Math.max(...orbitNodes.map(n=>n.z))-Math.min(...orbitNodes.map(n=>n.z))<1.4)throw Error('Network is a flat disc');
-for(const angle of [0,Math.PI/4,Math.PI/2,Math.PI*3/4,Math.PI])for(const tilt of [0,.8,1.2]){
+for(const angle of [0,Math.PI/4,Math.PI/2,Math.PI*3/4,Math.PI])for(const tilt of [-Math.PI,-Math.PI/2,0,.8,1.2,Math.PI/2,Math.PI,Math.PI*2]){
  yaw=angle;pitch=tilt;const view=orbitNodes.map(project),xs=view.map(p=>p.x),ys=view.map(p=>p.y);
  const sx=Math.max(...xs)-Math.min(...xs),sy=Math.max(...ys)-Math.min(...ys);
  if(sx<150||sy<150||sx/sy<.7||sx/sy>1.4)throw Error('Rotating sphere collapses into a disc');
@@ -88,3 +88,14 @@ canvas.handlers.pointerdown({pointerId:4,clientX:10,clientY:10,timeStamp:2000});
 canvas.handlers.pointerdown({pointerId:4,clientX:10,clientY:10,timeStamp:2200});canvas.handlers.pointerup({pointerId:4,clientX:10,clientY:10,timeStamp:2210});if(!cameraInput||cameraInput.zoom!==1||cameraInput.panX!==0)throw Error('Double tap does not reset view');
 `,env);
 assert(!html.includes('Owner requested a visual monitor'));assert(!html.includes('.overview,.rail'));assert(html.includes('pulseOn=true'));assert(arcs.length>0);console.log('Canvas pulses draw; partial sensor work visible; heartbeat distinct; process mismatch and stale state stop work.');
+
+vm.runInContext(`
+pointers.clear();cameraInput=null;cameraVelocity={yaw:0,pitch:0};yaw=0;pitch=0;
+canvas.handlers.pointerdown({pointerId:9,clientX:100,clientY:100,timeStamp:3000});
+for(let i=1;i<=16;i++)canvas.handlers.pointermove({pointerId:9,clientX:100+i*100,clientY:100+i*100,timeStamp:3000+i*16});
+if(cameraInput.pitch<Math.PI*2||cameraInput.yaw<Math.PI*2)throw Error('Full rotation still hits an angle limit');
+canvas.handlers.pointerup({pointerId:9,clientX:1700,clientY:1700,timeStamp:3260});
+const releasedPitch=cameraInput.pitch;advanceCamera(16);if(cameraInput.pitch<=releasedPitch)throw Error('Inertia clamps full rotation');
+canvas.handlers.keydown({key:'ArrowDown',preventDefault(){}});if(cameraInput.pitch<=releasedPitch)throw Error('Keyboard clamps full rotation');
+for(const tilt of [-4*Math.PI,-Math.PI,-Math.PI/2,Math.PI/2,Math.PI,4*Math.PI]){pitch=tilt;for(const n of graph.nodes){const p=project(n);if(!Number.isFinite(p.x)||!Number.isFinite(p.y))throw Error('Projection invalid beyond poles')}}
+`,env);

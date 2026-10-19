@@ -80,7 +80,7 @@ canvas#network{touch-action:none;overscroll-behavior:contain;-webkit-tap-highlig
 <section class="panel architecture"><div class="panelhead"><h2>BAGIAN KERJA KATARINA</h2><span>SATU MESIN · ENAM FUNGSI</span></div><div class="architecture-line"></div><div class="lanes" id="lanes"><small class="inside">Menunggu status kapabilitas.</small></div></section>
 <section class="bottom"><article class="panel"><div class="panelhead"><h2>RIWAYAT PEKERJAAN</h2><span>UTC</span></div><div class="tablewrap"><table><thead><tr><th>WAKTU</th><th>PEKERJAAN</th><th>STATUS</th><th>PENJELASAN</th></tr></thead><tbody id="events"></tbody></table></div></article><article class="panel"><div class="panelhead"><h2>KESEGARAN DATA</h2><div class="mob-tools"><button id="refresh">Perbarui</button><button id="auto" aria-pressed="true">Auto: ON</button></div></div><div class="audit"><div>SNAPSHOT <b id="snapshot-proof">BELUM DIPERIKSA</b></div><div id="blockers">Menunggu pemeriksaan sumber.</div><div>DATA DARI VPS / UTC <b id="timestamp">—</b></div><div>TAMPILAN <b>Jaringan proses, bukan neuron model AI</b></div><div>Model percakapan, profit, dan eksekusi broker memiliki verifikasi terpisah. Angka yang belum tersedia ditandai.</div></div></article></section>
 
-<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Touch spatial flow / v19</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
+<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Free rotation / v20</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
 <script>
 "use strict";
 if(typeof location!=="undefined"&&new URLSearchParams(location.search).has("embed"))document.body.classList.add("embedded");
@@ -366,7 +366,7 @@ function viewChange(){holdCamera();put("view-state","PERSPECTIVE / "+zoom.toFixe
 function startCamera(){if(!cameraInput)cameraInput={yaw,pitch,zoom,panX,panY};return cameraInput}
 function advanceCamera(dt){
  if(!cameraInput)return false;const c=cameraInput;
- if(!pointers.size){const decay=Math.exp(-dt/240);cameraVelocity.yaw*=decay;cameraVelocity.pitch*=decay;c.yaw+=cameraVelocity.yaw*dt;c.pitch=clamp(c.pitch+cameraVelocity.pitch*dt,-1.45,1.45)}
+ if(!pointers.size){const decay=Math.exp(-dt/240);cameraVelocity.yaw*=decay;cameraVelocity.pitch*=decay;c.yaw+=cameraVelocity.yaw*dt;c.pitch+=cameraVelocity.pitch*dt}
  const ease=1-Math.exp(-Math.max(1,dt)/55);yaw+=(c.yaw-yaw)*ease;pitch+=(c.pitch-pitch)*ease;zoom+=(c.zoom-zoom)*ease;panX+=(c.panX-panX)*ease;panY+=(c.panY-panY)*ease;
  const moving=Math.abs(c.yaw-yaw)+Math.abs(c.pitch-pitch)+Math.abs(c.zoom-zoom)+Math.abs(c.panX-panX)/100+Math.abs(c.panY-panY)/100>.0001||Math.abs(cameraVelocity.yaw)+Math.abs(cameraVelocity.pitch)>.00001;
  if(!moving&&!pointers.size)cameraInput=null;return moving||pointers.size>0;
@@ -379,7 +379,7 @@ canvas.addEventListener("pointermove",e=>{
  if(points.length>=2){const rect=canvas.getBoundingClientRect(),distance=Math.max(1,Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y)),cx=(points[0].x+points[1].x)/2-rect.left-width/2,cy=(points[0].y+points[1].y)/2-rect.top-height/2;
   if(gesture){const next=clamp(c.zoom*distance/gesture.distance,.55,2.6),ratio=next/c.zoom;c.zoom=next;c.panX=clamp((c.panX-gesture.cx)*ratio+cx,-width*.35,width*.35);c.panY=clamp((c.panY-gesture.cy)*ratio+cy,-height*.35,height*.35)}
   gesture={distance,cx,cy};cameraVelocity={yaw:0,pitch:0};dragMoved=true;
- }else{const dx=e.clientX-before.x,dy=e.clientY-before.y,elapsed=Math.max(4,at-before.at);if(Math.hypot(e.clientX-before.startX,e.clientY-before.startY)>6)dragMoved=true;c.yaw+=dx*.0055;c.pitch=clamp(c.pitch+dy*.0055,-1.45,1.45);cameraVelocity={yaw:clamp(dx*.0055/elapsed,-.0018,.0018),pitch:clamp(dy*.0055/elapsed,-.0018,.0018)}}
+ }else{const dx=e.clientX-before.x,dy=e.clientY-before.y,elapsed=Math.max(4,at-before.at);if(Math.hypot(e.clientX-before.startX,e.clientY-before.startY)>6)dragMoved=true;c.yaw+=dx*.0055;c.pitch+=dy*.0055;cameraVelocity={yaw:clamp(dx*.0055/elapsed,-.0018,.0018),pitch:clamp(dy*.0055/elapsed,-.0018,.0018)}}
  viewChange();
 });
 function pointerEnd(e){
@@ -390,7 +390,7 @@ canvas.addEventListener("pointerup",pointerEnd);
 canvas.addEventListener("pointercancel",e=>{pointers.delete(e.pointerId);gesture=null;dragMoved=true;cameraVelocity={yaw:0,pitch:0};requestDraw()});
 canvas.addEventListener("lostpointercapture",e=>{pointers.delete(e.pointerId);gesture=null;requestDraw()});
 canvas.addEventListener("wheel",e=>{e.preventDefault();const c=startCamera();c.zoom=clamp(c.zoom*Math.exp(-clamp(e.deltaY,-100,100)*.002),.55,2.6);cameraVelocity={yaw:0,pitch:0};viewChange()},{passive:false});
-canvas.addEventListener("keydown",e=>{const c=startCamera();let handled=true;if(e.key==="ArrowLeft")c.yaw-=.1;else if(e.key==="ArrowRight")c.yaw+=.1;else if(e.key==="ArrowUp")c.pitch=clamp(c.pitch-.1,-1.45,1.45);else if(e.key==="ArrowDown")c.pitch=clamp(c.pitch+.1,-1.45,1.45);else if(e.key==="+")c.zoom=clamp(c.zoom+.1,.55,2.6);else if(e.key==="-")c.zoom=clamp(c.zoom-.1,.55,2.6);else if(e.key==="Home")resetView();else if(e.key===" "){pulseOn=!pulseOn;orbitOn=pulseOn}else handled=false;if(handled){e.preventDefault();viewChange()}});
+canvas.addEventListener("keydown",e=>{const c=startCamera();let handled=true;if(e.key==="ArrowLeft")c.yaw-=.1;else if(e.key==="ArrowRight")c.yaw+=.1;else if(e.key==="ArrowUp")c.pitch-=.1;else if(e.key==="ArrowDown")c.pitch+=.1;else if(e.key==="+")c.zoom=clamp(c.zoom+.1,.55,2.6);else if(e.key==="-")c.zoom=clamp(c.zoom-.1,.55,2.6);else if(e.key==="Home")resetView();else if(e.key===" "){pulseOn=!pulseOn;orbitOn=pulseOn}else handled=false;if(handled){e.preventDefault();viewChange()}});
 if(typeof ResizeObserver!=="undefined")new ResizeObserver(resize).observe(scene);else window.addEventListener("resize",resize);
 if(typeof IntersectionObserver!=="undefined")new IntersectionObserver(entries=>{inView=entries[0]?.isIntersecting!==false;lastFrame=null;if(inView)requestDraw()},{rootMargin:"60px"}).observe(scene);
 function svg(tag,attrs,text){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const [k,v]of Object.entries(attrs))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=String(text);return el}

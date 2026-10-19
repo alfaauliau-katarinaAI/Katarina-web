@@ -1,7 +1,12 @@
-import test from "node:test";
+import test,{beforeEach,afterEach} from "node:test";
 import assert from "node:assert/strict";
 import {onRequestGet} from "../functions/api/news-intelligence.js";
 const url="https://katarina-research.pages.dev/api/news-intelligence";
+// Feed-index tests need a fresh trusted feed, not a live network dependency.
+let originalFetch;
+beforeEach(()=>{originalFetch=globalThis.fetch;globalThis.fetch=async()=>new Response(`<rss><channel><item><title>Federal Reserve policy research fixture</title><link>https://www.cnbc.com/2026/10/20/policy-fixture.html</link><pubDate>${new Date().toUTCString()}</pubDate><description>Published policy research fixture.</description></item></channel></rss>`,{headers:{"Content-Type":"application/rss+xml"}})});
+afterEach(()=>{globalThis.fetch=originalFetch});
+
 test("one URL must match the current trusted feed index",async()=>{
  const bad=await onRequestGet({request:new Request(url+"?scope=dashboard&index=0"),env:{}});
  assert.equal(bad.status,409);
@@ -17,3 +22,4 @@ test("explicit unavailable/full-text response is never a fabricated verdict",asy
  const r=await onRequestGet({request:new Request(url+"?index=0&expected=https://example.invalid/x"),env:{}});
  assert.equal(r.status,409);
 });
+

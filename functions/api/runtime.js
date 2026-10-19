@@ -111,7 +111,7 @@ export async function onRequestGet(){
  const fail=(reason="UPSTREAM_UNAVAILABLE")=>new Response(JSON.stringify({status:"VPS_TELEMETRY_STALE_OR_MISSING",reason}),{status:503,headers});
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
  try{
-  const response=await fetch("https://katarina-ai-runtime.safetune5.chatgpt.site/public-status",{redirect:"error",cache:"no-store",headers:{Accept:"application/json","User-Agent":"Katarina-Runtime-Monitor/1.0"},signal:controller.signal,cf:{cacheTtl:0,cacheEverything:false}});
+  const response=await fetch("https://katarina-ai-runtime.safetune5.chatgpt.site/public-status",{redirect:"manual",cache:"no-store",headers:{Accept:"application/json","User-Agent":"Katarina-Runtime-Monitor/1.0"},signal:controller.signal,cf:{cacheTtl:0,cacheEverything:false}});
   if(!response.ok)return fail("UPSTREAM_HTTP_"+response.status);
   const reader=response.body.getReader(),decoder=new TextDecoder();let text="",size=0;
   while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>131072){await reader.cancel();return fail("UPSTREAM_TOO_LARGE")}text+=decoder.decode(value,{stream:true})}text+=decoder.decode();

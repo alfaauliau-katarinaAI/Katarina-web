@@ -109,14 +109,18 @@ function publicSnapshot(report,now){
 export async function onRequestGet(){
  const headers={"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
  const fail=(reason="UPSTREAM_UNAVAILABLE")=>new Response(JSON.stringify({status:"VPS_TELEMETRY_STALE_OR_MISSING",reason}),{status:503,headers});
+ let stage="FETCH";
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
  try{
-  const response=await fetch("https://katarina-ai-runtime.safetune5.chatgpt.site/public-status",{redirect:"manual",cache:"no-store",headers:{Accept:"application/json","User-Agent":"Katarina-Runtime-Monitor/1.0"},signal:controller.signal,cf:{cacheTtl:0,cacheEverything:false}});
+  const response=await fetch("https://katarina-ai-runtime.safetune5.chatgpt.site/public-status",{redirect:"manual",headers:{Accept:"application/json","Cache-Control":"no-cache","User-Agent":"Katarina-Runtime-Monitor/1.0"},signal:controller.signal,cf:{cacheTtl:0}});
   if(!response.ok)return fail("UPSTREAM_HTTP_"+response.status);
+  stage="READ";
   const reader=response.body.getReader(),decoder=new TextDecoder();let text="",size=0;
   while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>131072){await reader.cancel();return fail("UPSTREAM_TOO_LARGE")}text+=decoder.decode(value,{stream:true})}text+=decoder.decode();
+  stage="PARSE";
   const packet=JSON.parse(text),now=Date.now(),age=now-Date.parse(packet.captured_at_utc),b=packet.agent_board;
   if(!Number.isFinite(age)||age< -30000||age>20000||b?.delivery!=="DISABLED"||b?.live_execution_authorized!==false||b?.snapshot_process_matches!==true||b?.activity?.fresh!==true)return fail("UPSTREAM_NOT_CURRENT_OR_ATTESTED");
+  stage="SANITIZE";
   return new Response(JSON.stringify(publicSnapshot(packet,now)),{status:200,headers});
- }catch(e){return fail(e?.name==="AbortError"?"UPSTREAM_TIMEOUT":"UPSTREAM_REQUEST_FAILED")}finally{clearTimeout(timer)}
+ }catch(e){return fail(e?.name==="AbortError"?"UPSTREAM_TIMEOUT":"UPSTREAM_"+stage+"_FAILED")}finally{clearTimeout(timer)}
 }

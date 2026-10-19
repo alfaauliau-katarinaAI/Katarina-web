@@ -22,3 +22,13 @@ historical candidates that still require prospective testing. LIVE remains OFF.
 Website-native news, analysis, D1 and AI features remain separate sources; their
 existing status does not prove the private VPS engine is connected. The live
 runtime panel is the explicit source for VPS activity and experiment reports.
+
+## Touch scene revision — 20 October 2026, 05:55 WIB
+Remove the node dropdown and button toolbar entirely. Keep tap-to-inspect and
+keyboard operation. Replace visible process IDs with a verified connection label;
+internal PID checks still prevent mixing runtime snapshots. One finger rotates,
+two fingers pinch/translate, double tap resets, and release adds decaying inertia.
+Perspective depth and foreground lighting make the existing 3D data clearer.
+The old 30 ms frame gate is replaced by a requestAnimationFrame target up to
+120 Hz; this is not a measured guarantee of 120 fps on every device. Per-frame
+work state is shared across nodes and unchanged text avoids repeated DOM writes.

@@ -24,3 +24,13 @@
 
 /hot-news.json
   Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=300
+
+
+/katarina-live
+  Cache-Control: no-store
+
+/katarina-live.html
+  Cache-Control: no-store
+
+/api/runtime
+  Cache-Control: no-store

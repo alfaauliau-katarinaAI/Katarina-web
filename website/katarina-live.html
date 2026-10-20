@@ -90,7 +90,7 @@ canvas#network{touch-action:none;overscroll-behavior:contain;-webkit-tap-highlig
 <section class="panel architecture"><div class="panelhead"><h2>BAGIAN KERJA KATARINA</h2><span>SATU MESIN · ENAM FUNGSI</span></div><div class="architecture-line"></div><div class="lanes" id="lanes"><small class="inside">Menunggu status kapabilitas.</small></div></section>
 <section class="bottom"><article class="panel"><div class="panelhead"><h2>RIWAYAT PEKERJAAN / 24 TERBARU</h2><span>UTC</span></div><div class="tablewrap"><table><thead><tr><th>WAKTU</th><th>PEKERJAAN</th><th>STATUS</th><th>PENJELASAN</th></tr></thead><tbody id="events"></tbody></table></div></article><article class="panel"><div class="panelhead"><h2>KESEGARAN DATA</h2><div class="mob-tools"><button id="refresh">Perbarui</button><button id="auto" aria-pressed="true">Auto: ON</button></div></div><div class="audit"><div>SNAPSHOT <b id="snapshot-proof">BELUM DIPERIKSA</b></div><div id="blockers">Menunggu pemeriksaan sumber.</div><div>DATA DARI VPS / UTC <b id="timestamp">—</b></div><div>TAMPILAN <b>Jaringan aktivitas & memori Katarina</b></div><div>Node menunjukkan worker AI, sumber, eksperimen, dan memori tersimpan. Aktivasi neuron internal Gemini tidak tersedia melalui API. Hasil strategi diverifikasi terpisah.</div></div></article></section>
 
-<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · HD persisted growth / v24</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
+<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Elongated signal lights / v25</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
 <script>
 "use strict";
 if(typeof location!=="undefined"&&new URLSearchParams(location.search).has("embed"))document.body.classList.add("embedded");
@@ -321,6 +321,17 @@ function labelPlacement(x,y,text,boxes,priority=false){
  }
  return null;
 }
+function drawSignal(a,b,cx,cy,t,size,color,opacity){
+ // A thin capsule follows the curve tangent; its trail stays inside the edge.
+ const inv=1-t,x=inv*inv*a.x+2*inv*t*cx+t*t*b.x,y=inv*inv*a.y+2*inv*t*cy+t*t*b.y;
+ const dx=2*(inv*(cx-a.x)+t*(b.x-cx)),dy=2*(inv*(cy-a.y)+t*(b.y-cy)),speed=Math.hypot(dx,dy);
+ if(speed<.01||opacity<=0)return;
+ const tail=Math.max(0,t-Math.min(.22,18/speed)),back=1-tail;
+ ctx.save();ctx.globalAlpha=clamp(opacity,0,1);ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,size*.55);ctx.lineCap="round";
+ ctx.beginPath();ctx.moveTo(back*back*a.x+2*back*tail*cx+tail*tail*b.x,back*back*a.y+2*back*tail*cy+tail*tail*b.y);ctx.lineTo(x,y);ctx.stroke();
+ ctx.translate(x,y);ctx.rotate(Math.atan2(dy,dx));ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(0,0,size*2.7,size*.65,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#eff9ff";ctx.globalAlpha*=.85;ctx.beginPath();ctx.ellipse(size*.45,0,size*1.35,Math.max(.45,size*.25),0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
 function draw(now){
  raf=0;if(!ctx)return;
  const frameDelta=lastFrame===null?0:now-lastFrame;
@@ -351,21 +362,13 @@ function draw(now){
   ctx.globalAlpha=alpha*visualEdge.alpha*Math.min(a.alpha,b.alpha);ctx.strokeStyle=edge.color;ctx.lineWidth=focused?1.1:.7;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(cx,cy,b.x,b.y);ctx.stroke();
   const birth=nodeBirths.get(edge.b);
   if(growing&&birth&&edge.relation==="PRODUCED_BY_WORKER"&&now>=birth.at&&now-birth.at<4500){
-   const t=((now-birth.at)%1500)/1500,inv=1-t;
-   ctx.globalAlpha=1-(now-birth.at)/4500;ctx.fillStyle=edge.color;ctx.shadowColor=edge.color;ctx.shadowBlur=6;
-   ctx.beginPath();ctx.arc(inv*inv*a.x+2*inv*t*cx+t*t*b.x,inv*inv*a.y+2*inv*t*cy+t*t*b.y,2.8,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+   const t=((now-birth.at)%1500)/1500;drawSignal(a,b,cx,cy,t,2.1,edge.color,1-(now-birth.at)/4500);
   }
   if(edge.a==="core")for(const pulse of activePulses){if(edge.b!=="p:"+pulse.phase)continue;
-   const t=clamp((now-pulse.start)/1400,0,1),inv=1-t;
-   ctx.globalAlpha=(1-t)*.95;ctx.fillStyle=pulse.state==="FAILED"?colors.red:phaseColor(pulse.phase);
-   ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=6;ctx.beginPath();ctx.arc(inv*inv*a.x+2*inv*t*cx+t*t*b.x,inv*inv*a.y+2*inv*t*cy+t*t*b.y,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+   const t=clamp((now-pulse.start)/1400,0,1);drawSignal(a,b,cx,cy,t,2.6,pulse.state==="FAILED"?colors.red:phaseColor(pulse.phase),(1-t)*.95);
   }
-  if(working&&activeIds.has(edge.b)){
-   const t=(now/1500)%1,inv=1-t;
-   ctx.globalAlpha=.9;ctx.fillStyle=edge.color;ctx.beginPath();ctx.arc(inv*inv*a.x+2*inv*t*cx+t*t*b.x,inv*inv*a.y+2*inv*t*cy+t*t*b.y,2.5,0,Math.PI*2);ctx.fill();
-  }
-  if(pulsing&&pulseKeys.has(edge.key)){const t=clamp(elapsed/1900,0,1),inv=1-t,x=inv*inv*a.x+2*inv*t*cx+t*t*b.x,y=inv*inv*a.y+2*inv*t*cy+t*t*b.y;
-   ctx.globalAlpha=(1-t)*.95;ctx.fillStyle="#bdd4f2";ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill()}
+  if(working&&activeIds.has(edge.b))drawSignal(a,b,cx,cy,(now/1500)%1,1.9,edge.color,.9);
+  if(pulsing&&pulseKeys.has(edge.key)){const t=clamp(elapsed/1900,0,1);drawSignal(a,b,cx,cy,t,1.6,"#bdd4f2",(1-t)*.95)}
  }
  ctx.globalAlpha=1;
  const corePosition=pos.get("core");const labelBoxes=corePosition?[{left:corePosition.x-38,right:corePosition.x+38,top:corePosition.y+12,bottom:corePosition.y+32}]:[];

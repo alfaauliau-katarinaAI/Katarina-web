@@ -3,8 +3,8 @@ const require=createRequire(import.meta.url);
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync(new URL('../website/katarina-live.html',import.meta.url),'utf8');
 const script=html.match(/<script>([\s\S]*?)<\/script>/)[1].replace('resize();toggleAuto();','resize();');
-const elements=new Map(),arcs=[];
-const ctx=new Proxy({}, {get:(o,k)=>k in o?o[k]:(...args)=>{if(k==='arc')arcs.push(args)},set:(o,k,v)=>(o[k]=v,true)});
+const elements=new Map(),arcs=[],ellipses=[],rotations=[];
+const ctx=new Proxy({}, {get:(o,k)=>k in o?o[k]:(...args)=>{if(k==='arc')arcs.push(args);if(k==='ellipse')ellipses.push(args);if(k==='rotate')rotations.push(args[0])},set:(o,k,v)=>(o[k]=v,true)});
 function el(){return {children:[],style:{},dataset:{},value:'',textContent:'',getContext:()=>ctx,getBoundingClientRect:()=>({width:800,height:500,left:0,top:0}),append(...a){this.children.push(...a)},replaceChildren(...a){this.children=a},setAttribute(){},addEventListener(name,fn){this.handlers??={};this.handlers[name]=fn}}}
 const env={console,Date,Math,JSON,Map,Set,Array,Number,String,Boolean,Object,Error,performance:{now:()=>10000},document:{hidden:false,getElementById:id=>{if(!elements.has(id))elements.set(id,el());return elements.get(id)},createElement:el,createElementNS:el,addEventListener(){}},window:{matchMedia:()=>({matches:false}),addEventListener(){},devicePixelRatio:1},requestAnimationFrame:()=>1,setInterval:()=>1,clearInterval(){},setTimeout:()=>1,clearTimeout(){},AbortController,fetch:()=>Promise.reject(Error('disabled'))};
 assert(html.includes('class="live-status"'));assert(!/<div class="scene" id="scene"><div id="pulse-proof"/.test(html));
@@ -148,3 +148,11 @@ if(!document.getElementById('growth-storage').textContent.includes('7 berkas')||
 renderGrowth(null);if(!document.getElementById('growth-total').textContent.includes('belum terverifikasi'))throw Error('Stale inventory presented as live');
 renderScale=2.5;resize();if(canvas.width!==width*2.5||canvas.height!==height*2.5)throw Error('HD pixel density capped on mobile');
 `,env);
+
+ellipses.length=0;rotations.length=0;
+vm.runInContext(`drawSignal({x:0,y:0},{x:100,y:100},50,20,.5,2.5,"#00aaff",1);`,env);
+assert.equal(ellipses.length,2,'Moving signal must have capsule head and bright core');
+assert(ellipses[0][2]/ellipses[0][3]>4,'Moving light must be elongated');
+assert(Math.abs(rotations[0]-Math.PI/4)<.001,'Moving light must align with curve tangent');
+ellipses.length=0;vm.runInContext(`drawSignal({x:0,y:0},{x:100,y:0},50,0,.5,2.5,"#00aaff",0);`,env);
+assert.equal(ellipses.length,0,'Invisible/stale signal must not render a light');

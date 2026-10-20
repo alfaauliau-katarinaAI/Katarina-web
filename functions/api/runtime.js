@@ -51,6 +51,12 @@ function cleanLab(v,passed){
  const out={status:v.status,live_authorized:false,improvement_verified:false,independent_holdout:false,broker_fill_verified:false};
  for(const k of ["universe_count","scanned_count","history_symbols","history_bars","experiments","strategy_candidates"])out[k]=Number.isSafeInteger(v[k])&&v[k]>=0&&v[k]<=100000000?v[k]:null;
  out.worker_phases=(Array.isArray(v.worker_phases)?v.worker_phases:[]).filter(p=>["TEST_MOMENTUM_H4","TEST_MOMENTUM_H12","TEST_MOMENTUM_H24","TEST_REVERSION_H4","TEST_REVERSION_H12","TEST_REVERSION_H24","TEST_BREAKOUT_H4","TEST_BREAKOUT_H12","TEST_BREAKOUT_H24","VALIDATE","VALIDATE3","GEMINI","TEST_MOMENTUM","TEST_REVERSION","TEST_BREAKOUT"].includes(p)).slice(0,12);
+ const r=v.recovery;
+ if(r?.status==='ACTIVE_RECOVERY'&&iso(r.as_of_utc)&&Date.now()-Date.parse(r.as_of_utc)<=180000&&Date.now()-Date.parse(r.as_of_utc)>=-30000){
+  out.recovery={status:'ACTIVE_RECOVERY',as_of_utc:r.as_of_utc,live_authorized:false};
+  for(const k of ['missing','verified','attempts','inputs_ready'])out.recovery[k]=Number.isSafeInteger(r[k])&&r[k]>=0&&r[k]<=100000000?r[k]:null;
+  out.recovery.reasons={};for(const [k,n] of Object.entries(r.reasons||{}))if(['symbol_select_denied','invalid_symbol_or_quote','no_past_broker_bidask_quote','stale_market_tick','broker_tick_from_future','insufficient_past_only_closed_bars','insufficient_completed_bars_as_of_mt5_tick','insufficient_closed_M5','insufficient_closed_M15','insufficient_closed_H1','INPUTS_READY_AWAIT_OBSERVATION','SENSOR_READ_FAILED'].includes(k)&&Number.isSafeInteger(n)&&n>=0&&n<=1000)out.recovery.reasons[k]=n;
+ }
  out.results=[];
  for(const r of (Array.isArray(v.results)?v.results:[]).slice(0,6)){
   if(!["MOMENTUM","MEAN_REVERSION","BREAKOUT"].includes(r?.method)||!["BUY","SELL"].includes(r?.side))continue;

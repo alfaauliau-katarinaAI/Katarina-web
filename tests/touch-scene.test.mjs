@@ -107,3 +107,11 @@ if(laneActivity(boardNow,'ANALYST').length!==1||laneActivity(boardNow,'STRATEGY'
 if(laneActivity(boardNow,'EXEC').length)throw Error('Research lights execution lane');
 boardNow.snapshot_process_matches=false;if(laneActivity(boardNow,'STRATEGY').length)throw Error('Mismatched process lights lane');
 `,env);
+
+vm.runInContext(`
+const oldPoint={...organicPositions.get('p:TEST_BREAKOUT_H24')};
+const oldNode=graph.nodes.find(n=>n.id==='p:TEST_BREAKOUT_H24');
+const stableNodes=graph.nodes.map(n=>({...n}));stableNodes.push({id:'new:stable-test',kind:'document'});
+applyOrganicLayout(stableNodes,graph.edges);const afterPoint=organicPositions.get('p:TEST_BREAKOUT_H24');
+if(oldPoint.x!==afterPoint.x||oldPoint.y!==afterPoint.y||oldPoint.z!==afterPoint.z)throw Error('New results displace existing worker');
+`,env);

@@ -23,3 +23,9 @@ test('verified research and memory survive partial market data without declaring
  globalThis.fetch=async()=>Response.json(p);
  try{const r=await onRequestGet();assert.equal(r.status,200);const body=await r.text(),b=JSON.parse(body).agent_board;assert.equal(b.telemetry_verified,true);assert.equal(b.market_snapshot_verified,false);assert.equal(b.learning.memory_records_inserted,2);assert.equal(b.learning.improvement_verified,false);assert(!body.includes('PRIVATE_TOKEN'))}finally{globalThis.fetch=originalFetch}
 });
+
+test('recovery aggregates retain safe counts and reason codes only',async()=>{
+ const p=packet();p.agent_board.research_lab={status:'RUNNING',recovery:{status:'ACTIVE_RECOVERY',as_of_utc:p.captured_at_utc,missing:3,verified:2,attempts:7,inputs_ready:1,reasons:{no_past_broker_bidask_quote:3,PRIVATE_TOKEN:9},symbols:['PRIVATE_TOKEN']}};
+ globalThis.fetch=async()=>Response.json(p);
+ try{const r=await onRequestGet(),body=await r.text(),v=JSON.parse(body).agent_board.research_lab.recovery;assert.equal(v.missing,3);assert.equal(v.reasons.no_past_broker_bidask_quote,3);assert(!body.includes('PRIVATE_TOKEN'))}finally{globalThis.fetch=originalFetch}
+});

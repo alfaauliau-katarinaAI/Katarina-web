@@ -34,3 +34,5 @@ The old 30 ms frame gate is replaced by a requestAnimationFrame target up to
 work state is shared across nodes and unchanged text avoids repeated DOM writes.
 
 Process verification is separate from market completeness. The native live dashboard uses all active workers for lane lights; learning is a matched fresh VPS snapshot, not model training. Browser renders at native requestAnimationFrame cadence and displays actual render FPS. Internal Gemini neuron activations are unavailable. Market homepage preserved.
+
+Smooth recovery flow v22: stable incremental 3D layout, eased worker motion, 24 most recent event rows, recovery queue aggregates from the canonical VPS owner. Broker data recovery uses same-source subscription/ticks/candle warmups with bounded retries. No parallel MT5 owners, no fabricated quotes or live execution. Original market homepage unchanged.

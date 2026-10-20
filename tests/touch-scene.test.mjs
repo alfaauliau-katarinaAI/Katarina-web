@@ -99,3 +99,11 @@ const releasedPitch=cameraInput.pitch;advanceCamera(16);if(cameraInput.pitch<=re
 canvas.handlers.keydown({key:'ArrowDown',preventDefault(){}});if(cameraInput.pitch<=releasedPitch)throw Error('Keyboard clamps full rotation');
 for(const tilt of [-4*Math.PI,-Math.PI,-Math.PI/2,Math.PI/2,Math.PI,4*Math.PI]){pitch=tilt;for(const n of graph.nodes){const p=project(n);if(!Number.isFinite(p.x)||!Number.isFinite(p.y))throw Error('Projection invalid beyond poles')}}
 `,env);
+
+vm.runInContext(`
+lastFrame=40000;draw(40004.2);if(lastFrame!==40004.2)throw Error('Renderer artificially caps high refresh screens');
+boardNow={snapshot_process_matches:true,delivery:'DISABLED',activity:{fresh:true,current:{phase:'HEARTBEAT',at_utc:new Date().toISOString()},active:[{phase:'GEMINI',state:'STARTED',at_utc:new Date().toISOString()},{phase:'TEST_BREAKOUT_H24',state:'STARTED',at_utc:new Date().toISOString()},{phase:'VALIDATE3',state:'STARTED',at_utc:new Date().toISOString()}]}};graphFresh=true;
+if(laneActivity(boardNow,'ANALYST').length!==1||laneActivity(boardNow,'STRATEGY').length!==1||laneActivity(boardNow,'AUDIT').length!==1)throw Error('Concurrent lanes ignore worker evidence');
+if(laneActivity(boardNow,'EXEC').length)throw Error('Research lights execution lane');
+boardNow.snapshot_process_matches=false;if(laneActivity(boardNow,'STRATEGY').length)throw Error('Mismatched process lights lane');
+`,env);

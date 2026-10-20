@@ -87,6 +87,7 @@ function cleanEntries(value,passed,now){
 function publicSnapshot(report,now){
  const b=report?.agent_board;if(!b||typeof b!=="object")throw Error("invalid");
  const passed=b.result==="SNAPSHOT_PASS",off=b.delivery==="DISABLED",matched=b.snapshot_process_matches===true;
+ const trace=activity(b.activity,now),verified=b.telemetry_verified===true&&matched&&off&&trace.fresh&&trace.pid===integer(b.current_process_pid);
  const lanes=[
  ["SCAN",passed?"OBSERVED":"BLOCKED","Akuisisi informasi"],
  ["ANALYST",passed?"RESEARCH_OBSERVED":"NOT_ATTESTED","Analisis di engine privat"],
@@ -100,7 +101,9 @@ function publicSnapshot(report,now){
  result:passed?"SNAPSHOT_PASS":"BLOCKED",blockers:passed?[]:["SNAPSHOT_NOT_VERIFIED"],market_symbols:null,cycles:integer(b.cycles),successful_cycles:integer(b.successful_cycles),
  observed_at_utc:iso(b.observed_at_utc),delivery:off?"DISABLED":"UNVERIFIED",current_process_pid:integer(b.current_process_pid),snapshot_process_matches:matched,
  live_execution_authorized:false,broker_execution_verified:false,profit_verified:false,model:{configured:b.model?.configured===true,quality_verified:false,telemetry},
- operational:{},activity:activity(b.activity,now),learning:cleanLearning(b.learning,passed&&matched),
+ operational:{},telemetry_verified:verified,market_snapshot_verified:passed&&matched,
+ sensor_blockers:(Array.isArray(b.sensor_blockers)?b.sensor_blockers:[]).filter(x=>["MARKET_DATA_INCOMPLETE_OR_INCONSISTENT","UNEXPECTED_BACKGROUND_WORKERS","MARKET_TICK_MISSING_OR_STALE","OBSERVATION_MISSING_OR_STALE","OBSERVER_NOT_HEALTHY","OBSERVER_FAILURES_OR_MISSING_COUNTER","WAIT_FEEDBACK_INCOMPLETE_OR_INVALID"].includes(x)),
+ activity:trace,learning:cleanLearning(b.learning,(passed||verified)&&matched),
  research_reports:cleanReports(b.research_reports,matched&&off,now,integer(b.current_process_pid)),
  research_source_verified:b.research_source_verified===true&&matched&&off,research_lab:cleanLab(b.research_lab,matched&&off),research_graph:cleanResearch(b.research_source_verified===true&&matched&&off?b.research_graph:null),entries:cleanEntries(b.entries,passed&&matched,now),lanes,public_scope:"RESEARCH_GRAPH_AND_ENTRY_ONLY"},
  captured_at_utc:iso(report.captured_at_utc),transport:"VPS_SIGNED_TELEMETRY",view_mode:"PUBLIC_READONLY",dialog_available:false,delivery:off?"DISABLED":"UNVERIFIED"};

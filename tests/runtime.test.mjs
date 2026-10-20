@@ -17,3 +17,9 @@ test('stale, mismatched, execution-enabled and unavailable data fail closed',asy
 test('oversized upstream is rejected',async()=>{globalThis.fetch=async()=>new Response('x'.repeat(131073));try{assert.equal((await onRequestGet()).status,503)}finally{globalThis.fetch=originalFetch}});
 
 test('redirect responses are rejected without following another origin',async()=>{globalThis.fetch=async()=>new Response(null,{status:302,headers:{Location:'https://untrusted.invalid/'}});try{const r=await onRequestGet();assert.equal(r.status,503);assert.equal((await r.json()).reason,'UPSTREAM_HTTP_302')}finally{globalThis.fetch=originalFetch}});
+
+test('verified research and memory survive partial market data without declaring market verification',async()=>{
+ const p=packet();p.agent_board.result='BLOCKED';p.agent_board.telemetry_verified=true;p.agent_board.sensor_blockers=['MARKET_DATA_INCOMPLETE_OR_INCONSISTENT','PRIVATE_TOKEN'];p.agent_board.learning={status:'RESEARCH_REPORTED',observation_utc:p.captured_at_utc,memory_records_inserted:2,improvement_verified:true,secret:'PRIVATE_TOKEN'};
+ globalThis.fetch=async()=>Response.json(p);
+ try{const r=await onRequestGet();assert.equal(r.status,200);const body=await r.text(),b=JSON.parse(body).agent_board;assert.equal(b.telemetry_verified,true);assert.equal(b.market_snapshot_verified,false);assert.equal(b.learning.memory_records_inserted,2);assert.equal(b.learning.improvement_verified,false);assert(!body.includes('PRIVATE_TOKEN'))}finally{globalThis.fetch=originalFetch}
+});

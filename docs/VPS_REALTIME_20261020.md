@@ -32,3 +32,5 @@ Perspective depth and foreground lighting make the existing 3D data clearer.
 The old 30 ms frame gate is replaced by a requestAnimationFrame target up to
 120 Hz; this is not a measured guarantee of 120 fps on every device. Per-frame
 work state is shared across nodes and unchanged text avoids repeated DOM writes.
+
+Process verification is separate from market completeness. The native live dashboard uses all active workers for lane lights; learning is a matched fresh VPS snapshot, not model training. Browser renders at native requestAnimationFrame cadence and displays actual render FPS. Internal Gemini neuron activations are unavailable. Market homepage preserved.

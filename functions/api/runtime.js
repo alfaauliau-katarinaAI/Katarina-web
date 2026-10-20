@@ -90,6 +90,14 @@ function cleanEntries(value,passed,now){
  }
  return {status:"OBSERVED",positions,truncated:value.truncated===true,origin:"BROKER_BOOK_NOT_ATTRIBUTED_TO_KATARINA"};
 }
+function cleanGrowth(v,passed,now,pid){
+ if(!passed||v?.status!=='PERSISTED_RESEARCH_COUNTS'||v.pid!==pid||!iso(v.as_of_utc)||now-Date.parse(v.as_of_utc)>30000||now-Date.parse(v.as_of_utc)<-30000)return {status:'NOT_ATTESTED'};
+ const out={status:'PERSISTED_RESEARCH_COUNTS',pid,as_of_utc:v.as_of_utc,storage:'VPS_SQLITE_RECORDS',file_per_node:false,model_training_verified:false};
+ for(const k of ['total_nodes','experiments','datasets','instruments','documents','hypotheses','reports','total_files']){const n=v[k];if(!Number.isSafeInteger(n)||n<0||n>1000000000)return {status:'NOT_ATTESTED'};out[k]=n}
+ if(out.total_nodes!==out.experiments+out.datasets+out.instruments+out.documents)return {status:'NOT_ATTESTED'};
+ const l=v.latest;if(l&&/^[a-f0-9]{64}$/.test(l.record_id)&&iso(l.created_utc)&&['MOMENTUM','MEAN_REVERSION','BREAKOUT'].includes(l.method)&&['BUY','SELL'].includes(l.side)&&[4,12,24].includes(l.horizon))out.latest={record_id:l.record_id,created_utc:l.created_utc,method:l.method,side:l.side,horizon:l.horizon,status:['INSUFFICIENT_SAMPLES','REJECTED_IN_HISTORICAL_REVIEW','NEEDS_FORWARD_VALIDATION'].includes(l.status)?l.status:null};
+ return out;
+}
 function publicSnapshot(report,now){
  const b=report?.agent_board;if(!b||typeof b!=="object")throw Error("invalid");
  const passed=b.result==="SNAPSHOT_PASS",off=b.delivery==="DISABLED",matched=b.snapshot_process_matches===true;
@@ -110,6 +118,7 @@ function publicSnapshot(report,now){
  operational:{},telemetry_verified:verified,market_snapshot_verified:passed&&matched,
  sensor_blockers:(Array.isArray(b.sensor_blockers)?b.sensor_blockers:[]).filter(x=>["MARKET_DATA_INCOMPLETE_OR_INCONSISTENT","UNEXPECTED_BACKGROUND_WORKERS","MARKET_TICK_MISSING_OR_STALE","OBSERVATION_MISSING_OR_STALE","OBSERVER_NOT_HEALTHY","OBSERVER_FAILURES_OR_MISSING_COUNTER","WAIT_FEEDBACK_INCOMPLETE_OR_INVALID"].includes(x)),
  activity:trace,learning:cleanLearning(b.learning,(passed||verified)&&matched),
+ research_growth:cleanGrowth(b.research_growth,matched&&off,now,integer(b.current_process_pid)),
  research_reports:cleanReports(b.research_reports,matched&&off,now,integer(b.current_process_pid)),
  research_source_verified:b.research_source_verified===true&&matched&&off,research_lab:cleanLab(b.research_lab,matched&&off),research_graph:cleanResearch(b.research_source_verified===true&&matched&&off?b.research_graph:null),entries:cleanEntries(b.entries,passed&&matched,now),lanes,public_scope:"RESEARCH_GRAPH_AND_ENTRY_ONLY"},
  captured_at_utc:iso(report.captured_at_utc),transport:"VPS_SIGNED_TELEMETRY",view_mode:"PUBLIC_READONLY",dialog_available:false,delivery:off?"DISABLED":"UNVERIFIED"};

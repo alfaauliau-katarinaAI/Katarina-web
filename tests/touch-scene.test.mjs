@@ -137,3 +137,14 @@ if(!displayNodes.has('real:b'))throw Error('Removed node disappears abruptly');
 advanceDisplay(2000);if(displayNodes.has('real:b'))throw Error('Expired display node never leaves');
 invalidate('source expired');if(displayNodes.size||displayEdges.size||visualBridge())throw Error('Expired source leaves a live-looking bridge');
 `,env);
+
+vm.runInContext(`
+growthBaseline=null;growthDay=null;
+const inventory={status:'PERSISTED_RESEARCH_COUNTS',total_nodes:200,experiments:180,datasets:10,instruments:5,documents:5,hypotheses:2,reports:100,total_files:7};
+renderGrowth(inventory);if(!document.getElementById('growth-total').textContent.includes('200 → 200'))throw Error('Growth baseline is not real inventory');
+inventory.total_nodes=300;inventory.experiments=280;renderGrowth(inventory);
+if(!document.getElementById('growth-total').textContent.includes('200 → 300')||!document.getElementById('growth-total').textContent.includes('+100'))throw Error('Actual stored growth missing');
+if(!document.getElementById('growth-storage').textContent.includes('7 berkas')||!document.getElementById('growth-storage').textContent.includes('bukan file'))throw Error('Database records confused with new files');
+renderGrowth(null);if(!document.getElementById('growth-total').textContent.includes('belum terverifikasi'))throw Error('Stale inventory presented as live');
+renderScale=2.5;resize();if(canvas.width!==width*2.5||canvas.height!==height*2.5)throw Error('HD pixel density capped on mobile');
+`,env);

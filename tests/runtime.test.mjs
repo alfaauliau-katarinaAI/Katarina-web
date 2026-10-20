@@ -29,3 +29,9 @@ test('recovery aggregates retain safe counts and reason codes only',async()=>{
  globalThis.fetch=async()=>Response.json(p);
  try{const r=await onRequestGet(),body=await r.text(),v=JSON.parse(body).agent_board.research_lab.recovery;assert.equal(v.missing,3);assert.equal(v.reasons.no_past_broker_bidask_quote,3);assert(!body.includes('PRIVATE_TOKEN'))}finally{globalThis.fetch=originalFetch}
 });
+
+test('persisted growth preserves checked totals and proof without private payload',async()=>{
+ const p=packet();p.agent_board.research_growth={status:'PERSISTED_RESEARCH_COUNTS',pid:42,as_of_utc:p.captured_at_utc,total_nodes:200,experiments:180,datasets:10,instruments:5,documents:5,hypotheses:2,reports:100,total_files:7,secret:'PRIVATE_TOKEN',file_per_node:true,latest:{record_id:'a'.repeat(64),created_utc:p.captured_at_utc,method:'MOMENTUM',side:'BUY',horizon:4,status:'INSUFFICIENT_SAMPLES',symbol:'PRIVATE_TOKEN'}};
+ globalThis.fetch=async()=>Response.json(p);
+ try{let r=await onRequestGet(),text=await r.text(),g=JSON.parse(text).agent_board.research_growth;assert.equal(g.total_nodes,200);assert.equal(g.file_per_node,false);assert(!text.includes('PRIVATE_TOKEN'));p.agent_board.research_growth.total_nodes=300;r=await onRequestGet();assert.equal((await r.json()).agent_board.research_growth.status,'NOT_ATTESTED')}finally{globalThis.fetch=originalFetch}
+});

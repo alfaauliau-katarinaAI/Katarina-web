@@ -59,6 +59,14 @@ body{background:radial-gradient(ellipse at 50% 0,#102a4d60,transparent 55%),#040
 h1,h2,strong,b,.live-status strong{font-weight:400}.live-status .scene-overlay strong{font-size:11px}.katarina-logo{width:48px;height:48px}.panelhead h2{font-size:9px;letter-spacing:.08em}
 body.embedded .topbar,body.embedded .ticker,body.embedded .overview,body.embedded .rail,body.embedded .entry-lab,body.embedded .architecture,body.embedded .bottom,body.embedded .footer,body.embedded #research-report-panel,body.embedded .selectwrap,body.embedded .detail,body.embedded .shell>section.panel:not(.entry-lab){display:none!important}body.embedded .shell{padding:0;max-width:none}body.embedded .workspace{display:block}body.embedded .scene{height:430px}body.embedded .brain{border:0;border-radius:0}body.embedded .live-status{padding:8px 12px}body.embedded .scene-coordinates{padding:5px 12px}body.embedded .pulse-proof{min-height:0;font-size:10px}body.embedded .controls{padding:5px 10px}
 canvas#network{touch-action:none;overscroll-behavior:contain;-webkit-tap-highlight-color:transparent;cursor:grab}canvas#network:active{cursor:grabbing}
+
+/* Keep telemetry text updates from resizing the live canvas. */
+.live-status{height:138px;grid-template-rows:64px 36px;gap:8px;overflow:hidden}
+.live-status .scene-overlay{grid-template-rows:36px 18px;gap:4px}
+.live-status .scene-overlay strong,.pulse-proof{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:18px}
+.live-status .scene-overlay strong{font-size:11px}.live-status .scene-overlay span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pulse-proof{min-height:0!important;height:36px;font-size:10px}
+@media(max-width:600px){.live-status{height:134px;padding:10px 12px}}
 </style></head><body><main class="shell">
 <header class="topbar"><div class="brand"><img class="katarina-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiNjMmU4ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzOTg3ZWQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJNNDggNSA4MyAyNXY0Nkw0OCA5MSAxMyA3MVYyNVoiIGZpbGw9IiMwYTE4MmIiIHN0cm9rZT0iIzM3NzliYSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMzAgMjZ2NDRtMi0yMSAzMS0yM00zMiA0OGwzMyAyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2IpIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iMjYiIHI9IjQiIGZpbGw9IiNhOGRkZmYiLz48Y2lyY2xlIGN4PSI2NSIgY3k9IjcwIiByPSI0IiBmaWxsPSIjNjliNWZmIi8+PC9zdmc+" alt="Logo Katarina AI" width="76" height="76"></div><div class="topmeta"><span class="badge" id="overall">CONNECTING</span><span class="badge off" id="execution">LIVE / BELUM DIPERIKSA</span><div class="clock">JAKARTA / UTC+7<br><span id="clock">—</span></div></div></header>
 <div class="ticker"><span>MESIN <b id="engine">MENUNGGU VPS</b></span><span>PEKERJAAN <strong id="ticker-phase">—</strong></span><span>MODEL <strong id="ticker-model">BELUM DIPERIKSA</strong></span><span>ORDER <strong id="ticker-delivery">—</strong></span><span>AKSES <b>PUBLIK / TANPA TOKEN</b></span></div>
@@ -80,7 +88,7 @@ canvas#network{touch-action:none;overscroll-behavior:contain;-webkit-tap-highlig
 <section class="panel architecture"><div class="panelhead"><h2>BAGIAN KERJA KATARINA</h2><span>SATU MESIN · ENAM FUNGSI</span></div><div class="architecture-line"></div><div class="lanes" id="lanes"><small class="inside">Menunggu status kapabilitas.</small></div></section>
 <section class="bottom"><article class="panel"><div class="panelhead"><h2>RIWAYAT PEKERJAAN / 24 TERBARU</h2><span>UTC</span></div><div class="tablewrap"><table><thead><tr><th>WAKTU</th><th>PEKERJAAN</th><th>STATUS</th><th>PENJELASAN</th></tr></thead><tbody id="events"></tbody></table></div></article><article class="panel"><div class="panelhead"><h2>KESEGARAN DATA</h2><div class="mob-tools"><button id="refresh">Perbarui</button><button id="auto" aria-pressed="true">Auto: ON</button></div></div><div class="audit"><div>SNAPSHOT <b id="snapshot-proof">BELUM DIPERIKSA</b></div><div id="blockers">Menunggu pemeriksaan sumber.</div><div>DATA DARI VPS / UTC <b id="timestamp">—</b></div><div>TAMPILAN <b>Jaringan aktivitas & memori Katarina</b></div><div>Node menunjukkan worker AI, sumber, eksperimen, dan memori tersimpan. Aktivasi neuron internal Gemini tidak tersedia melalui API. Hasil strategi diverifikasi terpisah.</div></div></article></section>
 
-<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Smooth recovery flow / v22</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
+<footer class="footer"><span><strong>KATARINA AI / PEMANTAU RISET</strong> · Continuous visual bridge / v23</span><span>PUBLIC / RESEARCH + ENTRY ONLY · NO TICKS / CANDLES / ACCOUNT DATA · LIVE OFF</span></footer></main>
 <script>
 "use strict";
 if(typeof location!=="undefined"&&new URLSearchParams(location.search).has("embed"))document.body.classList.add("embedded");
@@ -190,6 +198,31 @@ function applyOrganicLayout(nodes,edges){
  if(organicPositions.size>4096){const visible=new Set(nodes.map(n=>n.id));for(const id of organicPositions.keys())if(!visible.has(id))organicPositions.delete(id)}
  organicKey=nodes.map(n=>n.id).join('|');
 }
+const displayNodes=new Map(),displayEdges=new Map();let displayScene={nodes:[],edges:[]};
+let renderScale=Math.min(window.devicePixelRatio||1,1.5),detailRenderAt=0,pendingDetails=null,detailsScheduled=false;
+function mergeDisplayGraph(nodes,edges){
+ const first=displayNodes.size===0,keep=new Set(nodes.map(n=>n.id)),keepEdges=new Set();
+ for(const n of nodes){let v=displayNodes.get(n.id);if(v){v.node=n;v.target={x:n.x,y:n.y,z:n.z};v.present=true}else{v={node:n,target:{x:n.x,y:n.y,z:n.z},x:n.x,y:n.y,z:n.z,alpha:first?1:0,present:true,seed:unit(n.id+'visual')*Math.PI*2};displayNodes.set(n.id,v)}}
+ for(const [id,v] of displayNodes)if(!keep.has(id))v.present=false;
+ for(const edge of edges){const key=edge.a+'|'+edge.b+'|'+(edge.relation||'');keepEdges.add(key);let v=displayEdges.get(key);if(v){v.edge=edge;v.present=true}else displayEdges.set(key,{edge,alpha:first?1:0,present:true})}
+ for(const [key,v] of displayEdges)if(!keepEdges.has(key))v.present=false;
+ displayScene={nodes:[...displayNodes.values()],edges:[...displayEdges.values()]};
+}
+function visualBridge(){return graphFresh&&lastCaptured>0&&lastReceipt>0&&Date.now()-lastReceipt<=120000&&boardNow?.snapshot_process_matches===true}
+function advanceDisplay(dt){
+ const ease=1-Math.exp(-Math.max(0,dt)/260),fade=1-Math.exp(-Math.max(0,dt)/220);let changed=false;
+ for(const [id,v] of displayNodes){v.x+=(v.target.x-v.x)*ease;v.y+=(v.target.y-v.y)*ease;v.z+=(v.target.z-v.z)*ease;v.alpha+=((v.present?1:0)-v.alpha)*fade;if(!v.present&&v.alpha<.015){displayNodes.delete(id);changed=true}}
+ for(const [key,v] of displayEdges){v.alpha+=((v.present?1:0)-v.alpha)*fade;if(!v.present&&v.alpha<.015){displayEdges.delete(key);changed=true}}
+ if(changed)displayScene={nodes:[...displayNodes.values()],edges:[...displayEdges.values()]};
+}
+function clearDisplay(){displayNodes.clear();displayEdges.clear();displayScene={nodes:[],edges:[]}}
+function scheduleDetails(b){
+ pendingDetails=b;if(detailsScheduled)return;
+ const now=performance.now();if(inView&&now-detailRenderAt<2200)return;
+ detailsScheduled=true;
+ const update=()=>{detailsScheduled=false;const latest=pendingDetails;if(!latest||latest!==boardNow)return;detailRenderAt=performance.now();renderLearning(latest.learning,latest);renderLab(latest.research_lab);renderResearchReports(latest.research_reports)};
+ if(typeof requestIdleCallback==='function')requestIdleCallback(update,{timeout:1400});else setTimeout(update,40);
+}
 function buildGraph(b,now){
  const nodes=[],edges=[],map=new Map(),events=Array.isArray(b.activity?.events)?b.activity.events:[],research=b.research_source_verified===true&&b.snapshot_process_matches===true?(b.research_graph||{nodes:[],edges:[]}):{nodes:[],edges:[]};
  const add=n=>{if(!map.has(n.id)){map.set(n.id,n);nodes.push(n)}return map.get(n.id)},positions=new Map(),parents=new Map();
@@ -212,7 +245,7 @@ function buildGraph(b,now){
  if(knownResearchIds.size>4096){const visible=new Set((research.nodes||[]).map(n=>n.id));for(const id of knownResearchIds)if(!visible.has(id))knownResearchIds.delete(id)}
  for(const [id,birth] of nodeBirths)if(performance.now()-birth.at>4500)nodeBirths.delete(id);
  applyOrganicLayout(nodes,edges);
- graph={nodes,edges};nodeMap=map;if(selected&&!map.has(selected))selected=null;
+ mergeDisplayGraph(nodes,edges);graph={nodes,edges};nodeMap=map;if(selected&&!map.has(selected))selected=null;
  put("node-count",(research.nodes||[]).length+" TITIK RISET / "+(research.edges||[]).length+" HUBUNGAN"+(research.truncated?" / TAMPILAN DIBATASI":""));
  $("empty-scene").hidden=nodes.length>0;$("empty-scene").style.display=nodes.length?"none":"grid";
  if(selected)selectNode(selected,false,false);requestDraw();
@@ -289,28 +322,31 @@ function labelPlacement(x,y,text,boxes,priority=false){
 function draw(now){
  raf=0;if(!ctx)return;
  const frameDelta=lastFrame===null?0:now-lastFrame;
- if(frameDelta>0&&frameDelta<250){fpsFrames++;fpsElapsed+=frameDelta;if(fpsElapsed>=750){put("render-fps",Math.round(fpsFrames*1000/fpsElapsed)+" FPS · render aktual");fpsFrames=0;fpsElapsed=0}}else{fpsFrames=0;fpsElapsed=0}
+ if(frameDelta>0&&frameDelta<250){fpsFrames++;fpsElapsed+=frameDelta;if(fpsElapsed>=750){put("render-fps",Math.round(fpsFrames*1000/fpsElapsed)+" FPS · render aktual");if(fpsFrames*1000/fpsElapsed<45&&renderScale>1){renderScale=Math.max(1,renderScale-.25);resize()}fpsFrames=0;fpsElapsed=0}}else{fpsFrames=0;fpsElapsed=0}
  const dt=clamp(frameDelta,0,70);lastFrame=now;
- const cameraMoving=advanceCamera(dt);
- const orbiting=orbitOn&&motionAllowed()&&processAlive()&&!document.hidden&&inView&&!pointers.size&&now>=interactionUntil;
+ const cameraMoving=advanceCamera(dt);advanceDisplay(dt);
+ const visualAnimating=motionAllowed()&&(processAlive()||visualBridge());
+ const orbiting=orbitOn&&visualAnimating&&!document.hidden&&inView&&!pointers.size&&now>=interactionUntil;
  if(orbiting){yaw+=dt*.000065;if(cameraInput)cameraInput.yaw+=dt*.000065;}
  ctx.clearRect(0,0,width,height);
  if(!graphFresh||!graph.nodes.length){put("pulse-proof","Tidak ada pulse: data proses tidak segar.");return;}
  const works=currentWorks(),work=works.at(-1)||null,working=works.length>0&&motionAllowed();
  frameMotion={now,allowed:motionAllowed(),alive:processAlive(),works};
- const pos=new Map(),view={cy:Math.cos(yaw),sy:Math.sin(yaw),cx:Math.cos(pitch),sx:Math.sin(pitch)};for(const n of graph.nodes){const p=project(n,view),m=nodeMotion(n,now);pos.set(n.id,{...p,x:p.x+m.x,y:p.y+m.y});}frameMotion=null;
+ const pos=new Map(),view={cy:Math.cos(yaw),sy:Math.sin(yaw),cx:Math.cos(pitch),sx:Math.sin(pitch)};
+ for(const v of displayScene.nodes){const n=v.node,ambient=visualAnimating&&n.id!=='core'?.004:0,p=project({x:v.x+Math.sin(now/1900+v.seed)*ambient,y:v.y+Math.cos(now/2300+v.seed)*ambient,z:v.z},view),m=nodeMotion(n,now);pos.set(n.id,{...p,x:p.x+m.x,y:p.y+m.y,alpha:v.alpha});}frameMotion=null;
  const activePulses=motionAllowed()?eventPulses.filter(e=>now>=e.start&&now-e.start<1800):[];
+ const activeIds=new Set(works.map(e=>'p:'+e.phase)),pulsesByPhase=new Map();for(const pulse of activePulses){if(!pulsesByPhase.has(pulse.phase))pulsesByPhase.set(pulse.phase,[]);const list=pulsesByPhase.get(pulse.phase);list.push(pulse);if(list.length>2)list.shift()}
  const growing=motionAllowed()&&processAlive()&&[...nodeBirths.values()].some(b=>now-b.at<4500);
  const queuedPulses=motionAllowed()&&eventPulses.some(e=>now<e.start+1800);
  const coreElapsed=now-corePulseAt,coreDuration=corePulseMode==="HEARTBEAT"?4800:2400,corePulsing=motionAllowed()&&processAlive()&&coreElapsed>=0&&coreElapsed<coreDuration;
  const replay=activePulses.at(-1);
  if(replay)put("pulse-proof","Jejak event #"+replay.seq+" · "+humanPhase(replay.phase)+" · terjadi "+utcTime(replay.source_utc)+" UTC");
- else put("pulse-proof",work?"Analisis aktif · "+humanPhase(work.phase):"Gerak ruang: proses hidup · warna: fungsi · pulse: kerja nyata · titik baru: hasil tersimpan");
+ else put("pulse-proof",Date.now()-lastReceipt>8000&&visualBridge()?"Menunggu pembaruan VPS · animasi visual berlanjut":work?"Aktivitas terakhir VPS · "+humanPhase(work.phase):"Animasi visual kontinu · pulse pekerjaan mengikuti data VPS");
  const elapsed=now-pulseAt,pulsing=motionAllowed()&&elapsed>=0&&elapsed<2600;
- for(const edge of graph.edges){const a=pos.get(edge.a),b=pos.get(edge.b);if(!a||!b)continue;
+ for(const visualEdge of displayScene.edges){const edge=visualEdge.edge,a=pos.get(edge.a),b=pos.get(edge.b);if(!a||!b)continue;
   const focused=selected&&(edge.a===selected||edge.b===selected),alpha=focused?.9:clamp(.22-(a.z+b.z)*.075,.045,.40);
   const dx=b.x-a.x,dy=b.y-a.y,bend=.065,cx=(a.x+b.x)/2-dy*bend,cy=(a.y+b.y)/2+dx*bend;
-  ctx.globalAlpha=alpha;ctx.strokeStyle=edge.color;ctx.lineWidth=focused?1.1:.55;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(cx,cy,b.x,b.y);ctx.stroke();
+  ctx.globalAlpha=alpha*visualEdge.alpha*Math.min(a.alpha,b.alpha);ctx.strokeStyle=edge.color;ctx.lineWidth=focused?1.1:.55;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(cx,cy,b.x,b.y);ctx.stroke();
   const birth=nodeBirths.get(edge.b);
   if(growing&&birth&&edge.relation==="PRODUCED_BY_WORKER"&&now>=birth.at&&now-birth.at<4500){
    const t=((now-birth.at)%1500)/1500,inv=1-t;
@@ -322,7 +358,7 @@ function draw(now){
    ctx.globalAlpha=(1-t)*.95;ctx.fillStyle=pulse.state==="FAILED"?colors.red:phaseColor(pulse.phase);
    ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(inv*inv*a.x+2*inv*t*cx+t*t*b.x,inv*inv*a.y+2*inv*t*cy+t*t*b.y,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
   }
-  if(working&&works.some(e=>edge.b==="p:"+e.phase)){
+  if(working&&activeIds.has(edge.b)){
    const t=(now/1500)%1,inv=1-t;
    ctx.globalAlpha=.9;ctx.fillStyle=edge.color;ctx.beginPath();ctx.arc(inv*inv*a.x+2*inv*t*cx+t*t*b.x,inv*inv*a.y+2*inv*t*cy+t*t*b.y,2.5,0,Math.PI*2);ctx.fill();
   }
@@ -331,8 +367,8 @@ function draw(now){
  }
  ctx.globalAlpha=1;
  const corePosition=pos.get("core");const labelBoxes=corePosition?[{left:corePosition.x-38,right:corePosition.x+38,top:corePosition.y+12,bottom:corePosition.y+32}]:[];
- projected=graph.nodes.map(n=>({...pos.get(n.id),node:n})).sort((a,b)=>a.node.id==="core"?1:b.node.id==="core"?-1:b.z-a.z);
- for(const p of projected){const n=p.node;ctx.globalAlpha=clamp(.62-p.z*.38,.17,1);ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.6,n.size*p.depth*.8),0,Math.PI*2);ctx.fill();
+ projected=displayScene.nodes.filter(v=>v.alpha>.02).map(v=>({...pos.get(v.node.id),node:v.node})).sort((a,b)=>a.node.id==="core"?1:b.node.id==="core"?-1:b.z-a.z);
+ for(const p of projected){const n=p.node;ctx.globalAlpha=clamp(.62-p.z*.38,.17,1)*p.alpha;ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.6,n.size*p.depth*.8),0,Math.PI*2);ctx.fill();
   if(n.id!=="core"&&n.size>=3&&p.z<.4){const radius=Math.max(.6,n.size*p.depth*.8);ctx.globalAlpha=clamp(.65-p.z*.3,.2,.85);ctx.fillStyle="#e4f4ff";ctx.beginPath();ctx.arc(p.x-radius*.23,p.y-radius*.28,Math.max(.55,radius*.26),0,Math.PI*2);ctx.fill()}
   if(n.id==="core"){
    const glow=corePulsing?(1-coreElapsed/coreDuration):0;
@@ -341,23 +377,23 @@ function draw(now){
    ctx.globalAlpha=.95;ctx.font="400 9px ui-monospace,monospace";ctx.textAlign="center";ctx.fillStyle="#b8e1ff";ctx.fillText("K",p.x,p.y+3);ctx.textAlign="left";
   }
   const birth=nodeBirths.get(n.id);if(growing&&birth&&now-birth.at<4500){const t=(now-birth.at)/4500;ctx.globalAlpha=1-t;ctx.strokeStyle=n.color;ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,4+t*13,0,Math.PI*2);ctx.stroke()}
-  for(const pulse of activePulses)if(n.id==="p:"+pulse.phase){const t=(now-pulse.start)/1800;ctx.globalAlpha=1-t;ctx.strokeStyle=pulse.state==="FAILED"?colors.red:phaseColor(pulse.phase);ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,8+t*22,0,Math.PI*2);ctx.stroke()}
-  if(works.some(e=>n.id==="p:"+e.phase)){
+  for(const pulse of pulsesByPhase.get(n.phase)||[]){const t=(now-pulse.start)/1800;ctx.globalAlpha=1-t;ctx.strokeStyle=pulse.state==="FAILED"?colors.red:phaseColor(pulse.phase);ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,8+t*22,0,Math.PI*2);ctx.stroke()}
+  if(activeIds.has(n.id)){
    ctx.globalAlpha=.95;ctx.strokeStyle=n.color;ctx.lineWidth=1.6;ctx.beginPath();
    const angle=working?(now/650)%(Math.PI*2):0;
    ctx.arc(p.x,p.y,9,angle,angle+Math.PI*1.4);ctx.stroke();
   }
   if(n.id===selected){ctx.globalAlpha=.9;ctx.strokeStyle="#ffffff";ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);ctx.stroke()}
-  if(n.id!=="core"&&((["source","topic"].includes(n.kind)&&p.z<.25)||n.id===selected||(workerPhases.includes(n.phase)&&p.z<.25)||works.some(e=>n.id==="p:"+e.phase))){
+  if(n.id!=="core"&&((["source","topic"].includes(n.kind)&&p.z<.25)||n.id===selected||(workerPhases.includes(n.phase)&&p.z<.25)||activeIds.has(n.id))){
    const text=humanNode(n),placement=labelPlacement(p.x,p.y,text,labelBoxes,n.id===selected);
    if(placement){ctx.globalAlpha=n.id===selected?1:.85;ctx.font=(n.id===selected?"11":"9")+"px ui-monospace,monospace";ctx.textAlign="left";ctx.fillText(text,placement.x,placement.y)}
   }
  }
- ctx.globalAlpha=1;if((pulsing||working||queuedPulses||corePulsing||orbiting||growing||cameraMoving)&&!document.hidden&&inView)requestDraw();
+ ctx.globalAlpha=1;if((visualAnimating||pulsing||working||queuedPulses||corePulsing||orbiting||growing||cameraMoving)&&!document.hidden&&inView)requestDraw();
 }
 function requestDraw(){if(!raf&&!document.hidden&&inView)raf=requestAnimationFrame(draw)}
 function holdCamera(){interactionUntil=performance.now()+1800}
-function resize(){const rect=scene.getBoundingClientRect();width=Math.max(1,rect.width);height=Math.max(1,rect.height);const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);if(ctx)ctx.setTransform(dpr,0,0,dpr,0,0);requestDraw()}
+function resize(){const rect=scene.getBoundingClientRect();width=Math.max(1,rect.width);height=Math.max(1,rect.height);const dpr=Math.min(renderScale,width<600?1.25:1.5);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);if(ctx)ctx.setTransform(dpr,0,0,dpr,0,0);requestDraw()}
 function selectNode(id,sync=true,user=true){if(user)holdCamera();selected=nodeMap.has(id)?id:null;const n=nodeMap.get(selected),box=$("selection");clear(box);
  box.append(element("b",n?(kindWords[n.kind]||"Catatan")+" / "+humanNode(n):"PROCESS TOPOLOGY / EVENT-DRIVEN"),element("span",n?(n.kind==="phase"?(phaseNotes[n.phase]||n.detail):n.detail.replace(n.kind,kindWords[n.kind]||"Catatan")):"Pilih titik untuk memeriksa bukti aktivitas dari VPS."));
  for(const btn of $("watch").children)if(btn.dataset.symbol)btn.setAttribute("aria-pressed",String(n?.symbol===btn.dataset.symbol||n?.label===btn.dataset.symbol));
@@ -479,7 +515,7 @@ function render(report){
  put("runtime-state",b.snapshot_process_matches===true?"Terhubung":"Belum terverifikasi");put("process-match",b.snapshot_process_matches===true?"VERIFIED":"BELUM TERVERIFIKASI");put("market-tick",utcStamp(report.captured_at_utc));put("model-proof",b.model?.configured===true?"CONFIGURED / QUALITY UNVERIFIED":"BELUM TERHUBUNG");
  put("snapshot-proof",valid?"Telemetri VPS terverifikasi":"Belum terverifikasi");put("timestamp",utcStamp(report.captured_at_utc));put("watch-count",research.nodes.filter(n=>n.kind==="document").length+" DOCUMENTS");
  const activeWorks=currentWorks();put("current-phase",activeWorks.length?activeWorks.length+" proses aktif · "+activeWorks.map(e=>humanPhase(e.phase)).join(" / "):activityFresh?humanPhase(current.phase):"Menunggu data baru");put("current-time",activityFresh?utcTime(current.at_utc)+" UTC · CYCLE "+b.activity.cycle:"Aktivitas tidak dianggap sedang berjalan");
- const changedPid=lastPid!==b.current_process_pid;if(changedPid){seen.clear();phaseMemory.clear();organicKey="";organicPositions.clear();motionOffsets.clear();watchSignature="";eventPulses=[];corePulseAt=-10000;firstSnapshot=true;lastPid=b.current_process_pid}
+ const changedPid=lastPid!==b.current_process_pid;if(changedPid){seen.clear();phaseMemory.clear();organicKey="";organicPositions.clear();clearDisplay();motionOffsets.clear();watchSignature="";eventPulses=[];corePulseAt=-10000;firstSnapshot=true;lastPid=b.current_process_pid}
  const unseen=events.filter(e=>!seen.has(eventKey(e,b.current_process_pid)));
  acceptPulseEvents(unseen,performance.now(),firstSnapshot);
  if(!firstSnapshot&&unseen.length){pulseKeys=new Set(unseen.map(e=>eventKey(e,b.current_process_pid)));pulseAt=performance.now()}
@@ -500,7 +536,7 @@ function render(report){
  clear($("events"));for(const e of events.slice(-24).reverse()){const tr=element("tr");for(const value of [utcTime(e.at_utc),humanPhase(e.phase),stateWords[e.state]||"Belum diketahui",phaseNotes[e.phase]||"Catatan proses dari VPS"])tr.append(element("td",value));$("events").append(tr)}
  clear($("lanes"));for(let i=0;i<laneNames.length;i++){const lane=b.lanes.find(x=>x.id===laneNames[i]);if(!lane)continue;const tasks=activityFresh?laneActivity(b,lane.id):[],active=tasks.length>0&&lane.id!=="EXEC",box=element("article",undefined,"lane"+(active?" active":""));box.append(element("div",laneIcons[i],"lane-icon"),element("b",laneWords[lane.id]||"Pemeriksaan"),element("span",active?tasks.length+" proses berjalan":lane.id==="EXEC"&&off?"LIVE OFF":"Tidak ada proses aktif","state"),element("small",lane.description));$("lanes").append(box)}
  }
- renderLearning(b.learning,b);renderLab(b.research_lab);renderResearchReports(b.research_reports);
+ scheduleDetails(b);
  put("blockers",b.market_snapshot_verified===true?"Data pasar lengkap dan segar.":b.sensor_blockers?.includes("MARKET_DATA_INCOMPLETE_OR_INCONSISTENT")?"Data pasar parsial: sebagian instrumen belum menerima data. Riset dari data tersimpan tetap berjalan.":"Kelengkapan data pasar belum terverifikasi; status proses VPS diperiksa terpisah.");
  $("connection").className="notice connected";put("notice","Terhubung ke data VPS · pembaruan terakhir "+utcTime(report.captured_at_utc)+" UTC.");updateActivityMessage();
  if(selected)selectNode(selected,true,false);
@@ -525,7 +561,7 @@ function renderLearning(l,b){
 function invalidate(message){
  eventPulses=[];corePulseAt=-10000;put("pulse-proof","Tidak ada pulse: menunggu event VPS terbaru.");
  renderLab(null);renderResearchReports(null);
- put("render-fps","FPS: menunggu data");renderLearning(null);put("engine-headline","Status mesin belum terverifikasi");put("engine-description","Menunggu data proses terbaru dari VPS.");put("engine-age","Data sebelumnya tidak ditampilkan.");networkSignature="";renderSignature="";lastFrame=null;graphFresh=false;watchSignature="";motionOffsets.clear();graph={nodes:[],edges:[]};nodeMap.clear();projected=[];pulseKeys.clear();selected=null;boardNow=null;lastCaptured=0;activityExpiry=0;lastReceipt=0;seen.clear();firstSnapshot=true;
+ put("render-fps","FPS: menunggu data");renderLearning(null);put("engine-headline","Status mesin belum terverifikasi");put("engine-description","Menunggu data proses terbaru dari VPS.");put("engine-age","Data sebelumnya tidak ditampilkan.");networkSignature="";renderSignature="";lastFrame=null;graphFresh=false;clearDisplay();pendingDetails=null;watchSignature="";motionOffsets.clear();graph={nodes:[],edges:[]};nodeMap.clear();projected=[];pulseKeys.clear();selected=null;boardNow=null;lastCaptured=0;activityExpiry=0;lastReceipt=0;seen.clear();firstSnapshot=true;
  for(const id of ["symbols","cycles","successful","model-calls","runtime-state","market-tick","watch-count","event-total","last-event","timestamp"])put(id,"—");
  for(const id of ["overall","execution","process-match","model-proof","delivery-proof","live-proof","snapshot-proof"])put(id,"BELUM TERVERIFIKASI");
  put("engine","DATA UNAVAILABLE");put("ticker-phase","NO FRESH EVENT");put("ticker-model","UNVERIFIED");put("ticker-delivery","UNVERIFIED");put("observer-state","WAITING");put("node-count","WAITING FOR DATA");put("current-phase","MENUNGGU VPS");put("current-time","Aktivitas tidak terverifikasi");

@@ -115,3 +115,25 @@ const stableNodes=graph.nodes.map(n=>({...n}));stableNodes.push({id:'new:stable-
 applyOrganicLayout(stableNodes,graph.edges);const afterPoint=organicPositions.get('p:TEST_BREAKOUT_H24');
 if(oldPoint.x!==afterPoint.x||oldPoint.y!==afterPoint.y||oldPoint.z!==afterPoint.z)throw Error('New results displace existing worker');
 `,env);
+
+vm.runInContext(`
+// A quiet telemetry interval must not freeze the visual clock or invent work.
+pointers.clear();cameraInput=null;cameraVelocity={yaw:0,pitch:0};interactionUntil=0;
+lastCaptured=Date.now()-20000;lastReceipt=Date.now()-10000;graphFresh=true;
+boardNow={snapshot_process_matches:true,delivery:'DISABLED',activity:{fresh:true,current:{phase:'HEARTBEAT',state:'IDLE',at_utc:new Date(Date.now()-30000).toISOString()},active:[],events:[]},research_source_verified:false,research_lab:{worker_phases:workerPhases}};
+buildGraph(boardNow,Date.now());eventPulses=[];corePulseAt=-10000;orbitOn=true;pulseOn=true;
+if(processAlive()||!visualBridge())throw Error('Test requires an idle visual bridge');
+const sourceStamp=lastCaptured,bridgeYaw=yaw;lastFrame=50000;draw(50016);draw(50032);
+if(yaw===bridgeYaw||!raf)throw Error('Visual rendering stops between telemetry packets');
+if(eventPulses.length||corePulseAt!==-10000||currentWorks().length||lastCaptured!==sourceStamp)throw Error('Visual bridge fabricates activity or source freshness');
+// Snapshot arrival changes targets, while visible positions and opacity ease into them.
+clearDisplay();mergeDisplayGraph([{id:'real:a',x:0,y:0,z:0,kind:'document'}],[]);
+mergeDisplayGraph([{id:'real:a',x:1,y:0,z:0,kind:'document'},{id:'real:b',x:0,y:1,z:0,kind:'document'}],[{a:'real:a',b:'real:b'}]);
+if(displayNodes.get('real:a').x!==0||displayNodes.get('real:b').alpha!==0)throw Error('New snapshot teleports the display');
+advanceDisplay(16);const visibleX=displayNodes.get('real:a').x;
+if(visibleX<=0||visibleX>=1||displayNodes.get('real:b').alpha<=0||displayNodes.get('real:b').alpha>=1)throw Error('Snapshot transition is not interpolated');
+mergeDisplayGraph([{id:'real:a',x:1,y:0,z:0,kind:'document'}],[]);advanceDisplay(16);
+if(!displayNodes.has('real:b'))throw Error('Removed node disappears abruptly');
+advanceDisplay(2000);if(displayNodes.has('real:b'))throw Error('Expired display node never leaves');
+invalidate('source expired');if(displayNodes.size||displayEdges.size||visualBridge())throw Error('Expired source leaves a live-looking bridge');
+`,env);
